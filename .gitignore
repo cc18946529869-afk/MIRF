@@ -1,0 +1,19 @@
+# GitHub rejects files over 100MB. Weights stay on this machine.
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Upstream datasets, not this project's source or experiment notes.
+/proteingym_v0.1_split/
+/Mu-Protein/mu-search/src/flexs/flexs/landscapes/data/
+
+# Local editor state.
+/.cursor/
+
+# Python caches.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.ipynb_checkpoints/

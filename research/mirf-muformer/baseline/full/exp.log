@@ -1,0 +1,177 @@
+[2026-11-03 12:02:53] Pretrained: 	 [pretrained/pmlm_650m.pt]
+[2026-11-03 12:02:54] dictionary: 26 types
+[2026-11-03 12:02:54] Namespace(no_progress_bar=False, log_interval=5, log_format='simple', tensorboard_logdir='//pt8eede67676f48198936f914633315d7f/users/lihe/prot-emb/ur50-pcomb-prot_pmlm_1b-3x16-5/pt-results/prot-emb-249dbcde-ur50-pcomb-prot_pmlm_1b-3x16-5-ur50-pcomb-dist-c75dc964/logs/0', seed=1, cpu=False, tpu=False, bf16=False, memory_efficient_bf16=False, fp16=True, memory_efficient_fp16=False, fp16_no_flatten_grads=False, fp16_init_scale=128, fp16_scale_window=None, fp16_scale_tolerance=0.0, min_loss_scale=0.0001, threshold_loss_scale=None, user_dir='/tmp/code/script/distributed/../../src/protein', empty_cache_freq=0, all_gather_list_size=16384, model_parallel_size=1, checkpoint_suffix='', checkpoint_shard_count=1, quantization_config_path=None, profile=False, criterion='prot_pmlm', tokenizer=None, bpe=None, optimizer='adam', lr_scheduler='polynomial_decay', scoring='bleu', task='prot_pmlm', num_workers=0, skip_invalid_size_inputs_valid_test=True, max_tokens=768, batch_size=None, required_batch_size_multiple=8, required_seq_len_multiple=1, dataset_impl=None, data_buffer_size=10, train_subset='train', valid_subset='valid', validate_interval=1, validate_interval_updates=0, validate_after_updates=0, fixed_validation_seed=None, disable_validation=False, max_tokens_valid=768, batch_size_valid=None, curriculum=0, gen_subset='test', num_shards=1, shard_id=0, distributed_world_size=48, distributed_rank=0, distributed_backend='nccl', distributed_init_method='env://', distributed_port=-1, device_id=0, distributed_no_spawn=True, ddp_backend='no_c10d', bucket_cap_mb=25, fix_batches_to_gpus=True, find_unused_parameters=False, fast_stat_sync=False, broadcast_buffers=False, distributed_wrapper='DDP', slowmo_momentum=None, slowmo_algorithm='LocalSGD', localsgd_frequency=3, nprocs_per_node=16, pipeline_model_parallel=False, pipeline_balance=None, pipeline_devices=None, pipeline_chunks=0, pipeline_encoder_balance=None, pipeline_encoder_devices=None, pipeline_decoder_balance=None, pipeline_decoder_devices=None, pipeline_checkpoint='never', zero_sharding='none', arch='prot_pmlm_1b', max_epoch=1000, max_update=0, stop_time_hours=0, clip_norm=1.0, sentence_avg=False, update_freq=[16], lr=[0.0001], min_lr=-1.0, use_bmuf=False, save_dir='/mnt/data/users/lihe/prot-emb/ur50-pcomb-prot_pmlm_1b-3x16-ckpt/', restore_file='checkpoint_last.pt', finetune_from_model=None, reset_dataloader=False, reset_lr_scheduler=False, reset_meters=False, reset_optimizer=False, optimizer_overrides='{}', save_interval=1, save_interval_updates=0, keep_interval_updates=-1, keep_last_epochs=-1, keep_best_checkpoints=-1, no_save=False, no_epoch_checkpoints=False, no_last_checkpoints=False, no_save_optimizer_state=False, best_checkpoint_metric='loss', maximize_best_checkpoint_metric=False, patience=-1, pooler_dropout=0.0, pretrained_file=None, label_padding=-1, adam_betas='(0.9,0.98)', adam_eps=1e-06, weight_decay=0.01, use_old_adam=False, force_anneal=None, warmup_updates=20000, end_learning_rate=0.0, power=1.0, total_num_update=2000000, data='/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/mu-former/src/protein/', sample_break_mode='eos', tokens_per_sample=512, mask_prob=0.15, leave_unmasked_prob=0.1, random_token_prob=0.1, freq_weighted_replacement=False, mask_whole_words=False, shorten_method='none', shorten_data_split_list='', init_token=None, separator_token=None, no_shuffle=False, add_prev_output_tokens=False, pretrain_task='pcomb', dropout=0.1, max_positions=512, no_seed_provided=False, encoder_embed_dim=1280, encoder_layers=34, encoder_attention_heads=20, encoder_ffn_embed_dim=5120, attention_dropout=0.1, act_dropout=0.0, share_encoder_input_output_embed=False, encoder_learned_pos=False, no_token_positional_embeddings=False, num_segment=2, sentence_class_num=2, sent_loss=False, apply_bert_init=False, activation_fn='relu', pooler_activation_fn='tanh', encoder_normalize_before=False, max_source_positions=512, max_target_positions=512)
+[2026-11-03 12:03:00] # vocab_size: 27
+[2026-11-03 12:03:00] Random seed: 	 [42]
+[2026-11-03 12:03:00] Label column: 	 []
+[2026-11-03 12:03:00] Train data:  	 [data/dms/BLAT_ECOLX_Stiffler_2015/BLAT_ECOLX_Stiffler_2015_train.tsv]
+[2026-11-03 12:03:00] Device: 		 [cuda]
+[2026-11-03 12:03:00] Encoder LR:  	 [1e-05]
+[2026-11-03 12:03:00] Decoder LR:  	 [0.0001]
+[2026-11-03 12:03:00] Wei. Decay:  	 [0.0]
+[2026-11-03 12:03:00] Hidden size: 	 [256]
+[2026-11-03 12:03:00] Dropout: 		 [0.2]
+[2026-11-03 12:03:00] Decoder: 		 [siamese]
+[2026-11-03 12:03:00] Vocab size: 	 [27]
+[2026-11-03 12:03:03] #Warmup Epochs 	 [10]
+[2026-11-03 12:03:03] Eval metric 	 [corr]
+[2026-11-03 12:03:03] Batch size 	 [16]
+[2026-11-03 12:03:03] #Train_batches 	 [3497]
+[2026-11-03 12:03:03] #Valid_batches 	 [500]
+[2026-11-03 12:12:01] E: 1/300 | train loss: 1.1312 | valid loss: 1.0378 | valid corr: 0.7222 | best valid corr: 0.7222 | 537.5 s/epoch
+[2026-11-03 12:21:01] E: 2/300 | train loss: 1.0481 | valid loss: 1.0364 | valid corr: 0.7816 | best valid corr: 0.7816 | 539.8 s/epoch
+[2026-11-03 12:30:01] E: 3/300 | train loss: 1.0517 | valid loss: 1.0433 | valid corr: 0.8063 | best valid corr: 0.8063 | 540.1 s/epoch
+[2026-11-03 12:39:01] E: 4/300 | train loss: 1.0486 | valid loss: 1.0400 | valid corr: 0.7670 | best valid corr: 0.8063 | 539.9 s/epoch
+[2026-11-03 12:48:01] E: 5/300 | train loss: 1.0331 | valid loss: 0.9863 | valid corr: 0.6467 | best valid corr: 0.8063 | 539.9 s/epoch
+[2026-11-03 12:57:01] E: 6/300 | train loss: 1.0099 | valid loss: 1.0314 | valid corr: 0.7092 | best valid corr: 0.8063 | 540.2 s/epoch
+[2026-11-03 13:06:01] E: 7/300 | train loss: 1.0481 | valid loss: 0.9727 | valid corr: 0.5293 | best valid corr: 0.8063 | 539.8 s/epoch
+[2026-11-03 13:15:00] E: 8/300 | train loss: 0.9357 | valid loss: 0.9007 | valid corr: 0.5658 | best valid corr: 0.8063 | 539.8 s/epoch
+[2026-11-03 13:24:01] E: 9/300 | train loss: 0.7034 | valid loss: 0.5012 | valid corr: 0.7510 | best valid corr: 0.8063 | 540.1 s/epoch
+[2026-11-03 13:33:01] E: 10/300 | train loss: 0.4502 | valid loss: 0.4255 | valid corr: 0.8329 | best valid corr: 0.8329 | 540.1 s/epoch
+[2026-11-03 13:42:01] E: 11/300 | train loss: 0.3761 | valid loss: 0.3525 | valid corr: 0.8554 | best valid corr: 0.8554 | 540.1 s/epoch
+[2026-11-03 13:51:01] E: 12/300 | train loss: 0.3099 | valid loss: 0.3486 | valid corr: 0.8776 | best valid corr: 0.8776 | 539.9 s/epoch
+[2026-11-03 13:59:59] E: 13/300 | train loss: 0.2687 | valid loss: 0.3681 | valid corr: 0.8667 | best valid corr: 0.8776 | 538.6 s/epoch
+[2026-11-03 14:08:58] E: 14/300 | train loss: 0.2621 | valid loss: 0.3316 | valid corr: 0.8745 | best valid corr: 0.8776 | 539.0 s/epoch
+[2026-11-03 14:17:57] E: 15/300 | train loss: 0.2450 | valid loss: 0.3392 | valid corr: 0.8798 | best valid corr: 0.8798 | 538.4 s/epoch
+[2026-11-03 14:26:56] E: 16/300 | train loss: 0.2279 | valid loss: 0.3324 | valid corr: 0.8779 | best valid corr: 0.8798 | 539.8 s/epoch
+[2026-11-03 14:35:57] E: 17/300 | train loss: 0.2183 | valid loss: 0.3320 | valid corr: 0.8789 | best valid corr: 0.8798 | 540.0 s/epoch
+[2026-11-03 14:44:57] E: 18/300 | train loss: 0.2007 | valid loss: 0.3375 | valid corr: 0.8803 | best valid corr: 0.8803 | 540.1 s/epoch
+[2026-11-03 14:53:57] E: 19/300 | train loss: 0.1884 | valid loss: 0.3208 | valid corr: 0.8883 | best valid corr: 0.8883 | 539.9 s/epoch
+[2026-11-03 15:02:56] E: 20/300 | train loss: 0.1828 | valid loss: 0.3158 | valid corr: 0.8825 | best valid corr: 0.8883 | 539.8 s/epoch
+[2026-11-03 15:11:56] E: 21/300 | train loss: 0.1721 | valid loss: 0.3110 | valid corr: 0.8989 | best valid corr: 0.8989 | 539.9 s/epoch
+[2026-11-03 15:20:56] E: 22/300 | train loss: 0.1643 | valid loss: 0.3152 | valid corr: 0.8925 | best valid corr: 0.8989 | 539.8 s/epoch
+[2026-11-03 15:29:56] E: 23/300 | train loss: 0.1601 | valid loss: 0.3222 | valid corr: 0.8915 | best valid corr: 0.8989 | 539.7 s/epoch
+[2026-11-03 15:38:56] E: 24/300 | train loss: 0.1543 | valid loss: 0.3157 | valid corr: 0.8934 | best valid corr: 0.8989 | 539.8 s/epoch
+[2026-11-03 15:47:55] E: 25/300 | train loss: 0.1458 | valid loss: 0.3200 | valid corr: 0.8962 | best valid corr: 0.8989 | 539.8 s/epoch
+[2026-11-03 15:56:55] E: 26/300 | train loss: 0.1446 | valid loss: 0.3129 | valid corr: 0.8939 | best valid corr: 0.8989 | 539.8 s/epoch
+[2026-11-03 16:05:55] E: 27/300 | train loss: 0.1380 | valid loss: 0.3167 | valid corr: 0.8973 | best valid corr: 0.8989 | 539.9 s/epoch
+[2026-11-03 16:14:55] E: 28/300 | train loss: 0.1318 | valid loss: 0.3068 | valid corr: 0.9024 | best valid corr: 0.9024 | 540.0 s/epoch
+[2026-11-03 16:23:55] E: 29/300 | train loss: 0.1275 | valid loss: 0.3211 | valid corr: 0.8969 | best valid corr: 0.9024 | 539.6 s/epoch
+[2026-11-03 16:32:55] E: 30/300 | train loss: 0.1287 | valid loss: 0.3235 | valid corr: 0.9026 | best valid corr: 0.9026 | 540.0 s/epoch
+[2026-11-03 16:41:55] E: 31/300 | train loss: 0.1236 | valid loss: 0.3201 | valid corr: 0.8981 | best valid corr: 0.9026 | 539.9 s/epoch
+[2026-11-03 16:50:55] E: 32/300 | train loss: 0.1229 | valid loss: 0.3026 | valid corr: 0.8976 | best valid corr: 0.9026 | 540.0 s/epoch
+[2026-11-03 16:59:55] E: 33/300 | train loss: 0.1179 | valid loss: 0.3005 | valid corr: 0.8998 | best valid corr: 0.9026 | 540.0 s/epoch
+[2026-11-03 17:08:54] E: 34/300 | train loss: 0.1126 | valid loss: 0.3018 | valid corr: 0.8981 | best valid corr: 0.9026 | 539.9 s/epoch
+[2026-11-03 17:17:54] E: 35/300 | train loss: 0.1125 | valid loss: 0.2943 | valid corr: 0.9013 | best valid corr: 0.9026 | 539.8 s/epoch
+[2026-11-03 17:26:54] E: 36/300 | train loss: 0.1102 | valid loss: 0.3099 | valid corr: 0.9015 | best valid corr: 0.9026 | 540.0 s/epoch
+[2026-11-03 17:35:54] E: 37/300 | train loss: 0.1072 | valid loss: 0.2986 | valid corr: 0.9011 | best valid corr: 0.9026 | 539.9 s/epoch
+[2026-11-03 17:44:54] E: 38/300 | train loss: 0.1071 | valid loss: 0.3083 | valid corr: 0.9007 | best valid corr: 0.9026 | 539.7 s/epoch
+[2026-11-03 17:53:54] E: 39/300 | train loss: 0.1043 | valid loss: 0.3043 | valid corr: 0.8987 | best valid corr: 0.9026 | 539.7 s/epoch
+[2026-11-03 18:02:54] E: 40/300 | train loss: 0.1024 | valid loss: 0.2950 | valid corr: 0.9027 | best valid corr: 0.9027 | 539.8 s/epoch
+[2026-11-03 18:11:53] E: 41/300 | train loss: 0.0993 | valid loss: 0.3120 | valid corr: 0.9006 | best valid corr: 0.9027 | 539.8 s/epoch
+[2026-11-03 18:20:53] E: 42/300 | train loss: 0.1004 | valid loss: 0.3092 | valid corr: 0.9024 | best valid corr: 0.9027 | 539.8 s/epoch
+[2026-11-03 18:29:53] E: 43/300 | train loss: 0.0971 | valid loss: 0.3026 | valid corr: 0.9016 | best valid corr: 0.9027 | 539.7 s/epoch
+[2026-11-03 18:38:53] E: 44/300 | train loss: 0.0952 | valid loss: 0.3032 | valid corr: 0.9005 | best valid corr: 0.9027 | 539.7 s/epoch
+[2026-11-03 18:47:52] E: 45/300 | train loss: 0.0949 | valid loss: 0.3023 | valid corr: 0.9030 | best valid corr: 0.9030 | 539.9 s/epoch
+[2026-11-03 18:56:52] E: 46/300 | train loss: 0.0916 | valid loss: 0.3064 | valid corr: 0.9022 | best valid corr: 0.9030 | 539.9 s/epoch
+[2026-11-03 19:05:52] E: 47/300 | train loss: 0.0931 | valid loss: 0.2975 | valid corr: 0.9023 | best valid corr: 0.9030 | 539.8 s/epoch
+[2026-11-03 19:14:52] E: 48/300 | train loss: 0.0910 | valid loss: 0.3032 | valid corr: 0.9008 | best valid corr: 0.9030 | 539.9 s/epoch
+[2026-11-03 19:23:52] E: 49/300 | train loss: 0.0881 | valid loss: 0.2850 | valid corr: 0.9037 | best valid corr: 0.9037 | 540.2 s/epoch
+[2026-11-03 19:32:52] E: 50/300 | train loss: 0.0894 | valid loss: 0.3157 | valid corr: 0.9007 | best valid corr: 0.9037 | 540.0 s/epoch
+[2026-11-03 19:41:52] E: 51/300 | train loss: 0.0888 | valid loss: 0.2976 | valid corr: 0.9002 | best valid corr: 0.9037 | 540.0 s/epoch
+[2026-11-03 19:50:52] E: 52/300 | train loss: 0.0835 | valid loss: 0.3016 | valid corr: 0.9021 | best valid corr: 0.9037 | 540.0 s/epoch
+[2026-11-03 19:59:52] E: 53/300 | train loss: 0.0845 | valid loss: 0.2982 | valid corr: 0.9024 | best valid corr: 0.9037 | 539.8 s/epoch
+[2026-11-03 20:08:52] E: 54/300 | train loss: 0.0855 | valid loss: 0.2935 | valid corr: 0.9045 | best valid corr: 0.9045 | 539.9 s/epoch
+[2026-11-03 20:17:52] E: 55/300 | train loss: 0.0835 | valid loss: 0.3046 | valid corr: 0.9016 | best valid corr: 0.9045 | 539.8 s/epoch
+[2026-11-03 20:26:52] E: 56/300 | train loss: 0.0815 | valid loss: 0.3042 | valid corr: 0.9017 | best valid corr: 0.9045 | 539.8 s/epoch
+[2026-11-03 20:35:51] E: 57/300 | train loss: 0.0806 | valid loss: 0.3006 | valid corr: 0.9038 | best valid corr: 0.9045 | 539.8 s/epoch
+[2026-11-03 20:44:51] E: 58/300 | train loss: 0.0800 | valid loss: 0.2987 | valid corr: 0.9038 | best valid corr: 0.9045 | 539.8 s/epoch
+[2026-11-03 20:53:52] E: 59/300 | train loss: 0.0772 | valid loss: 0.2995 | valid corr: 0.9060 | best valid corr: 0.9060 | 540.3 s/epoch
+[2026-11-03 21:02:51] E: 60/300 | train loss: 0.0780 | valid loss: 0.3038 | valid corr: 0.9057 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 21:11:51] E: 61/300 | train loss: 0.0770 | valid loss: 0.3006 | valid corr: 0.9059 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 21:20:51] E: 62/300 | train loss: 0.0762 | valid loss: 0.3053 | valid corr: 0.9026 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 21:29:51] E: 63/300 | train loss: 0.0769 | valid loss: 0.2938 | valid corr: 0.9039 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 21:38:51] E: 64/300 | train loss: 0.0743 | valid loss: 0.3004 | valid corr: 0.9037 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-03 21:47:50] E: 65/300 | train loss: 0.0753 | valid loss: 0.2886 | valid corr: 0.9046 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 21:56:50] E: 66/300 | train loss: 0.0749 | valid loss: 0.2937 | valid corr: 0.9035 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 22:05:50] E: 67/300 | train loss: 0.0735 | valid loss: 0.2978 | valid corr: 0.9043 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 22:14:49] E: 68/300 | train loss: 0.0733 | valid loss: 0.2974 | valid corr: 0.9054 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 22:23:49] E: 69/300 | train loss: 0.0720 | valid loss: 0.2948 | valid corr: 0.9037 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 22:32:49] E: 70/300 | train loss: 0.0711 | valid loss: 0.3062 | valid corr: 0.9026 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-03 22:41:48] E: 71/300 | train loss: 0.0713 | valid loss: 0.2947 | valid corr: 0.9031 | best valid corr: 0.9060 | 539.6 s/epoch
+[2026-11-03 22:50:48] E: 72/300 | train loss: 0.0710 | valid loss: 0.2976 | valid corr: 0.9045 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 22:59:48] E: 73/300 | train loss: 0.0707 | valid loss: 0.2917 | valid corr: 0.9044 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 23:08:48] E: 74/300 | train loss: 0.0692 | valid loss: 0.2911 | valid corr: 0.9051 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-03 23:17:48] E: 75/300 | train loss: 0.0717 | valid loss: 0.2960 | valid corr: 0.9047 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-03 23:26:48] E: 76/300 | train loss: 0.0677 | valid loss: 0.2882 | valid corr: 0.9055 | best valid corr: 0.9060 | 540.1 s/epoch
+[2026-11-03 23:35:48] E: 77/300 | train loss: 0.0688 | valid loss: 0.2944 | valid corr: 0.9050 | best valid corr: 0.9060 | 540.4 s/epoch
+[2026-11-03 23:44:49] E: 78/300 | train loss: 0.0674 | valid loss: 0.3014 | valid corr: 0.9051 | best valid corr: 0.9060 | 540.3 s/epoch
+[2026-11-03 23:53:48] E: 79/300 | train loss: 0.0680 | valid loss: 0.2965 | valid corr: 0.9045 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 00:02:48] E: 80/300 | train loss: 0.0667 | valid loss: 0.2949 | valid corr: 0.9054 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 00:12:03] E: 81/300 | train loss: 0.0627 | valid loss: 0.2942 | valid corr: 0.9051 | best valid corr: 0.9060 | 555.1 s/epoch
+[2026-11-04 00:21:02] E: 82/300 | train loss: 0.0664 | valid loss: 0.2978 | valid corr: 0.9048 | best valid corr: 0.9060 | 539.2 s/epoch
+[2026-11-04 00:30:02] E: 83/300 | train loss: 0.0647 | valid loss: 0.2977 | valid corr: 0.9036 | best valid corr: 0.9060 | 539.4 s/epoch
+[2026-11-04 00:39:02] E: 84/300 | train loss: 0.0643 | valid loss: 0.2883 | valid corr: 0.9054 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 00:48:01] E: 85/300 | train loss: 0.0635 | valid loss: 0.2956 | valid corr: 0.9050 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 00:57:01] E: 86/300 | train loss: 0.0639 | valid loss: 0.2963 | valid corr: 0.9031 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 01:06:01] E: 87/300 | train loss: 0.0627 | valid loss: 0.3019 | valid corr: 0.9046 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 01:15:01] E: 88/300 | train loss: 0.0612 | valid loss: 0.2971 | valid corr: 0.9051 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 01:24:00] E: 89/300 | train loss: 0.0622 | valid loss: 0.2986 | valid corr: 0.9038 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 01:33:00] E: 90/300 | train loss: 0.0625 | valid loss: 0.2967 | valid corr: 0.9038 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 01:42:00] E: 91/300 | train loss: 0.0626 | valid loss: 0.2964 | valid corr: 0.9043 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 01:51:00] E: 92/300 | train loss: 0.0613 | valid loss: 0.2935 | valid corr: 0.9046 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 02:00:00] E: 93/300 | train loss: 0.0596 | valid loss: 0.2965 | valid corr: 0.9046 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 02:08:59] E: 94/300 | train loss: 0.0598 | valid loss: 0.2984 | valid corr: 0.9035 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 02:17:59] E: 95/300 | train loss: 0.0585 | valid loss: 0.3062 | valid corr: 0.9023 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 02:26:59] E: 96/300 | train loss: 0.0601 | valid loss: 0.2996 | valid corr: 0.9027 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 02:35:59] E: 97/300 | train loss: 0.0587 | valid loss: 0.2961 | valid corr: 0.9038 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 02:44:59] E: 98/300 | train loss: 0.0591 | valid loss: 0.2914 | valid corr: 0.9053 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 02:53:59] E: 99/300 | train loss: 0.0576 | valid loss: 0.2975 | valid corr: 0.9053 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 03:02:58] E: 100/300 | train loss: 0.0584 | valid loss: 0.2966 | valid corr: 0.9049 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 03:11:58] E: 101/300 | train loss: 0.0572 | valid loss: 0.3005 | valid corr: 0.9060 | best valid corr: 0.9060 | 539.6 s/epoch
+[2026-11-04 03:20:58] E: 102/300 | train loss: 0.0571 | valid loss: 0.2991 | valid corr: 0.9054 | best valid corr: 0.9060 | 539.6 s/epoch
+[2026-11-04 03:29:57] E: 103/300 | train loss: 0.0568 | valid loss: 0.2990 | valid corr: 0.9030 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 03:38:57] E: 104/300 | train loss: 0.0562 | valid loss: 0.2957 | valid corr: 0.9026 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 03:47:57] E: 105/300 | train loss: 0.0573 | valid loss: 0.3027 | valid corr: 0.9027 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 03:56:57] E: 106/300 | train loss: 0.0557 | valid loss: 0.2997 | valid corr: 0.9038 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 04:05:57] E: 107/300 | train loss: 0.0548 | valid loss: 0.2983 | valid corr: 0.9057 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 04:14:56] E: 108/300 | train loss: 0.0542 | valid loss: 0.3012 | valid corr: 0.9037 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 04:23:56] E: 109/300 | train loss: 0.0565 | valid loss: 0.3039 | valid corr: 0.9045 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 04:32:56] E: 110/300 | train loss: 0.0546 | valid loss: 0.2964 | valid corr: 0.9042 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 04:41:56] E: 111/300 | train loss: 0.0545 | valid loss: 0.2955 | valid corr: 0.9037 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 04:50:56] E: 112/300 | train loss: 0.0554 | valid loss: 0.2970 | valid corr: 0.9050 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 04:59:56] E: 113/300 | train loss: 0.0546 | valid loss: 0.2963 | valid corr: 0.9032 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 05:08:56] E: 114/300 | train loss: 0.0540 | valid loss: 0.2957 | valid corr: 0.9047 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 05:17:55] E: 115/300 | train loss: 0.0545 | valid loss: 0.2981 | valid corr: 0.9031 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 05:26:55] E: 116/300 | train loss: 0.0536 | valid loss: 0.2964 | valid corr: 0.9053 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 05:35:55] E: 117/300 | train loss: 0.0529 | valid loss: 0.2946 | valid corr: 0.9041 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 05:44:54] E: 118/300 | train loss: 0.0526 | valid loss: 0.2976 | valid corr: 0.9045 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 05:53:54] E: 119/300 | train loss: 0.0522 | valid loss: 0.2959 | valid corr: 0.9053 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 06:02:54] E: 120/300 | train loss: 0.0520 | valid loss: 0.2959 | valid corr: 0.9049 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 06:11:54] E: 121/300 | train loss: 0.0530 | valid loss: 0.2926 | valid corr: 0.9048 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 06:20:54] E: 122/300 | train loss: 0.0531 | valid loss: 0.2921 | valid corr: 0.9058 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 06:29:54] E: 123/300 | train loss: 0.0520 | valid loss: 0.2895 | valid corr: 0.9048 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 06:38:53] E: 124/300 | train loss: 0.0521 | valid loss: 0.2963 | valid corr: 0.9051 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 06:47:53] E: 125/300 | train loss: 0.0515 | valid loss: 0.2968 | valid corr: 0.9039 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 06:56:53] E: 126/300 | train loss: 0.0509 | valid loss: 0.2958 | valid corr: 0.9036 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 07:05:52] E: 127/300 | train loss: 0.0508 | valid loss: 0.2966 | valid corr: 0.9039 | best valid corr: 0.9060 | 539.6 s/epoch
+[2026-11-04 07:14:52] E: 128/300 | train loss: 0.0516 | valid loss: 0.2951 | valid corr: 0.9041 | best valid corr: 0.9060 | 539.7 s/epoch
+[2026-11-04 07:23:52] E: 129/300 | train loss: 0.0515 | valid loss: 0.2969 | valid corr: 0.9040 | best valid corr: 0.9060 | 539.5 s/epoch
+[2026-11-04 07:32:52] E: 130/300 | train loss: 0.0505 | valid loss: 0.2933 | valid corr: 0.9048 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 07:41:51] E: 131/300 | train loss: 0.0512 | valid loss: 0.2976 | valid corr: 0.9053 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 07:50:51] E: 132/300 | train loss: 0.0502 | valid loss: 0.3024 | valid corr: 0.9031 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 07:59:51] E: 133/300 | train loss: 0.0496 | valid loss: 0.3038 | valid corr: 0.9021 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 08:08:51] E: 134/300 | train loss: 0.0499 | valid loss: 0.3013 | valid corr: 0.9024 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 08:17:51] E: 135/300 | train loss: 0.0499 | valid loss: 0.2989 | valid corr: 0.9037 | best valid corr: 0.9060 | 539.6 s/epoch
+[2026-11-04 08:26:51] E: 136/300 | train loss: 0.0497 | valid loss: 0.2981 | valid corr: 0.9039 | best valid corr: 0.9060 | 539.8 s/epoch
+[2026-11-04 08:35:51] E: 137/300 | train loss: 0.0502 | valid loss: 0.3001 | valid corr: 0.9030 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 08:44:51] E: 138/300 | train loss: 0.0494 | valid loss: 0.2989 | valid corr: 0.9032 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 08:53:51] E: 139/300 | train loss: 0.0492 | valid loss: 0.2972 | valid corr: 0.9034 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 09:02:50] E: 140/300 | train loss: 0.0475 | valid loss: 0.2981 | valid corr: 0.9041 | best valid corr: 0.9060 | 539.9 s/epoch
+[2026-11-04 09:11:50] E: 141/300 | train loss: 0.0483 | valid loss: 0.2987 | valid corr: 0.9040 | best valid corr: 0.9060 | 540.1 s/epoch
+[2026-11-04 09:20:51] E: 142/300 | train loss: 0.0483 | valid loss: 0.2976 | valid corr: 0.9048 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 09:29:51] E: 143/300 | train loss: 0.0483 | valid loss: 0.2969 | valid corr: 0.9049 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 09:38:51] E: 144/300 | train loss: 0.0468 | valid loss: 0.2946 | valid corr: 0.9046 | best valid corr: 0.9060 | 540.0 s/epoch
+[2026-11-04 09:47:51] E: 145/300 | train loss: 0.0470 | valid loss: 0.2961 | valid corr: 0.9047 | best valid corr: 0.9060 | 540.1 s/epoch
+[2026-11-04 09:56:51] E: 146/300 | train loss: 0.0474 | valid loss: 0.3004 | valid corr: 0.9047 | best valid corr: 0.9060 | 540.1 s/epoch
+[2026-11-04 10:05:51] E: 147/300 | train loss: 0.0474 | valid loss: 0.2988 | valid corr: 0.9044 | best valid corr: 0.9060 | 540.1 s/epoch
+[2026-11-04 10:14:51] E: 148/300 | train loss: 0.0485 | valid loss: 0.2969 | valid corr: 0.9041 | best valid corr: 0.9060 | 540.3 s/epoch
+[2026-11-04 10:23:51] E: 149/300 | train loss: 0.0472 | valid loss: 0.2997 | valid corr: 0.9056 | best valid corr: 0.9060 | 540.3 s/epoch
+[2026-11-04 10:32:52] E: 150/300 | train loss: 0.0466 | valid loss: 0.2982 | valid corr: 0.9052 | best valid corr: 0.9060 | 540.2 s/epoch
+[2026-11-04 10:41:52] E: 151/300 | train loss: 0.0476 | valid loss: 0.3000 | valid corr: 0.9040 | best valid corr: 0.9060 | 540.2 s/epoch
+[2026-11-04 10:50:52] E: 152/300 | train loss: 0.0462 | valid loss: 0.3055 | valid corr: 0.9043 | best valid corr: 0.9060 | 540.4 s/epoch
+[2026-11-04 10:50:52] Stopped at epoch 152
+[2026-11-04 10:50:56] Load pretrained model from [outputs/BLAT_ECOLX_Stiffler_2015/baseline/model_1.pt]
+[2026-11-04 10:51:50] Test on data/dms/BLAT_ECOLX_Stiffler_2015/BLAT_ECOLX_Stiffler_2015_test.tsv 
+Ensembling Model - Loss: 0.2874	Test corr: 0.9248	Test loss: 0.2874
+
