@@ -11,6 +11,8 @@ import numpy as np
 
 N_COLUMNS = 263
 MIN_MATCHES = 211
+MIN_CODE = 0
+MAX_CODE = 20
 
 
 def neighbor_counts(msa: np.ndarray, block_rows: int = 64) -> np.ndarray:
@@ -63,4 +65,10 @@ def _as_code_matrix(msa: np.ndarray) -> np.ndarray:
         )
     if not np.issubdtype(alignment.dtype, np.integer):
         raise ValueError("alignment codes must be integers")
+    if alignment.size and (
+        np.any(alignment < MIN_CODE) or np.any(alignment > MAX_CODE)
+    ):
+        raise ValueError(
+            f"alignment codes must be in [{MIN_CODE}, {MAX_CODE}]"
+        )
     return np.ascontiguousarray(alignment)

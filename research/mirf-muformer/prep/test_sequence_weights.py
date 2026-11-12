@@ -105,6 +105,13 @@ class NeighborCountTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sequence_weights.neighbor_counts(msa)
 
+    def test_codes_outside_0_through_20_are_rejected(self) -> None:
+        for bad in (-1, 21):
+            msa = np.zeros((2, sequence_weights.N_COLUMNS), dtype=np.int8)
+            msa[1, 0] = bad
+            with self.assertRaises(ValueError):
+                sequence_weights.neighbor_counts(msa)
+
 
 class A2mColumnTest(unittest.TestCase):
     def test_insertion_dot_is_removed_with_its_column(self) -> None:
@@ -161,6 +168,25 @@ class A2mColumnTest(unittest.TestCase):
     def test_unequal_lengths_stop(self) -> None:
         with self.assertRaises(msa_prepare.MsaFormatError):
             msa_prepare.read_a2m(">q\nAC\n>h\nA.C\n")
+
+    def test_lowercase_x_in_first_sequence_is_an_insertion_column(self) -> None:
+        text = ">q\nAxC\n>h\nAAC\n"
+        records = msa_prepare.read_a2m(text)
+        columns = msa_prepare.match_column_index(records[0][1])
+        np.testing.assert_array_equal(columns, [0, 2])
+        encoded, nonstandard = msa_prepare.encode_match_columns(records, columns)
+        np.testing.assert_array_equal(
+            encoded,
+            [[msa_prepare.CODE["A"], msa_prepare.CODE["C"]]] * 2,
+        )
+        self.assertEqual(nonstandard, {})
+
+    def test_lowercase_x_in_a_match_column_stops(self) -> None:
+        text = ">q\nAC\n>h\nAx\n"
+        records = msa_prepare.read_a2m(text)
+        columns = msa_prepare.match_column_index(records[0][1])
+        with self.assertRaises(msa_prepare.MsaFormatError):
+            msa_prepare.encode_match_columns(records, columns)
 
 
 if __name__ == "__main__":

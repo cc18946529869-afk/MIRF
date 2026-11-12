@@ -1,9 +1,9 @@
 """Read an A2M alignment and cut the mature 263 match columns.
 
 Column type follows HH-suite and is decided by the first sequence. Uppercase
-amino acids and '-' are match states. Lowercase amino acids and '.' are
-insertion states and the whole column is removed. A '.' or lowercase letter
-inside a match column stops the conversion; it is not treated as a gap.
+standard amino acids and '-' are match states. Any lowercase letter and '.'
+are insertion states, and that whole column is removed. A '.' or any lowercase
+letter inside a match column stops the conversion; it is not treated as a gap.
 """
 
 from __future__ import annotations
@@ -86,13 +86,18 @@ def read_a2m(text: str) -> list[tuple[str, str]]:
     return records
 
 
+def is_lowercase_letter(symbol: str) -> bool:
+    """True for any one-character lowercase letter, not only the 20 amino acids."""
+    return len(symbol) == 1 and symbol.isalpha() and symbol.islower()
+
+
 def match_column_index(first_sequence: str) -> np.ndarray:
     """Return indices of match columns. Insertion columns are omitted."""
     chosen: list[int] = []
     for index, symbol in enumerate(first_sequence):
         if symbol in AMINO_ACIDS or symbol == "-":
             chosen.append(index)
-        elif symbol in AMINO_ACIDS.lower() or symbol == ".":
+        elif is_lowercase_letter(symbol) or symbol == ".":
             continue
         else:
             raise MsaFormatError(
@@ -115,7 +120,7 @@ def encode_match_columns(
                 encoded[row, column] = GAP_CODE
             elif symbol in CODE:
                 encoded[row, column] = CODE[symbol]
-            elif symbol == "." or symbol in AMINO_ACIDS.lower():
+            elif symbol == "." or is_lowercase_letter(symbol):
                 raise MsaFormatError(
                     "match column "
                     f"{column + 1} contains insertion symbol {symbol!r} in row {row + 1}"
