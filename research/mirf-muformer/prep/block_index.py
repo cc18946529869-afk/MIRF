@@ -282,8 +282,10 @@ def neighbor_counts_indexed(
 ) -> np.ndarray:
     """Return m_b from verified block collisions.
 
-    ``max_raw_pairs`` stops the routine before a partition that still collides
-    in nearly every row is treated as an exact full-scale run.
+    This is not the full-scale scan: a pair that fails is compared again in
+    every later block. ``candidate_scan`` merges the buckets first.
+    ``max_raw_pairs`` stops the routine before a large partition is treated as
+    that full-scale run.
     """
     alignment = sequence_weights._as_code_matrix(msa)
     total, _per_block = partition_bucket_stats(alignment, blocks)

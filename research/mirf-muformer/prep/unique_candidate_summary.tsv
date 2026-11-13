@@ -1,0 +1,17 @@
+quantity	value
+P	1801869835
+C	835184036
+P_over_C	2.15745244
+lower_bound_ceil_P_over_53	33997545
+degree_sum	1670368072
+mean_degree	7967.640724
+scan_seconds	5.058
+degree_p0	58.0000
+degree_p1	520.0000
+degree_p5	914.0000
+degree_p25	3039.0000
+degree_p50	7575.0000
+degree_p75	11783.0000
+degree_p95	17433.7000
+degree_p99	21516.0000
+degree_p100	30185.0000

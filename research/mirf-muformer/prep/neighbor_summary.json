@@ -1,0 +1,29 @@
+{
+  "n_rows": 209644,
+  "neighbor_pairs": 14790839,
+  "sum_m": 29791322,
+  "sum_m_minus_1": 29581678,
+  "mean_m": 142.10433878384308,
+  "M_eff": 47899.73496814515,
+  "M_eff_hex": "0x1.7637784dbea61p+15",
+  "min_m": 1,
+  "max_m": 2389,
+  "percentiles": {
+    "p0": 1.0,
+    "p1": 1.0,
+    "p5": 1.0,
+    "p25": 3.0,
+    "p50": 19.0,
+    "p75": 106.0,
+    "p95": 722.0,
+    "p99": 2208.0,
+    "p100": 2389.0
+  },
+  "query_row": 0,
+  "query_m": 720,
+  "duplicate_rows_checked": 2,
+  "all_gap_rows": 0,
+  "method": "column early-abort after one-time block union; not the bit-plane scan",
+  "partition": "coverage_information_balanced",
+  "scan_seconds": 134.72048957900552
+}

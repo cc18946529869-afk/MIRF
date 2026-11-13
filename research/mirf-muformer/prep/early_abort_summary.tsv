@@ -1,0 +1,10 @@
+quantity	value
+unique_pairs	835184036
+accepted	14790839
+rejected	820393197
+mean_columns	75.35620804
+reject_mean_columns	72.06332978
+accept_mean_columns	258.00000000
+seconds	136.147
+D_min	0.00176371
+D_max	0.93511701
