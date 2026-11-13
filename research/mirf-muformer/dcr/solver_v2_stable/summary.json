@@ -7,7 +7,7 @@
     {
       "site": 12,
       "status": "converged",
-      "converged": 1,
+      "converged": true,
       "grad_inf": 2.7478334674313487e-06,
       "objective": 65833.72995300521,
       "objective_accumulated": 65833.72995296142,
@@ -40,7 +40,7 @@
     {
       "site": 95,
       "status": "converged",
-      "converged": 1,
+      "converged": true,
       "grad_inf": 8.741671834400222e-06,
       "objective": 72264.76265442575,
       "objective_accumulated": 72264.76265438083,
@@ -73,7 +73,7 @@
     {
       "site": 103,
       "status": "converged",
-      "converged": 1,
+      "converged": true,
       "grad_inf": 8.945393812354041e-06,
       "objective": 85825.06840464944,
       "objective_accumulated": 85825.06840460225,
@@ -106,7 +106,7 @@
     {
       "site": 208,
       "status": "converged",
-      "converged": 1,
+      "converged": true,
       "grad_inf": 2.458394639859307e-06,
       "objective": 4632.147241354899,
       "objective_accumulated": 4632.147241310309,
@@ -139,7 +139,7 @@
     {
       "site": 256,
       "status": "converged",
-      "converged": 1,
+      "converged": true,
       "grad_inf": 6.793583866127051e-06,
       "objective": 26656.258819764116,
       "objective_accumulated": 26656.258819720188,
@@ -171,7 +171,7 @@
     }
   ],
   "components": {
-    "accepted_point_estimate": 0,
+    "accepted_point_estimate": false,
     "sites_refit": [
       12,
       95,

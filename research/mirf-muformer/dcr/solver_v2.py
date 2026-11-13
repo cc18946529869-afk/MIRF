@@ -70,10 +70,10 @@ def _json_ready(value):
     if isinstance(value, (np.floating, float)):
         number = float(value)
         return number if np.isfinite(number) else None
-    if isinstance(value, (np.integer, int)):
-        return int(value)
     if isinstance(value, (np.bool_, bool)):
         return bool(value)
+    if isinstance(value, (np.integer, int)):
+        return int(value)
     return value
 
 
@@ -91,7 +91,7 @@ def _fit_one(site: int) -> dict:
     )
     second = potts_fit.fit_site(alignment, weights, site, total)
     difference = float(np.max(np.abs(first.theta - second.theta)))
-    output = OUTPUT
+    output = Path(os.environ["POTTS_OUTPUT"]) if os.environ.get("POTTS_OUTPUT") else OUTPUT
     output.mkdir(parents=True, exist_ok=True)
     np.savez(
         output / f"site_{site:03d}.npz",

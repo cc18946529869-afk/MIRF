@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import sys
+import json
 import math
+import sys
 import unittest
 from pathlib import Path
 
@@ -15,6 +16,7 @@ import energy_components
 import gauge
 import potts_energy
 import potts_fit
+import solver_v2
 
 
 def reference_site_terms(theta, msa, weights, site, weight_total, lambda_h, lambda_j_prime, q):
@@ -731,6 +733,25 @@ class SolverV2Tests(unittest.TestCase):
         self.assertAlmostEqual(unstable, -1.7763568394002505e-15)
         self.assertAlmostEqual(stable, -8.881784197001252e-16)
         self.assertEqual(direct, stable)
+
+    def test_json_ready_preserves_booleans(self):
+        payload = solver_v2._json_ready(
+            {
+                "converged": True,
+                "accepted_point_estimate": False,
+                "count": 1,
+                "numpy_flag": np.bool_(True),
+                "numpy_count": np.int32(2),
+            }
+        )
+        self.assertIs(payload["converged"], True)
+        self.assertIs(payload["accepted_point_estimate"], False)
+        self.assertIs(payload["numpy_flag"], True)
+        self.assertEqual(payload["count"], 1)
+        self.assertEqual(payload["numpy_count"], 2)
+        text = json.dumps(payload)
+        self.assertIn('"converged": true', text)
+        self.assertIn('"accepted_point_estimate": false', text)
 
 
 class ComponentCheckTests(unittest.TestCase):
