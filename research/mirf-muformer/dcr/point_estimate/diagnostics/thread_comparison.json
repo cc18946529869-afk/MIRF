@@ -1,0 +1,38 @@
+[
+  {
+    "site": 208,
+    "serial_repeat_nll_gap": 0.0,
+    "serial_repeat_gradient_max_abs": 0.0,
+    "serial_minus_four_thread_nll": -8.185452315956354e-12,
+    "serial_minus_four_thread_gradient_max_abs": 8.355982572538778e-12,
+    "serial_grad_inf": 6.163440697548594e-05,
+    "four_thread_grad_inf": 6.163440599493697e-05
+  },
+  {
+    "site": 256,
+    "serial_repeat_nll_gap": 0.0,
+    "serial_repeat_gradient_max_abs": 0.0,
+    "serial_minus_four_thread_nll": -3.092281986027956e-10,
+    "serial_minus_four_thread_gradient_max_abs": 9.43600753089413e-12,
+    "serial_grad_inf": 0.00020366143917982527,
+    "four_thread_grad_inf": 0.00020366143820638172
+  },
+  {
+    "site": 95,
+    "serial_repeat_nll_gap": 0.0,
+    "serial_repeat_gradient_max_abs": 0.0,
+    "serial_minus_four_thread_nll": -5.529727786779404e-10,
+    "serial_minus_four_thread_gradient_max_abs": 4.860112312599085e-12,
+    "serial_grad_inf": 0.0023105597115176124,
+    "four_thread_grad_inf": 0.0023105597119723598
+  },
+  {
+    "site": 12,
+    "serial_repeat_nll_gap": 0.0,
+    "serial_repeat_gradient_max_abs": 0.0,
+    "serial_minus_four_thread_nll": -3.92901711165905e-10,
+    "serial_minus_four_thread_gradient_max_abs": 8.185452315956354e-12,
+    "serial_grad_inf": 0.0001974167093123924,
+    "four_thread_grad_inf": 0.0001974167087368528
+  }
+]

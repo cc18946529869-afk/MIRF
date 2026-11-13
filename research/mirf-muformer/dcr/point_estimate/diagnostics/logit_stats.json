@@ -1,0 +1,2369 @@
+[
+  {
+    "logit_min": -3.234906897528016,
+    "logit_max": 11.246969701693212,
+    "max_row_range": 13.512340220758253,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.3526867885029397e-06,
+    "nonfinite_rows": 0,
+    "site": 0
+  },
+  {
+    "logit_min": -3.2050034022964935,
+    "logit_max": 9.76092487051783,
+    "max_row_range": 12.390137720688198,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.154229265524833e-06,
+    "nonfinite_rows": 0,
+    "site": 1
+  },
+  {
+    "logit_min": -3.2963672874090855,
+    "logit_max": 9.582851883747121,
+    "max_row_range": 12.307669464058376,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.511332407888225e-06,
+    "nonfinite_rows": 0,
+    "site": 2
+  },
+  {
+    "logit_min": -2.525238697469679,
+    "logit_max": 10.17679793414843,
+    "max_row_range": 12.25926148706131,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 4.732449963293515e-06,
+    "nonfinite_rows": 0,
+    "site": 3
+  },
+  {
+    "logit_min": -2.9198701006675813,
+    "logit_max": 9.774606309895734,
+    "max_row_range": 11.569691411146348,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 9.432781534313523e-06,
+    "nonfinite_rows": 0,
+    "site": 4
+  },
+  {
+    "logit_min": -3.421768682989949,
+    "logit_max": 9.029042716879921,
+    "max_row_range": 11.841148367744427,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.181563211328919e-06,
+    "nonfinite_rows": 0,
+    "site": 5
+  },
+  {
+    "logit_min": -3.173162873525765,
+    "logit_max": 8.857295302496661,
+    "max_row_range": 11.567727383327288,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 9.427590784245468e-06,
+    "nonfinite_rows": 0,
+    "site": 6
+  },
+  {
+    "logit_min": -2.4862894146424677,
+    "logit_max": 9.182389841906573,
+    "max_row_range": 11.352095798274481,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 1.1543377130740725e-05,
+    "nonfinite_rows": 0,
+    "site": 7
+  },
+  {
+    "logit_min": -3.3258836690388103,
+    "logit_max": 8.701476664612157,
+    "max_row_range": 11.579703200371773,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 9.311750379660322e-06,
+    "nonfinite_rows": 0,
+    "site": 8
+  },
+  {
+    "logit_min": -3.424552907198339,
+    "logit_max": 9.003055920996797,
+    "max_row_range": 11.808391277780677,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.41466803708632e-06,
+    "nonfinite_rows": 0,
+    "site": 9
+  },
+  {
+    "logit_min": -3.043131413551703,
+    "logit_max": 8.601242414614,
+    "max_row_range": 11.02900210426685,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 1.6127553817268114e-05,
+    "nonfinite_rows": 0,
+    "site": 10
+  },
+  {
+    "logit_min": -3.0867464807584946,
+    "logit_max": 8.696699285424534,
+    "max_row_range": 10.59604953358555,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.4935429565132032e-05,
+    "nonfinite_rows": 0,
+    "site": 11
+  },
+  {
+    "logit_min": -3.221307977798149,
+    "logit_max": 8.867356794661568,
+    "max_row_range": 11.30884402124194,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 1.2216859702846184e-05,
+    "nonfinite_rows": 0,
+    "site": 12
+  },
+  {
+    "logit_min": -3.572606515882786,
+    "logit_max": 8.697119322871234,
+    "max_row_range": 11.416301075661858,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 1.0951290275819609e-05,
+    "nonfinite_rows": 0,
+    "site": 13
+  },
+  {
+    "logit_min": -3.470809334275724,
+    "logit_max": 8.466172117303728,
+    "max_row_range": 11.379589523685109,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.135334457458562e-05,
+    "nonfinite_rows": 0,
+    "site": 14
+  },
+  {
+    "logit_min": -3.5145367175424655,
+    "logit_max": 8.856829346546021,
+    "max_row_range": 11.758550042743034,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.790965451594945e-06,
+    "nonfinite_rows": 0,
+    "site": 15
+  },
+  {
+    "logit_min": -3.3667407117954142,
+    "logit_max": 8.161646686363675,
+    "max_row_range": 10.859850257807475,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.9073349977526226e-05,
+    "nonfinite_rows": 0,
+    "site": 16
+  },
+  {
+    "logit_min": -3.097314146099198,
+    "logit_max": 8.423710386249342,
+    "max_row_range": 10.8650790714367,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.8885001950386263e-05,
+    "nonfinite_rows": 0,
+    "site": 17
+  },
+  {
+    "logit_min": -3.6574551167301093,
+    "logit_max": 8.027644328015093,
+    "max_row_range": 10.518183925880145,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 2.5624680474514878e-05,
+    "nonfinite_rows": 0,
+    "site": 18
+  },
+  {
+    "logit_min": -2.810157230180477,
+    "logit_max": 9.233140510926543,
+    "max_row_range": 11.219721476094113,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.3364295658038036e-05,
+    "nonfinite_rows": 0,
+    "site": 19
+  },
+  {
+    "logit_min": -3.1435728774132223,
+    "logit_max": 7.691342341027477,
+    "max_row_range": 9.92857601662468,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.7598072668258876e-05,
+    "nonfinite_rows": 0,
+    "site": 20
+  },
+  {
+    "logit_min": -3.3849245012059006,
+    "logit_max": 8.212243586675896,
+    "max_row_range": 10.878732796178216,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.7914998789191102e-05,
+    "nonfinite_rows": 0,
+    "site": 21
+  },
+  {
+    "logit_min": -2.5750160648826363,
+    "logit_max": 8.639309128629566,
+    "max_row_range": 10.791946186133314,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.013694491119534e-05,
+    "nonfinite_rows": 0,
+    "site": 22
+  },
+  {
+    "logit_min": -3.2414542181385175,
+    "logit_max": 7.342244772575192,
+    "max_row_range": 9.994123690615204,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.245594787821317e-05,
+    "nonfinite_rows": 0,
+    "site": 23
+  },
+  {
+    "logit_min": -2.8273008321488255,
+    "logit_max": 8.695554875800164,
+    "max_row_range": 11.073395534852125,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.532873961643991e-05,
+    "nonfinite_rows": 0,
+    "site": 24
+  },
+  {
+    "logit_min": -2.947477517828887,
+    "logit_max": 8.130675159543701,
+    "max_row_range": 10.316349376004956,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.248252621846537e-05,
+    "nonfinite_rows": 0,
+    "site": 25
+  },
+  {
+    "logit_min": -3.8203535387236163,
+    "logit_max": 7.155891535928626,
+    "max_row_range": 9.911682642260935,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 4.756642405851977e-05,
+    "nonfinite_rows": 0,
+    "site": 26
+  },
+  {
+    "logit_min": -3.1221499629538108,
+    "logit_max": 8.471238544626349,
+    "max_row_range": 10.743531319232055,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.103805343546155e-05,
+    "nonfinite_rows": 0,
+    "site": 27
+  },
+  {
+    "logit_min": -2.809313074398395,
+    "logit_max": 8.506935302573531,
+    "max_row_range": 10.696668523672704,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 2.252114971088866e-05,
+    "nonfinite_rows": 0,
+    "site": 28
+  },
+  {
+    "logit_min": -3.6464701251174687,
+    "logit_max": 7.565167662947782,
+    "max_row_range": 10.237639253826746,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.459802458413689e-05,
+    "nonfinite_rows": 0,
+    "site": 29
+  },
+  {
+    "logit_min": -2.9115762635413276,
+    "logit_max": 7.82071713476624,
+    "max_row_range": 9.822030752021522,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.058183467728152e-05,
+    "nonfinite_rows": 0,
+    "site": 30
+  },
+  {
+    "logit_min": -2.8798168113944445,
+    "logit_max": 8.545236439754868,
+    "max_row_range": 10.869549479101083,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.8882332334640272e-05,
+    "nonfinite_rows": 0,
+    "site": 31
+  },
+  {
+    "logit_min": -3.639869653968104,
+    "logit_max": 8.479008993501,
+    "max_row_range": 11.067936006489095,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.5470307724086195e-05,
+    "nonfinite_rows": 0,
+    "site": 32
+  },
+  {
+    "logit_min": -3.1636507410503465,
+    "logit_max": 7.187437357026847,
+    "max_row_range": 9.640788362022723,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.101222879767128e-05,
+    "nonfinite_rows": 0,
+    "site": 33
+  },
+  {
+    "logit_min": -3.5383213101176394,
+    "logit_max": 7.254629930095714,
+    "max_row_range": 9.988236297527266,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 4.4546382764394145e-05,
+    "nonfinite_rows": 0,
+    "site": 34
+  },
+  {
+    "logit_min": -3.2859674484795884,
+    "logit_max": 7.648970646528146,
+    "max_row_range": 9.958735260108055,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.655786967830142e-05,
+    "nonfinite_rows": 0,
+    "site": 35
+  },
+  {
+    "logit_min": -3.603191281662251,
+    "logit_max": 6.752628423758269,
+    "max_row_range": 9.921275975904205,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 4.576703890521861e-05,
+    "nonfinite_rows": 0,
+    "site": 36
+  },
+  {
+    "logit_min": -3.3794217711578214,
+    "logit_max": 7.211590786550243,
+    "max_row_range": 9.715491244320415,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 5.669317554877077e-05,
+    "nonfinite_rows": 0,
+    "site": 37
+  },
+  {
+    "logit_min": -3.5656052992671583,
+    "logit_max": 7.13054724694972,
+    "max_row_range": 9.781748284729304,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 5.399252184061866e-05,
+    "nonfinite_rows": 0,
+    "site": 38
+  },
+  {
+    "logit_min": -3.9025899611550168,
+    "logit_max": 7.799782531516458,
+    "max_row_range": 9.970376601503219,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 4.633706878291355e-05,
+    "nonfinite_rows": 0,
+    "site": 39
+  },
+  {
+    "logit_min": -3.6472206129301226,
+    "logit_max": 8.19671178013983,
+    "max_row_range": 10.320757535004184,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.229164079260781e-05,
+    "nonfinite_rows": 0,
+    "site": 40
+  },
+  {
+    "logit_min": -3.7828285052860595,
+    "logit_max": 8.921300008487655,
+    "max_row_range": 11.765643961268303,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.738586469144144e-06,
+    "nonfinite_rows": 0,
+    "site": 41
+  },
+  {
+    "logit_min": -2.807700619088185,
+    "logit_max": 9.635467424541572,
+    "max_row_range": 11.91429982866321,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 6.678149146776451e-06,
+    "nonfinite_rows": 0,
+    "site": 42
+  },
+  {
+    "logit_min": -2.1718052881842347,
+    "logit_max": 10.509542972333088,
+    "max_row_range": 12.075938861238553,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 5.686876933569339e-06,
+    "nonfinite_rows": 0,
+    "site": 43
+  },
+  {
+    "logit_min": -1.4944510522401615,
+    "logit_max": 10.412740953629223,
+    "max_row_range": 11.47321223416959,
+    "max_prob_sum_error": 6.661338147750939e-16,
+    "min_probability": 1.0400578300308862e-05,
+    "nonfinite_rows": 0,
+    "site": 44
+  },
+  {
+    "logit_min": -2.4849958747154712,
+    "logit_max": 9.185753277728981,
+    "max_row_range": 11.399881436888009,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.0996177755357487e-05,
+    "nonfinite_rows": 0,
+    "site": 45
+  },
+  {
+    "logit_min": -2.8473615823303784,
+    "logit_max": 9.33276991326652,
+    "max_row_range": 11.796042839414515,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.500431546289121e-06,
+    "nonfinite_rows": 0,
+    "site": 46
+  },
+  {
+    "logit_min": -1.297002687986627,
+    "logit_max": 10.125757121659731,
+    "max_row_range": 11.146378516777451,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.4419852291755024e-05,
+    "nonfinite_rows": 0,
+    "site": 47
+  },
+  {
+    "logit_min": -2.6263570550531634,
+    "logit_max": 9.022163778666478,
+    "max_row_range": 11.342696978424582,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.154338593293523e-05,
+    "nonfinite_rows": 0,
+    "site": 48
+  },
+  {
+    "logit_min": -3.018451891012013,
+    "logit_max": 9.514084057317598,
+    "max_row_range": 11.954176842699177,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 6.395657790691105e-06,
+    "nonfinite_rows": 0,
+    "site": 49
+  },
+  {
+    "logit_min": -2.7048645949807915,
+    "logit_max": 9.514429327523008,
+    "max_row_range": 12.038733959395746,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.88155923959526e-06,
+    "nonfinite_rows": 0,
+    "site": 50
+  },
+  {
+    "logit_min": -3.0343344929347973,
+    "logit_max": 7.97224605046485,
+    "max_row_range": 10.72847130264456,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.1478150562143977e-05,
+    "nonfinite_rows": 0,
+    "site": 51
+  },
+  {
+    "logit_min": -3.2564704238891666,
+    "logit_max": 8.283610043898122,
+    "max_row_range": 10.863674335677022,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.8920500219407794e-05,
+    "nonfinite_rows": 0,
+    "site": 52
+  },
+  {
+    "logit_min": -2.975424964458231,
+    "logit_max": 8.542684658866493,
+    "max_row_range": 11.064008102207769,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.547274530395181e-05,
+    "nonfinite_rows": 0,
+    "site": 53
+  },
+  {
+    "logit_min": -2.74093560145067,
+    "logit_max": 8.801433806903734,
+    "max_row_range": 11.05965831443463,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.5492728624836457e-05,
+    "nonfinite_rows": 0,
+    "site": 54
+  },
+  {
+    "logit_min": -3.36021154317595,
+    "logit_max": 8.93859795559569,
+    "max_row_range": 11.27625061000026,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.2557634617409967e-05,
+    "nonfinite_rows": 0,
+    "site": 55
+  },
+  {
+    "logit_min": -3.507087368974372,
+    "logit_max": 8.604946362827341,
+    "max_row_range": 11.479975035799335,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.0232638890005027e-05,
+    "nonfinite_rows": 0,
+    "site": 56
+  },
+  {
+    "logit_min": -3.8992075583004566,
+    "logit_max": 7.545405460307134,
+    "max_row_range": 10.837516502290852,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.931429823468718e-05,
+    "nonfinite_rows": 0,
+    "site": 57
+  },
+  {
+    "logit_min": -3.320158868153058,
+    "logit_max": 7.782022454048713,
+    "max_row_range": 10.092347930766513,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.9112893203572324e-05,
+    "nonfinite_rows": 0,
+    "site": 58
+  },
+  {
+    "logit_min": -3.2068940468370735,
+    "logit_max": 8.883648517506264,
+    "max_row_range": 11.937900112965256,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 6.507133278505464e-06,
+    "nonfinite_rows": 0,
+    "site": 59
+  },
+  {
+    "logit_min": -3.2875528166490406,
+    "logit_max": 10.352779265125537,
+    "max_row_range": 12.895043545584313,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.5087836146506544e-06,
+    "nonfinite_rows": 0,
+    "site": 60
+  },
+  {
+    "logit_min": -2.9805022591158923,
+    "logit_max": 9.735514901119654,
+    "max_row_range": 12.481425514220373,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 3.791824729766978e-06,
+    "nonfinite_rows": 0,
+    "site": 61
+  },
+  {
+    "logit_min": -3.785734145120534,
+    "logit_max": 9.559606557649833,
+    "max_row_range": 12.784600679595911,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.797645986572437e-06,
+    "nonfinite_rows": 0,
+    "site": 62
+  },
+  {
+    "logit_min": -3.051106939220858,
+    "logit_max": 7.703779965232737,
+    "max_row_range": 10.037224473847646,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.3044367675340365e-05,
+    "nonfinite_rows": 0,
+    "site": 63
+  },
+  {
+    "logit_min": -3.387111766785981,
+    "logit_max": 6.792572160243783,
+    "max_row_range": 9.397298932725986,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.981955518971954e-05,
+    "nonfinite_rows": 0,
+    "site": 64
+  },
+  {
+    "logit_min": -3.3715617574716954,
+    "logit_max": 7.732925528489137,
+    "max_row_range": 10.337017704425705,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.199675550655597e-05,
+    "nonfinite_rows": 0,
+    "site": 65
+  },
+  {
+    "logit_min": -3.652910643861101,
+    "logit_max": 6.744711967159777,
+    "max_row_range": 9.826534825471375,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 4.984588400499951e-05,
+    "nonfinite_rows": 0,
+    "site": 66
+  },
+  {
+    "logit_min": -3.2674046734694,
+    "logit_max": 8.02140199193473,
+    "max_row_range": 10.854202674791937,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.8955185210142528e-05,
+    "nonfinite_rows": 0,
+    "site": 67
+  },
+  {
+    "logit_min": -3.958715514977112,
+    "logit_max": 6.660066053189972,
+    "max_row_range": 9.409382790878809,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.973470681294963e-05,
+    "nonfinite_rows": 0,
+    "site": 68
+  },
+  {
+    "logit_min": -3.110062961125559,
+    "logit_max": 7.3635986411175045,
+    "max_row_range": 10.22287988788344,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 3.382156908496171e-05,
+    "nonfinite_rows": 0,
+    "site": 69
+  },
+  {
+    "logit_min": -3.5702786467705137,
+    "logit_max": 6.943658956705259,
+    "max_row_range": 9.388161773935103,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 8.065454628334441e-05,
+    "nonfinite_rows": 0,
+    "site": 70
+  },
+  {
+    "logit_min": -3.1203336139896023,
+    "logit_max": 7.969490743963526,
+    "max_row_range": 10.759378162357132,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.0561438341280054e-05,
+    "nonfinite_rows": 0,
+    "site": 71
+  },
+  {
+    "logit_min": -3.415056957761553,
+    "logit_max": 8.363875007456542,
+    "max_row_range": 11.163927815625915,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.4033403023217224e-05,
+    "nonfinite_rows": 0,
+    "site": 72
+  },
+  {
+    "logit_min": -3.6016338514431308,
+    "logit_max": 7.289328512452455,
+    "max_row_range": 9.481015047021412,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.454937577811518e-05,
+    "nonfinite_rows": 0,
+    "site": 73
+  },
+  {
+    "logit_min": -3.5602107716376747,
+    "logit_max": 7.219087457230269,
+    "max_row_range": 9.961857238377299,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.648758272456851e-05,
+    "nonfinite_rows": 0,
+    "site": 74
+  },
+  {
+    "logit_min": -2.976158547747199,
+    "logit_max": 7.940458434828301,
+    "max_row_range": 9.982126296014084,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.5534418495504027e-05,
+    "nonfinite_rows": 0,
+    "site": 75
+  },
+  {
+    "logit_min": -2.985653567647384,
+    "logit_max": 8.110059859366075,
+    "max_row_range": 10.021691608822547,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.419209901680841e-05,
+    "nonfinite_rows": 0,
+    "site": 76
+  },
+  {
+    "logit_min": -3.2239458280615687,
+    "logit_max": 8.222992751726613,
+    "max_row_range": 10.659668322418014,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.3315576963260682e-05,
+    "nonfinite_rows": 0,
+    "site": 77
+  },
+  {
+    "logit_min": -3.366904773247379,
+    "logit_max": 8.11719608833832,
+    "max_row_range": 10.51305068842633,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 2.6964016457090283e-05,
+    "nonfinite_rows": 0,
+    "site": 78
+  },
+  {
+    "logit_min": -3.4775709463432753,
+    "logit_max": 8.005235369415766,
+    "max_row_range": 10.322107367599823,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 3.2382524159466044e-05,
+    "nonfinite_rows": 0,
+    "site": 79
+  },
+  {
+    "logit_min": -2.9174030595499003,
+    "logit_max": 7.799224288294402,
+    "max_row_range": 10.191444563775484,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 3.703424754155201e-05,
+    "nonfinite_rows": 0,
+    "site": 80
+  },
+  {
+    "logit_min": -3.4260785291326736,
+    "logit_max": 8.175945946061857,
+    "max_row_range": 10.477746757376845,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 2.7774457596292434e-05,
+    "nonfinite_rows": 0,
+    "site": 81
+  },
+  {
+    "logit_min": -3.1204157714838074,
+    "logit_max": 7.7882193786981135,
+    "max_row_range": 10.10697125358406,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.0454733796343075e-05,
+    "nonfinite_rows": 0,
+    "site": 82
+  },
+  {
+    "logit_min": -2.860390111998792,
+    "logit_max": 8.244115458292034,
+    "max_row_range": 10.309186303933863,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 3.290218271583373e-05,
+    "nonfinite_rows": 0,
+    "site": 83
+  },
+  {
+    "logit_min": -3.1827089344461976,
+    "logit_max": 7.843616037486339,
+    "max_row_range": 10.378775125441656,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.084636028108449e-05,
+    "nonfinite_rows": 0,
+    "site": 84
+  },
+  {
+    "logit_min": -3.5300116790217526,
+    "logit_max": 7.849194038623498,
+    "max_row_range": 10.110173999784445,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.947840882936152e-05,
+    "nonfinite_rows": 0,
+    "site": 85
+  },
+  {
+    "logit_min": -3.511082494788977,
+    "logit_max": 7.336461858762417,
+    "max_row_range": 9.712437927699968,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 5.985283950262427e-05,
+    "nonfinite_rows": 0,
+    "site": 86
+  },
+  {
+    "logit_min": -3.336078079181985,
+    "logit_max": 7.2312562980968,
+    "max_row_range": 9.430911232921325,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.893567042285627e-05,
+    "nonfinite_rows": 0,
+    "site": 87
+  },
+  {
+    "logit_min": -3.0273145960576726,
+    "logit_max": 8.029099031533015,
+    "max_row_range": 10.540412174351566,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.6195427652110605e-05,
+    "nonfinite_rows": 0,
+    "site": 88
+  },
+  {
+    "logit_min": -3.041876027280195,
+    "logit_max": 7.48782296352541,
+    "max_row_range": 9.933042675997612,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.754451223096621e-05,
+    "nonfinite_rows": 0,
+    "site": 89
+  },
+  {
+    "logit_min": -3.1729133953672553,
+    "logit_max": 6.948810049710179,
+    "max_row_range": 9.248829978603942,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 9.429256354372419e-05,
+    "nonfinite_rows": 0,
+    "site": 90
+  },
+  {
+    "logit_min": -3.084680947168257,
+    "logit_max": 7.701932393759318,
+    "max_row_range": 9.667730664929543,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.219149319375527e-05,
+    "nonfinite_rows": 0,
+    "site": 91
+  },
+  {
+    "logit_min": -3.1014515809237997,
+    "logit_max": 7.243640965439577,
+    "max_row_range": 9.60576800324117,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.371041856739061e-05,
+    "nonfinite_rows": 0,
+    "site": 92
+  },
+  {
+    "logit_min": -2.8951160156327655,
+    "logit_max": 8.348010039188853,
+    "max_row_range": 10.778415728032439,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 2.0502060203622237e-05,
+    "nonfinite_rows": 0,
+    "site": 93
+  },
+  {
+    "logit_min": -3.480723045422822,
+    "logit_max": 6.474130740112957,
+    "max_row_range": 9.192949545001808,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 9.1029829539085e-05,
+    "nonfinite_rows": 0,
+    "site": 94
+  },
+  {
+    "logit_min": -3.676976630480223,
+    "logit_max": 7.581360363960622,
+    "max_row_range": 10.15379842071546,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 3.8441791925658066e-05,
+    "nonfinite_rows": 0,
+    "site": 95
+  },
+  {
+    "logit_min": -2.939262011842867,
+    "logit_max": 8.724435344454589,
+    "max_row_range": 10.958442821862691,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.72817699025073e-05,
+    "nonfinite_rows": 0,
+    "site": 96
+  },
+  {
+    "logit_min": -2.9064900856388514,
+    "logit_max": 8.471526214319674,
+    "max_row_range": 10.810898318444629,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.9916196967204947e-05,
+    "nonfinite_rows": 0,
+    "site": 97
+  },
+  {
+    "logit_min": -4.562989944813815,
+    "logit_max": 7.06701749275828,
+    "max_row_range": 9.866265009334219,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 5.01187804217993e-05,
+    "nonfinite_rows": 0,
+    "site": 98
+  },
+  {
+    "logit_min": -4.281718856363614,
+    "logit_max": 9.03352688023626,
+    "max_row_range": 11.452577086129962,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.0543668756253426e-05,
+    "nonfinite_rows": 0,
+    "site": 99
+  },
+  {
+    "logit_min": -2.7106829892009627,
+    "logit_max": 9.232451604408183,
+    "max_row_range": 11.38533124716173,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.1308664158903907e-05,
+    "nonfinite_rows": 0,
+    "site": 100
+  },
+  {
+    "logit_min": -2.713745868417847,
+    "logit_max": 8.53654475690142,
+    "max_row_range": 10.815149852632048,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.9805769842919753e-05,
+    "nonfinite_rows": 0,
+    "site": 101
+  },
+  {
+    "logit_min": -3.0163742978945427,
+    "logit_max": 8.578134662314604,
+    "max_row_range": 11.049901277460307,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.5443774822652322e-05,
+    "nonfinite_rows": 0,
+    "site": 102
+  },
+  {
+    "logit_min": -4.1326877673796885,
+    "logit_max": 6.995471613757619,
+    "max_row_range": 10.308462900091818,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 3.2469831356186716e-05,
+    "nonfinite_rows": 0,
+    "site": 103
+  },
+  {
+    "logit_min": -1.485325065379447,
+    "logit_max": 10.397173147576966,
+    "max_row_range": 11.439971820679311,
+    "max_prob_sum_error": 6.661338147750939e-16,
+    "min_probability": 1.0752069498874418e-05,
+    "nonfinite_rows": 0,
+    "site": 104
+  },
+  {
+    "logit_min": -2.9451629295181516,
+    "logit_max": 9.70955396885135,
+    "max_row_range": 11.830652934516827,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.219260173242239e-06,
+    "nonfinite_rows": 0,
+    "site": 105
+  },
+  {
+    "logit_min": -1.9528774690019768,
+    "logit_max": 9.88030942574036,
+    "max_row_range": 11.54943894509238,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 9.628316692994994e-06,
+    "nonfinite_rows": 0,
+    "site": 106
+  },
+  {
+    "logit_min": -3.168828080996512,
+    "logit_max": 9.775702272694764,
+    "max_row_range": 12.491742111940514,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 3.751198656281946e-06,
+    "nonfinite_rows": 0,
+    "site": 107
+  },
+  {
+    "logit_min": -2.8261861300373075,
+    "logit_max": 9.182583066431242,
+    "max_row_range": 11.586393110172857,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 9.19387246210369e-06,
+    "nonfinite_rows": 0,
+    "site": 108
+  },
+  {
+    "logit_min": -2.675356315333405,
+    "logit_max": 8.755701410093877,
+    "max_row_range": 11.249924299748084,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.285122637088304e-05,
+    "nonfinite_rows": 0,
+    "site": 109
+  },
+  {
+    "logit_min": -3.5767570998329488,
+    "logit_max": 8.906350540410724,
+    "max_row_range": 11.279208794369579,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.2585073696741342e-05,
+    "nonfinite_rows": 0,
+    "site": 110
+  },
+  {
+    "logit_min": -3.7394030211506024,
+    "logit_max": 8.577277741751333,
+    "max_row_range": 11.597185864695094,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 9.122393909702498e-06,
+    "nonfinite_rows": 0,
+    "site": 111
+  },
+  {
+    "logit_min": -2.68288251501522,
+    "logit_max": 8.98507262182784,
+    "max_row_range": 11.249717960920533,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.2918407673752125e-05,
+    "nonfinite_rows": 0,
+    "site": 112
+  },
+  {
+    "logit_min": -2.9951606650450127,
+    "logit_max": 9.079391229771469,
+    "max_row_range": 11.65643789721631,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 8.601366682657782e-06,
+    "nonfinite_rows": 0,
+    "site": 113
+  },
+  {
+    "logit_min": -3.766669535155975,
+    "logit_max": 8.747715228049149,
+    "max_row_range": 11.746284188735943,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 7.892756352791186e-06,
+    "nonfinite_rows": 0,
+    "site": 114
+  },
+  {
+    "logit_min": -3.4040006098498146,
+    "logit_max": 6.791369045602199,
+    "max_row_range": 9.712560407226757,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.718338082525947e-05,
+    "nonfinite_rows": 0,
+    "site": 115
+  },
+  {
+    "logit_min": -3.0262883634339928,
+    "logit_max": 7.462070813246624,
+    "max_row_range": 9.992315997287221,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 4.342020179462462e-05,
+    "nonfinite_rows": 0,
+    "site": 116
+  },
+  {
+    "logit_min": -2.758519746381284,
+    "logit_max": 8.581111680391182,
+    "max_row_range": 10.639182361908848,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.3866038870413e-05,
+    "nonfinite_rows": 0,
+    "site": 117
+  },
+  {
+    "logit_min": -3.2058796802186076,
+    "logit_max": 9.58670634299606,
+    "max_row_range": 11.93588363210413,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 6.542641714846568e-06,
+    "nonfinite_rows": 0,
+    "site": 118
+  },
+  {
+    "logit_min": -3.579550603868003,
+    "logit_max": 8.078966208759837,
+    "max_row_range": 10.322371889611741,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.258963659689993e-05,
+    "nonfinite_rows": 0,
+    "site": 119
+  },
+  {
+    "logit_min": -3.6036767844385946,
+    "logit_max": 6.401716330930442,
+    "max_row_range": 9.05189038320707,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 9.444980722963667e-05,
+    "nonfinite_rows": 0,
+    "site": 120
+  },
+  {
+    "logit_min": -3.542670538468644,
+    "logit_max": 6.779283479715436,
+    "max_row_range": 9.58628618423706,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.56079165674386e-05,
+    "nonfinite_rows": 0,
+    "site": 121
+  },
+  {
+    "logit_min": -2.533600761679792,
+    "logit_max": 9.76283737476638,
+    "max_row_range": 11.700083251739805,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 8.273036204155097e-06,
+    "nonfinite_rows": 0,
+    "site": 122
+  },
+  {
+    "logit_min": -3.6286662903763895,
+    "logit_max": 9.75432501363749,
+    "max_row_range": 12.11648682985198,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.460686500714784e-06,
+    "nonfinite_rows": 0,
+    "site": 123
+  },
+  {
+    "logit_min": -3.3640048516397507,
+    "logit_max": 7.014285234092589,
+    "max_row_range": 9.364266517465069,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 8.367653146087015e-05,
+    "nonfinite_rows": 0,
+    "site": 124
+  },
+  {
+    "logit_min": -3.561852854125748,
+    "logit_max": 8.007423473255097,
+    "max_row_range": 10.78584979867873,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 2.0475129604886278e-05,
+    "nonfinite_rows": 0,
+    "site": 125
+  },
+  {
+    "logit_min": -2.9260601531289305,
+    "logit_max": 8.940996382850559,
+    "max_row_range": 11.371956788723821,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.1428112085263842e-05,
+    "nonfinite_rows": 0,
+    "site": 126
+  },
+  {
+    "logit_min": -3.4388217346494274,
+    "logit_max": 7.82622861319384,
+    "max_row_range": 10.149442793583644,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.860704232737606e-05,
+    "nonfinite_rows": 0,
+    "site": 127
+  },
+  {
+    "logit_min": -3.692518557745179,
+    "logit_max": 6.763182112032633,
+    "max_row_range": 9.692310911643622,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 5.856993522851046e-05,
+    "nonfinite_rows": 0,
+    "site": 128
+  },
+  {
+    "logit_min": -3.186699945352797,
+    "logit_max": 8.346643623250554,
+    "max_row_range": 10.992809053119311,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.6589392171972807e-05,
+    "nonfinite_rows": 0,
+    "site": 129
+  },
+  {
+    "logit_min": -2.5560280217676774,
+    "logit_max": 8.760438246089477,
+    "max_row_range": 10.995779664770748,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.6700769514006175e-05,
+    "nonfinite_rows": 0,
+    "site": 130
+  },
+  {
+    "logit_min": -2.5757372169089727,
+    "logit_max": 8.85625134092008,
+    "max_row_range": 10.887486223636724,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.8499588748300177e-05,
+    "nonfinite_rows": 0,
+    "site": 131
+  },
+  {
+    "logit_min": -3.479446362514814,
+    "logit_max": 7.138592530512708,
+    "max_row_range": 9.596716442365347,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 6.664249325687751e-05,
+    "nonfinite_rows": 0,
+    "site": 132
+  },
+  {
+    "logit_min": -3.7163498653468223,
+    "logit_max": 6.6789170169340615,
+    "max_row_range": 10.194721768465868,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.50416112609255e-05,
+    "nonfinite_rows": 0,
+    "site": 133
+  },
+  {
+    "logit_min": -3.1424931390119792,
+    "logit_max": 8.777878102312584,
+    "max_row_range": 10.269603828249588,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.355639004049807e-05,
+    "nonfinite_rows": 0,
+    "site": 134
+  },
+  {
+    "logit_min": -3.576935428514738,
+    "logit_max": 7.350028922469385,
+    "max_row_range": 9.883119980837405,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.023618307288504e-05,
+    "nonfinite_rows": 0,
+    "site": 135
+  },
+  {
+    "logit_min": -3.091737014363663,
+    "logit_max": 9.843641992375916,
+    "max_row_range": 11.773301281969147,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.68191284778566e-06,
+    "nonfinite_rows": 0,
+    "site": 136
+  },
+  {
+    "logit_min": -3.6572439932918033,
+    "logit_max": 8.22903207859795,
+    "max_row_range": 10.671649166280567,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.3035436232189215e-05,
+    "nonfinite_rows": 0,
+    "site": 137
+  },
+  {
+    "logit_min": -3.1621704536030215,
+    "logit_max": 9.30246909182973,
+    "max_row_range": 11.587628409175567,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 9.239843661738422e-06,
+    "nonfinite_rows": 0,
+    "site": 138
+  },
+  {
+    "logit_min": -3.9385747033834697,
+    "logit_max": 7.958658540451721,
+    "max_row_range": 10.427046242067286,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.8461950023062325e-05,
+    "nonfinite_rows": 0,
+    "site": 139
+  },
+  {
+    "logit_min": -3.3600052302378427,
+    "logit_max": 8.690901552171606,
+    "max_row_range": 11.26828802735723,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.2735536211482323e-05,
+    "nonfinite_rows": 0,
+    "site": 140
+  },
+  {
+    "logit_min": -3.2290524856997807,
+    "logit_max": 10.507043932428084,
+    "max_row_range": 12.918289180098412,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.451402940218443e-06,
+    "nonfinite_rows": 0,
+    "site": 141
+  },
+  {
+    "logit_min": -3.234221837633454,
+    "logit_max": 9.334356521775465,
+    "max_row_range": 11.661056072126858,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 8.564723886865558e-06,
+    "nonfinite_rows": 0,
+    "site": 142
+  },
+  {
+    "logit_min": -2.8664447390504146,
+    "logit_max": 9.134672439675873,
+    "max_row_range": 11.276664229214528,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.2633024012097451e-05,
+    "nonfinite_rows": 0,
+    "site": 143
+  },
+  {
+    "logit_min": -3.130019962323371,
+    "logit_max": 9.25390593929508,
+    "max_row_range": 11.74191738875637,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.930006464210505e-06,
+    "nonfinite_rows": 0,
+    "site": 144
+  },
+  {
+    "logit_min": -3.3126837559991804,
+    "logit_max": 9.739421396511721,
+    "max_row_range": 12.43191329912312,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 3.9847543844684694e-06,
+    "nonfinite_rows": 0,
+    "site": 145
+  },
+  {
+    "logit_min": -3.098092051553412,
+    "logit_max": 9.085611286189739,
+    "max_row_range": 11.412289591451641,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.1038012239541845e-05,
+    "nonfinite_rows": 0,
+    "site": 146
+  },
+  {
+    "logit_min": -3.131896796331349,
+    "logit_max": 8.95885811337878,
+    "max_row_range": 11.204143680316585,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.3587987521256285e-05,
+    "nonfinite_rows": 0,
+    "site": 147
+  },
+  {
+    "logit_min": -3.3613233322557794,
+    "logit_max": 8.902033015650714,
+    "max_row_range": 11.768752746704326,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 7.724319932229698e-06,
+    "nonfinite_rows": 0,
+    "site": 148
+  },
+  {
+    "logit_min": -3.4651613597235986,
+    "logit_max": 8.823772402815312,
+    "max_row_range": 11.182033404323633,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.3883468571990129e-05,
+    "nonfinite_rows": 0,
+    "site": 149
+  },
+  {
+    "logit_min": -3.407848146460648,
+    "logit_max": 9.697946449169262,
+    "max_row_range": 11.634915167815784,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 8.841233388260124e-06,
+    "nonfinite_rows": 0,
+    "site": 150
+  },
+  {
+    "logit_min": -3.760993741025541,
+    "logit_max": 8.46840937250183,
+    "max_row_range": 11.11131445275524,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 1.4863842907795738e-05,
+    "nonfinite_rows": 0,
+    "site": 151
+  },
+  {
+    "logit_min": -3.665386915888065,
+    "logit_max": 7.969474524951587,
+    "max_row_range": 10.614429326624816,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.395057705660445e-05,
+    "nonfinite_rows": 0,
+    "site": 152
+  },
+  {
+    "logit_min": -3.3606618177380256,
+    "logit_max": 9.996184122045053,
+    "max_row_range": 11.727085325862992,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 8.03839607360261e-06,
+    "nonfinite_rows": 0,
+    "site": 153
+  },
+  {
+    "logit_min": -3.694241869129272,
+    "logit_max": 8.09457474745228,
+    "max_row_range": 10.73247285189101,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 2.160035380592069e-05,
+    "nonfinite_rows": 0,
+    "site": 154
+  },
+  {
+    "logit_min": -2.8356827640691096,
+    "logit_max": 9.000982896531648,
+    "max_row_range": 11.124564556219353,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.4349129069270011e-05,
+    "nonfinite_rows": 0,
+    "site": 155
+  },
+  {
+    "logit_min": -2.2446373662397803,
+    "logit_max": 9.312005138803142,
+    "max_row_range": 11.287301778050626,
+    "max_prob_sum_error": 6.661338147750939e-16,
+    "min_probability": 1.2422465387943203e-05,
+    "nonfinite_rows": 0,
+    "site": 156
+  },
+  {
+    "logit_min": -2.3958809975213593,
+    "logit_max": 9.555632197704009,
+    "max_row_range": 11.493858550336592,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.0117446398427713e-05,
+    "nonfinite_rows": 0,
+    "site": 157
+  },
+  {
+    "logit_min": -3.695688204356058,
+    "logit_max": 8.213617962752377,
+    "max_row_range": 11.13068732392226,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.4466123631895913e-05,
+    "nonfinite_rows": 0,
+    "site": 158
+  },
+  {
+    "logit_min": -2.768173598556417,
+    "logit_max": 10.037394987418207,
+    "max_row_range": 12.351643808733854,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 4.304935967891211e-06,
+    "nonfinite_rows": 0,
+    "site": 159
+  },
+  {
+    "logit_min": -2.8972706162862045,
+    "logit_max": 8.596854804145362,
+    "max_row_range": 11.379733255656626,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 1.111788321215744e-05,
+    "nonfinite_rows": 0,
+    "site": 160
+  },
+  {
+    "logit_min": -3.1086996887896783,
+    "logit_max": 8.804864558183986,
+    "max_row_range": 11.15436262194207,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.4243188108806713e-05,
+    "nonfinite_rows": 0,
+    "site": 161
+  },
+  {
+    "logit_min": -3.704602693295858,
+    "logit_max": 7.175835843237364,
+    "max_row_range": 10.239039487466126,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 3.479694363060208e-05,
+    "nonfinite_rows": 0,
+    "site": 162
+  },
+  {
+    "logit_min": -2.9389081056584168,
+    "logit_max": 9.442750519074083,
+    "max_row_range": 11.479119184460243,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.0276301695401386e-05,
+    "nonfinite_rows": 0,
+    "site": 163
+  },
+  {
+    "logit_min": -3.099744586829101,
+    "logit_max": 8.817802517609838,
+    "max_row_range": 11.419511273196678,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.0845658149209377e-05,
+    "nonfinite_rows": 0,
+    "site": 164
+  },
+  {
+    "logit_min": -3.753952800298031,
+    "logit_max": 7.777324356676365,
+    "max_row_range": 10.700036069662147,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.0855024542421307e-05,
+    "nonfinite_rows": 0,
+    "site": 165
+  },
+  {
+    "logit_min": -3.5952460541045737,
+    "logit_max": 7.8854396348649844,
+    "max_row_range": 10.444016021962643,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.785326560051091e-05,
+    "nonfinite_rows": 0,
+    "site": 166
+  },
+  {
+    "logit_min": -2.698539179532347,
+    "logit_max": 8.040447103587013,
+    "max_row_range": 10.481441847199505,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.757337133114748e-05,
+    "nonfinite_rows": 0,
+    "site": 167
+  },
+  {
+    "logit_min": -3.34813281060284,
+    "logit_max": 8.470704296412217,
+    "max_row_range": 10.833673548543771,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.946493725584328e-05,
+    "nonfinite_rows": 0,
+    "site": 168
+  },
+  {
+    "logit_min": -3.4632535921805236,
+    "logit_max": 8.792944066992533,
+    "max_row_range": 11.221132025921628,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.3317972735301441e-05,
+    "nonfinite_rows": 0,
+    "site": 169
+  },
+  {
+    "logit_min": -3.569660147218681,
+    "logit_max": 7.810794966247193,
+    "max_row_range": 10.4836522350478,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.74249493977002e-05,
+    "nonfinite_rows": 0,
+    "site": 170
+  },
+  {
+    "logit_min": -3.5217160871894917,
+    "logit_max": 6.964246255736776,
+    "max_row_range": 9.804819506757896,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 5.2479770051324576e-05,
+    "nonfinite_rows": 0,
+    "site": 171
+  },
+  {
+    "logit_min": -3.843531860580569,
+    "logit_max": 7.564621801253152,
+    "max_row_range": 9.913533396871737,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.898916254391144e-05,
+    "nonfinite_rows": 0,
+    "site": 172
+  },
+  {
+    "logit_min": -2.930179946268339,
+    "logit_max": 8.776188953856149,
+    "max_row_range": 10.661543944116039,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.3326643617308107e-05,
+    "nonfinite_rows": 0,
+    "site": 173
+  },
+  {
+    "logit_min": -3.216844637273928,
+    "logit_max": 7.1814071950023255,
+    "max_row_range": 9.7686613561504,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 5.4733470958401976e-05,
+    "nonfinite_rows": 0,
+    "site": 174
+  },
+  {
+    "logit_min": -3.911233823751366,
+    "logit_max": 7.095044680675377,
+    "max_row_range": 10.257991392374752,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.4039744249762754e-05,
+    "nonfinite_rows": 0,
+    "site": 175
+  },
+  {
+    "logit_min": -3.6276786211925507,
+    "logit_max": 6.801902864544094,
+    "max_row_range": 9.790664273548352,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.408573598363209e-05,
+    "nonfinite_rows": 0,
+    "site": 176
+  },
+  {
+    "logit_min": -3.1449340300668878,
+    "logit_max": 7.801056858798187,
+    "max_row_range": 10.06027726467307,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.161401718196365e-05,
+    "nonfinite_rows": 0,
+    "site": 177
+  },
+  {
+    "logit_min": -3.083420868132249,
+    "logit_max": 7.778202999513453,
+    "max_row_range": 9.75285496135051,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 5.7180110323075685e-05,
+    "nonfinite_rows": 0,
+    "site": 178
+  },
+  {
+    "logit_min": -3.499523693368241,
+    "logit_max": 6.039792744390711,
+    "max_row_range": 8.713209740784256,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 0.00014659365871503742,
+    "nonfinite_rows": 0,
+    "site": 179
+  },
+  {
+    "logit_min": -3.98487738123,
+    "logit_max": 5.758468581304837,
+    "max_row_range": 8.711958729316095,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 0.00013688378995789697,
+    "nonfinite_rows": 0,
+    "site": 180
+  },
+  {
+    "logit_min": -3.0176108732026337,
+    "logit_max": 8.499409056928675,
+    "max_row_range": 10.696373857584579,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 2.225161806523722e-05,
+    "nonfinite_rows": 0,
+    "site": 181
+  },
+  {
+    "logit_min": -3.277250781310201,
+    "logit_max": 7.282267375118929,
+    "max_row_range": 9.402444721388289,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 8.13412528577561e-05,
+    "nonfinite_rows": 0,
+    "site": 182
+  },
+  {
+    "logit_min": -3.685365191121391,
+    "logit_max": 6.8285554429827044,
+    "max_row_range": 9.629824809099123,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 6.332629022217282e-05,
+    "nonfinite_rows": 0,
+    "site": 183
+  },
+  {
+    "logit_min": -2.99915291153938,
+    "logit_max": 8.055591291185115,
+    "max_row_range": 9.866098222083384,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 5.1297525792169346e-05,
+    "nonfinite_rows": 0,
+    "site": 184
+  },
+  {
+    "logit_min": -3.0947418068147905,
+    "logit_max": 9.57326367549476,
+    "max_row_range": 11.133252178060584,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 1.454794252549461e-05,
+    "nonfinite_rows": 0,
+    "site": 185
+  },
+  {
+    "logit_min": -3.8956843604858347,
+    "logit_max": 6.971602877154979,
+    "max_row_range": 9.655110269133129,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 6.275962069552596e-05,
+    "nonfinite_rows": 0,
+    "site": 186
+  },
+  {
+    "logit_min": -4.0643429174067265,
+    "logit_max": 6.708937863837854,
+    "max_row_range": 9.953784382590966,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.605397637782298e-05,
+    "nonfinite_rows": 0,
+    "site": 187
+  },
+  {
+    "logit_min": -3.5131089508796793,
+    "logit_max": 7.812565698980475,
+    "max_row_range": 10.289588704067608,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.33383202882405e-05,
+    "nonfinite_rows": 0,
+    "site": 188
+  },
+  {
+    "logit_min": -3.5403503890339016,
+    "logit_max": 7.86528485615916,
+    "max_row_range": 10.370259923748447,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.0969789360900464e-05,
+    "nonfinite_rows": 0,
+    "site": 189
+  },
+  {
+    "logit_min": -3.4753928923089674,
+    "logit_max": 7.4322892504163605,
+    "max_row_range": 9.508373414642296,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 7.21960454397361e-05,
+    "nonfinite_rows": 0,
+    "site": 190
+  },
+  {
+    "logit_min": -3.683671552261248,
+    "logit_max": 7.697022470013451,
+    "max_row_range": 9.980284931662572,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.5775464118315965e-05,
+    "nonfinite_rows": 0,
+    "site": 191
+  },
+  {
+    "logit_min": -3.4096754771539706,
+    "logit_max": 8.336967680146271,
+    "max_row_range": 10.762680373051577,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.095225649614081e-05,
+    "nonfinite_rows": 0,
+    "site": 192
+  },
+  {
+    "logit_min": -3.88354980405318,
+    "logit_max": 7.2233262005784615,
+    "max_row_range": 10.598884213305357,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 2.455967337480542e-05,
+    "nonfinite_rows": 0,
+    "site": 193
+  },
+  {
+    "logit_min": -3.8652502665323034,
+    "logit_max": 7.961157219663421,
+    "max_row_range": 10.330199415763557,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.2039180883605975e-05,
+    "nonfinite_rows": 0,
+    "site": 194
+  },
+  {
+    "logit_min": -3.277202371526965,
+    "logit_max": 7.972270677702879,
+    "max_row_range": 10.29764428676247,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.313759866169055e-05,
+    "nonfinite_rows": 0,
+    "site": 195
+  },
+  {
+    "logit_min": -3.8402202010978135,
+    "logit_max": 7.901660538434211,
+    "max_row_range": 10.08189762517113,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 4.122778121915883e-05,
+    "nonfinite_rows": 0,
+    "site": 196
+  },
+  {
+    "logit_min": -4.005844367784582,
+    "logit_max": 7.89852120729612,
+    "max_row_range": 10.481355975810981,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 2.7754007105569184e-05,
+    "nonfinite_rows": 0,
+    "site": 197
+  },
+  {
+    "logit_min": -4.103322429155425,
+    "logit_max": 7.581562670384022,
+    "max_row_range": 10.848437688578816,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 1.9262431176127964e-05,
+    "nonfinite_rows": 0,
+    "site": 198
+  },
+  {
+    "logit_min": -3.2400549235733056,
+    "logit_max": 7.475061756654641,
+    "max_row_range": 9.664948374730583,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.0099232500710736e-05,
+    "nonfinite_rows": 0,
+    "site": 199
+  },
+  {
+    "logit_min": -3.5597510561651493,
+    "logit_max": 8.900212857868688,
+    "max_row_range": 11.39488642377799,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.1215602707568798e-05,
+    "nonfinite_rows": 0,
+    "site": 200
+  },
+  {
+    "logit_min": -3.215452551363141,
+    "logit_max": 8.572850045761017,
+    "max_row_range": 11.008240031468615,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.649914704021923e-05,
+    "nonfinite_rows": 0,
+    "site": 201
+  },
+  {
+    "logit_min": -3.567214434775195,
+    "logit_max": 7.70016719925345,
+    "max_row_range": 10.341356131550583,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.1870160014314466e-05,
+    "nonfinite_rows": 0,
+    "site": 202
+  },
+  {
+    "logit_min": -3.0127242828158467,
+    "logit_max": 8.528575485326645,
+    "max_row_range": 10.350448903100528,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.178105537358811e-05,
+    "nonfinite_rows": 0,
+    "site": 203
+  },
+  {
+    "logit_min": -3.9553601722454452,
+    "logit_max": 6.705887769085499,
+    "max_row_range": 9.362247647061473,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 8.146133332751629e-05,
+    "nonfinite_rows": 0,
+    "site": 204
+  },
+  {
+    "logit_min": -3.4542981748367807,
+    "logit_max": 8.776997698405554,
+    "max_row_range": 11.120237953774549,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.4725216579796173e-05,
+    "nonfinite_rows": 0,
+    "site": 205
+  },
+  {
+    "logit_min": -2.68460932535542,
+    "logit_max": 10.444209982364834,
+    "max_row_range": 12.260575041112642,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.729851776613206e-06,
+    "nonfinite_rows": 0,
+    "site": 206
+  },
+  {
+    "logit_min": -3.230416314456649,
+    "logit_max": 10.029986228915147,
+    "max_row_range": 12.176709213149561,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 5.142087796355453e-06,
+    "nonfinite_rows": 0,
+    "site": 207
+  },
+  {
+    "logit_min": -1.6369393323735615,
+    "logit_max": 10.27869995336861,
+    "max_row_range": 11.511579209540436,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.0008624656924596e-05,
+    "nonfinite_rows": 0,
+    "site": 208
+  },
+  {
+    "logit_min": -2.257561665635687,
+    "logit_max": 10.347176872756513,
+    "max_row_range": 11.89590009903569,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 6.799891126195103e-06,
+    "nonfinite_rows": 0,
+    "site": 209
+  },
+  {
+    "logit_min": -1.1730978570221289,
+    "logit_max": 9.871825490258471,
+    "max_row_range": 11.009235614302371,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.6526033131015733e-05,
+    "nonfinite_rows": 0,
+    "site": 210
+  },
+  {
+    "logit_min": -3.102637676131362,
+    "logit_max": 10.028798370504928,
+    "max_row_range": 12.201427117983062,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 5.014637539904864e-06,
+    "nonfinite_rows": 0,
+    "site": 211
+  },
+  {
+    "logit_min": -2.8464073878981693,
+    "logit_max": 9.403685671557215,
+    "max_row_range": 11.747918486961012,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 7.882917246076615e-06,
+    "nonfinite_rows": 0,
+    "site": 212
+  },
+  {
+    "logit_min": -3.730000629479268,
+    "logit_max": 8.330440086364508,
+    "max_row_range": 10.923796510095277,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.7813353493518288e-05,
+    "nonfinite_rows": 0,
+    "site": 213
+  },
+  {
+    "logit_min": -4.005882090289007,
+    "logit_max": 8.189673783703874,
+    "max_row_range": 11.026862344987595,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.6162758399795176e-05,
+    "nonfinite_rows": 0,
+    "site": 214
+  },
+  {
+    "logit_min": -3.1005033528535884,
+    "logit_max": 8.747207425568403,
+    "max_row_range": 11.16770908183861,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.3888050245041446e-05,
+    "nonfinite_rows": 0,
+    "site": 215
+  },
+  {
+    "logit_min": -3.2785696064749437,
+    "logit_max": 8.942728580063518,
+    "max_row_range": 11.345583406223405,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.1784324644502422e-05,
+    "nonfinite_rows": 0,
+    "site": 216
+  },
+  {
+    "logit_min": -3.368128285780416,
+    "logit_max": 7.613904798910871,
+    "max_row_range": 10.195669706632875,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.629707604336837e-05,
+    "nonfinite_rows": 0,
+    "site": 217
+  },
+  {
+    "logit_min": -3.3560850785452905,
+    "logit_max": 8.508778467649138,
+    "max_row_range": 10.988019256587512,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.6116369442074524e-05,
+    "nonfinite_rows": 0,
+    "site": 218
+  },
+  {
+    "logit_min": -3.0287179694389916,
+    "logit_max": 8.601401896600745,
+    "max_row_range": 11.247068145476732,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.292565362789667e-05,
+    "nonfinite_rows": 0,
+    "site": 219
+  },
+  {
+    "logit_min": -3.0157673025986025,
+    "logit_max": 8.224072968548834,
+    "max_row_range": 11.053609370539775,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.527096775578951e-05,
+    "nonfinite_rows": 0,
+    "site": 220
+  },
+  {
+    "logit_min": -3.0191136183049854,
+    "logit_max": 9.091861468779888,
+    "max_row_range": 11.293415081914512,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.2372959592313865e-05,
+    "nonfinite_rows": 0,
+    "site": 221
+  },
+  {
+    "logit_min": -3.4132690061052,
+    "logit_max": 8.334881117476725,
+    "max_row_range": 11.240056278371089,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.2881008328210679e-05,
+    "nonfinite_rows": 0,
+    "site": 222
+  },
+  {
+    "logit_min": -3.3349048588162793,
+    "logit_max": 8.272519164293215,
+    "max_row_range": 10.811086585382082,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.996022949056111e-05,
+    "nonfinite_rows": 0,
+    "site": 223
+  },
+  {
+    "logit_min": -3.5064747446282665,
+    "logit_max": 8.517380057772584,
+    "max_row_range": 11.095440900321112,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.5119018342307274e-05,
+    "nonfinite_rows": 0,
+    "site": 224
+  },
+  {
+    "logit_min": -3.2597466272794455,
+    "logit_max": 7.507182068967266,
+    "max_row_range": 9.824406195753205,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 5.0018370401383645e-05,
+    "nonfinite_rows": 0,
+    "site": 225
+  },
+  {
+    "logit_min": -3.5095905332926023,
+    "logit_max": 7.5160558758504585,
+    "max_row_range": 10.255944399650968,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.45380517981818e-05,
+    "nonfinite_rows": 0,
+    "site": 226
+  },
+  {
+    "logit_min": -3.244664030970856,
+    "logit_max": 7.521117261120417,
+    "max_row_range": 10.284656566718683,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 3.2982869031472886e-05,
+    "nonfinite_rows": 0,
+    "site": 227
+  },
+  {
+    "logit_min": -3.7779080664263587,
+    "logit_max": 8.308188666137204,
+    "max_row_range": 10.807444394979111,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.0000018532709935e-05,
+    "nonfinite_rows": 0,
+    "site": 228
+  },
+  {
+    "logit_min": -2.970584659457292,
+    "logit_max": 8.668986936378838,
+    "max_row_range": 10.593413778194225,
+    "max_prob_sum_error": 9.992007221626409e-16,
+    "min_probability": 2.4993206449880797e-05,
+    "nonfinite_rows": 0,
+    "site": 229
+  },
+  {
+    "logit_min": -2.8701700952833367,
+    "logit_max": 7.809258768547389,
+    "max_row_range": 10.361171512733844,
+    "max_prob_sum_error": 8.881784197001252e-16,
+    "min_probability": 3.128845260624196e-05,
+    "nonfinite_rows": 0,
+    "site": 230
+  },
+  {
+    "logit_min": -2.4450309369053174,
+    "logit_max": 8.774684567674461,
+    "max_row_range": 11.050391426013178,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.5718285191620263e-05,
+    "nonfinite_rows": 0,
+    "site": 231
+  },
+  {
+    "logit_min": -2.9469443769658974,
+    "logit_max": 9.319494292030479,
+    "max_row_range": 11.48313868228001,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.0200130261280475e-05,
+    "nonfinite_rows": 0,
+    "site": 232
+  },
+  {
+    "logit_min": -3.0879472641887817,
+    "logit_max": 8.468744312112214,
+    "max_row_range": 10.720079272433566,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.1389193967121483e-05,
+    "nonfinite_rows": 0,
+    "site": 233
+  },
+  {
+    "logit_min": -2.9370505239903006,
+    "logit_max": 8.36930703196525,
+    "max_row_range": 11.000523372914106,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.641717447843941e-05,
+    "nonfinite_rows": 0,
+    "site": 234
+  },
+  {
+    "logit_min": -3.012181243698925,
+    "logit_max": 8.842772883014323,
+    "max_row_range": 11.10150956522426,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.4959391937332016e-05,
+    "nonfinite_rows": 0,
+    "site": 235
+  },
+  {
+    "logit_min": -3.5236215726908964,
+    "logit_max": 7.614934967604495,
+    "max_row_range": 10.531510181078957,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 2.6330283246461384e-05,
+    "nonfinite_rows": 0,
+    "site": 236
+  },
+  {
+    "logit_min": -3.8798611665203504,
+    "logit_max": 7.957414004068305,
+    "max_row_range": 11.330837280410364,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 1.1901072111940168e-05,
+    "nonfinite_rows": 0,
+    "site": 237
+  },
+  {
+    "logit_min": -3.6038278733886333,
+    "logit_max": 7.825628892639586,
+    "max_row_range": 10.382292017052873,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 3.0625031742333736e-05,
+    "nonfinite_rows": 0,
+    "site": 238
+  },
+  {
+    "logit_min": -3.2829688708346776,
+    "logit_max": 7.515031718315962,
+    "max_row_range": 9.983842004060714,
+    "max_prob_sum_error": 1.1102230246251565e-15,
+    "min_probability": 4.529871546885505e-05,
+    "nonfinite_rows": 0,
+    "site": 239
+  },
+  {
+    "logit_min": -3.664573720825023,
+    "logit_max": 8.013588134143923,
+    "max_row_range": 10.497471557954354,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 2.7098342976810056e-05,
+    "nonfinite_rows": 0,
+    "site": 240
+  },
+  {
+    "logit_min": -4.0405785291638585,
+    "logit_max": 8.21031197476524,
+    "max_row_range": 11.290876348766467,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.2298384798906673e-05,
+    "nonfinite_rows": 0,
+    "site": 241
+  },
+  {
+    "logit_min": -3.5248930365726494,
+    "logit_max": 9.234949988265576,
+    "max_row_range": 12.337900786274423,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.3719642290465686e-06,
+    "nonfinite_rows": 0,
+    "site": 242
+  },
+  {
+    "logit_min": -3.2946908566146798,
+    "logit_max": 8.981420050073927,
+    "max_row_range": 11.676117168501342,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 8.452588611249791e-06,
+    "nonfinite_rows": 0,
+    "site": 243
+  },
+  {
+    "logit_min": -3.551221998462919,
+    "logit_max": 8.898983645641872,
+    "max_row_range": 11.775184794490947,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 7.667535234547443e-06,
+    "nonfinite_rows": 0,
+    "site": 244
+  },
+  {
+    "logit_min": -3.7333944649187467,
+    "logit_max": 9.07132114388322,
+    "max_row_range": 12.064519386779747,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 5.745014242138518e-06,
+    "nonfinite_rows": 0,
+    "site": 245
+  },
+  {
+    "logit_min": -3.449413076940197,
+    "logit_max": 8.957494539144301,
+    "max_row_range": 11.659389587873067,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 8.603182304290232e-06,
+    "nonfinite_rows": 0,
+    "site": 246
+  },
+  {
+    "logit_min": -3.0973793827663445,
+    "logit_max": 9.157039016991064,
+    "max_row_range": 11.490655299695113,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.0126635723993929e-05,
+    "nonfinite_rows": 0,
+    "site": 247
+  },
+  {
+    "logit_min": -3.2379934650673614,
+    "logit_max": 9.239725076954636,
+    "max_row_range": 11.36892292379576,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 1.1501266499829192e-05,
+    "nonfinite_rows": 0,
+    "site": 248
+  },
+  {
+    "logit_min": -3.2005294332613117,
+    "logit_max": 8.917358991618604,
+    "max_row_range": 11.612354455574998,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 8.971452785482288e-06,
+    "nonfinite_rows": 0,
+    "site": 249
+  },
+  {
+    "logit_min": -2.5507488173694126,
+    "logit_max": 9.015591451611623,
+    "max_row_range": 11.220891191965388,
+    "max_prob_sum_error": 1.2212453270876722e-15,
+    "min_probability": 1.3313556199469497e-05,
+    "nonfinite_rows": 0,
+    "site": 250
+  },
+  {
+    "logit_min": -2.596957007391097,
+    "logit_max": 9.99684530060008,
+    "max_row_range": 12.356565407363847,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 4.291582162387714e-06,
+    "nonfinite_rows": 0,
+    "site": 251
+  },
+  {
+    "logit_min": -2.6387859662000763,
+    "logit_max": 10.068227663807885,
+    "max_row_range": 12.490012344469577,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 3.759584360489777e-06,
+    "nonfinite_rows": 0,
+    "site": 252
+  },
+  {
+    "logit_min": -3.475140156925567,
+    "logit_max": 10.084934985231204,
+    "max_row_range": 12.583447344931548,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 3.4251673179610505e-06,
+    "nonfinite_rows": 0,
+    "site": 253
+  },
+  {
+    "logit_min": -2.1336266680426808,
+    "logit_max": 10.10317199587195,
+    "max_row_range": 11.999025914758068,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 6.139110301853192e-06,
+    "nonfinite_rows": 0,
+    "site": 254
+  },
+  {
+    "logit_min": -2.112667352299228,
+    "logit_max": 10.042002528524343,
+    "max_row_range": 11.960841018639243,
+    "max_prob_sum_error": 1.3322676295501878e-15,
+    "min_probability": 6.382519631869471e-06,
+    "nonfinite_rows": 0,
+    "site": 255
+  },
+  {
+    "logit_min": -2.620813291107741,
+    "logit_max": 10.18800383384484,
+    "max_row_range": 12.192945977191814,
+    "max_prob_sum_error": 1.4432899320127035e-15,
+    "min_probability": 5.060469872794293e-06,
+    "nonfinite_rows": 0,
+    "site": 256
+  },
+  {
+    "logit_min": -3.093601590323235,
+    "logit_max": 10.083184975875387,
+    "max_row_range": 12.359278264141688,
+    "max_prob_sum_error": 1.5543122344752192e-15,
+    "min_probability": 4.285879459756647e-06,
+    "nonfinite_rows": 0,
+    "site": 257
+  },
+  {
+    "logit_min": -2.0498690445964325,
+    "logit_max": 11.161627153527458,
+    "max_row_range": 12.688678441388461,
+    "max_prob_sum_error": 2.1094237467877974e-15,
+    "min_probability": 3.084634417950301e-06,
+    "nonfinite_rows": 0,
+    "site": 258
+  },
+  {
+    "logit_min": -1.8833071552494232,
+    "logit_max": 11.543422991506667,
+    "max_row_range": 12.880324842421366,
+    "max_prob_sum_error": 1.7763568394002505e-15,
+    "min_probability": 2.5472273052564775e-06,
+    "nonfinite_rows": 0,
+    "site": 259
+  },
+  {
+    "logit_min": -1.2467015591596762,
+    "logit_max": 11.385192947734847,
+    "max_row_range": 12.321908325405117,
+    "max_prob_sum_error": 2.3314683517128287e-15,
+    "min_probability": 4.452345525281685e-06,
+    "nonfinite_rows": 0,
+    "site": 260
+  },
+  {
+    "logit_min": -0.7375962498845162,
+    "logit_max": 11.102248100993018,
+    "max_row_range": 11.741944953934752,
+    "max_prob_sum_error": 3.1086244689504383e-15,
+    "min_probability": 7.951624892790452e-06,
+    "nonfinite_rows": 0,
+    "site": 261
+  },
+  {
+    "logit_min": -0.7083678649633056,
+    "logit_max": 11.132188606249999,
+    "max_row_range": 11.761361959199137,
+    "max_prob_sum_error": 3.1086244689504383e-15,
+    "min_probability": 7.798853412924675e-06,
+    "nonfinite_rows": 0,
+    "site": 262
+  }
+]

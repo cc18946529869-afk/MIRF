@@ -11,6 +11,8 @@
 /research/mirf-muformer/prep/*.zip
 /research/mirf-muformer/prep/*.npy
 /research/mirf-muformer/prep/*.so
+/research/mirf-muformer/dcr/*.so
+/research/mirf-muformer/dcr/*.npy
 
 # Local editor state.
 /.cursor/

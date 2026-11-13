@@ -1,0 +1,464 @@
+[
+  {
+    "label": "minimum",
+    "site": 208,
+    "objective": 4632.147241355378,
+    "grad_inf": 6.163440697548594e-05,
+    "objective_repeat_gap": 0.0,
+    "gradient_repeat_max_abs": 0.0,
+    "directions": [
+      {
+        "name": "gradient",
+        "analytic": 0.0007811666672888728,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": -0.019256022051195032,
+            "absolute_error": -0.020037188718483905,
+            "relative_error": -25.650337575238883
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 0.0005807651177747175,
+            "absolute_error": -0.00020040154951415532,
+            "relative_error": -0.25654134758421215
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 0.0007799826562404633,
+            "absolute_error": -1.1840110484095771e-06,
+            "relative_error": -0.0015156958149773866
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 0.0007772541721351444,
+            "absolute_error": -3.91249515372847e-06,
+            "relative_error": -0.005008528035774013
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 0.0007685230229981244,
+            "absolute_error": -1.2643644290748473e-05,
+            "relative_error": -0.016185591142322635
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.0010322764865122736,
+            "absolute_error": 0.0002511098192234007,
+            "relative_error": 0.3214548568680045
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.0003637978807091713,
+            "absolute_error": -0.0011449645479980441,
+            "relative_error": -1.465710962772865
+          }
+        ]
+      },
+      {
+        "name": "max_coordinate",
+        "analytic": 6.163440697548594e-05,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": -0.0032908247248997213,
+            "absolute_error": -0.0033524591318752073,
+            "relative_error": -54.39265657587315
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 2.810247679008171e-05,
+            "absolute_error": -3.3531930185404235e-05,
+            "relative_error": -0.5440456366967399
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 6.135451258160174e-05,
+            "absolute_error": -2.798943938842058e-07,
+            "relative_error": -0.004541203649376055
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 6.33917807135731e-05,
+            "absolute_error": 1.7573737380871535e-06,
+            "relative_error": 0.028512868450022072
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 7.275957614183426e-05,
+            "absolute_error": 1.1125169166348314e-05,
+            "relative_error": 0.18050257497850453
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.00023646862246096134,
+            "absolute_error": 0.0001748342154854754,
+            "relative_error": 2.8366333686801397
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.0008185452315956354,
+            "absolute_error": -0.0008801796385711214,
+            "relative_error": -14.280653968508176
+          }
+        ]
+      },
+      {
+        "name": "random",
+        "analytic": 1.4397572412656702e-06,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": -2.807519194902852e-06,
+            "absolute_error": -4.247276436168522e-06,
+            "relative_error": -2.9499948424880307
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 1.412900019204244e-06,
+            "absolute_error": -2.685722206142614e-08,
+            "relative_error": -0.01865399338975808
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 5.638867150992155e-07,
+            "absolute_error": -8.758705261664546e-07,
+            "relative_error": -0.6083459774069199
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 5.911715561524034e-07,
+            "absolute_error": -8.485856851132668e-07,
+            "relative_error": -0.5893949763137063
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 4.001776687800884e-05,
+            "absolute_error": 3.8578009636743174e-05,
+            "relative_error": 26.79480160337988
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.00023646862246096134,
+            "absolute_error": 0.00023502886521969567,
+            "relative_error": 163.24200947451746
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.002228262019343674,
+            "absolute_error": -0.0022297017765849397,
+            "relative_error": -1548.665089279107
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "median",
+    "site": 256,
+    "objective": 26656.258819765928,
+    "grad_inf": 0.00020366143917982527,
+    "objective_repeat_gap": 0.0,
+    "gradient_repeat_max_abs": 0.0,
+    "directions": [
+      {
+        "name": "gradient",
+        "analytic": 0.0034551338886057797,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": -0.23097511366358958,
+            "absolute_error": -0.23443024755219535,
+            "relative_error": -67.84983016875012
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 0.001110402081394568,
+            "absolute_error": -0.0023447318072112116,
+            "relative_error": -0.678622560747526
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 0.003434015525272116,
+            "absolute_error": -2.1118363333663594e-05,
+            "relative_error": -0.006112169315147815
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 0.0034326149034313853,
+            "absolute_error": -2.2518985174394338e-05,
+            "relative_error": -0.006517543429693611
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 0.004047251422889531,
+            "absolute_error": 0.000592117534283751,
+            "relative_error": 0.1713732530702835
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.009913492249324918,
+            "absolute_error": 0.006458358360719138,
+            "relative_error": 1.869206395160919
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": 0.020554580260068178,
+            "absolute_error": 0.0170994463714624,
+            "relative_error": 4.948996745929979
+          }
+        ]
+      },
+      {
+        "name": "max_coordinate",
+        "analytic": 0.00020366143917982527,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": 0.009530073475616518,
+            "absolute_error": 0.009326412036436693,
+            "relative_error": 45.79370583845196
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 0.00029703733162023127,
+            "absolute_error": 9.3375892440406e-05,
+            "relative_error": 0.4584858715348597
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 0.00020811057765968144,
+            "absolute_error": 4.449138479856174e-06,
+            "relative_error": 0.02184575783110201
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 0.00020263541955500838,
+            "absolute_error": -1.0260196248168812e-06,
+            "relative_error": -0.005037868871735435
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": -5.4569682106375694e-05,
+            "absolute_error": -0.00025823112128620096,
+            "relative_error": -1.2679431232840928
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": -1.8189894035458565e-05,
+            "absolute_error": -0.00022185133321528383,
+            "relative_error": -1.089314374428031
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.01837179297581315,
+            "absolute_error": -0.018575454414992976,
+            "relative_error": -91.20751817231125
+          }
+        ]
+      },
+      {
+        "name": "random",
+        "analytic": 2.1225555250591386e-05,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": 2.2941276256460696e-05,
+            "absolute_error": 1.7157210058693101e-06,
+            "relative_error": 0.08083279733384156
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 2.1085725165903568e-05,
+            "absolute_error": -1.3983008468781806e-07,
+            "relative_error": -0.006587817516996269
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 1.9463186617940664e-05,
+            "absolute_error": -1.762368632650722e-06,
+            "relative_error": -0.08303050788749655
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 1.673470251262188e-05,
+            "absolute_error": -4.490852737969507e-06,
+            "relative_error": -0.21157763294999704
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": -0.00048748916015028954,
+            "absolute_error": -0.000508714715400881,
+            "relative_error": -23.96708634450009
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.00029103830456733704,
+            "absolute_error": 0.00026981274931674567,
+            "relative_error": 12.711693340000052
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.008731149137020111,
+            "absolute_error": -0.008752374692270703,
+            "relative_error": -412.3508002000016
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "maximum",
+    "site": 95,
+    "objective": 72264.76265444048,
+    "grad_inf": 0.0023105597115176124,
+    "objective_repeat_gap": 0.0,
+    "gradient_repeat_max_abs": 0.0,
+    "directions": [
+      {
+        "name": "gradient",
+        "analytic": 0.030314525125432354,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": 0.0008008682925719768,
+            "absolute_error": -0.029513656832860377,
+            "relative_error": -0.973581367702175
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": 0.030022129067219794,
+            "absolute_error": -0.0002923960582125601,
+            "relative_error": -0.009645411135510568
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": 0.03030960215255618,
+            "absolute_error": -4.9229728761729374e-06,
+            "relative_error": -0.00016239650318793257
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 0.030195951694622632,
+            "absolute_error": -0.00011857343080972152,
+            "relative_error": -0.00391143949374435
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 0.03026070771738887,
+            "absolute_error": -5.381740804348556e-05,
+            "relative_error": -0.0017753010420188135
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.02852175384759903,
+            "absolute_error": -0.0017927712778333244,
+            "relative_error": -0.05913901901531949
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.023283064365386963,
+            "absolute_error": -0.05359758949081932,
+            "relative_error": -1.7680497803956576
+          }
+        ]
+      },
+      {
+        "name": "max_coordinate",
+        "analytic": -0.0023105597115176124,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": 0.015867999172769487,
+            "absolute_error": 0.0181785588842871,
+            "relative_error": -7.867599696156362
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": -0.0021281230146996677,
+            "absolute_error": 0.00018243669681794472,
+            "relative_error": -0.07895779360669168
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": -0.002306915121152997,
+            "absolute_error": 3.6445903646153965e-06,
+            "relative_error": -0.001577362552652479
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": -0.002363958628848195,
+            "absolute_error": -5.339891733058266e-05,
+            "relative_error": 0.023110814693254305
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": -0.0033614924177527428,
+            "absolute_error": -0.0010509327062351304,
+            "relative_error": 0.4548390162766497
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": -0.0032741809263825417,
+            "absolute_error": -0.0009636212148649292,
+            "relative_error": 0.4170509898798536
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": 0.08149072527885437,
+            "absolute_error": 0.08380128499037198,
+            "relative_error": -36.268824637009686
+          }
+        ]
+      },
+      {
+        "name": "random",
+        "analytic": -1.882716627452454e-05,
+        "steps": [
+          {
+            "epsilon": 0.01,
+            "directional_difference": -1.6434205463156104e-05,
+            "absolute_error": 2.392960811368435e-06,
+            "relative_error": -0.1271014860375671
+          },
+          {
+            "epsilon": 0.001,
+            "directional_difference": -2.015440259128809e-05,
+            "absolute_error": -1.3272363167635509e-06,
+            "relative_error": 0.07049580895025419
+          },
+          {
+            "epsilon": 0.0001,
+            "directional_difference": -1.469743438065052e-05,
+            "absolute_error": 4.1297318938740186e-06,
+            "relative_error": -0.21934962668609623
+          },
+          {
+            "epsilon": 1e-05,
+            "directional_difference": 0.00013096723705530167,
+            "absolute_error": 0.0001497944033298262,
+            "relative_error": -7.95629045527241
+          },
+          {
+            "epsilon": 1e-06,
+            "directional_difference": 0.0004220055416226387,
+            "absolute_error": 0.00044083270789716325,
+            "relative_error": -23.414713689211098
+          },
+          {
+            "epsilon": 1e-07,
+            "directional_difference": 0.005384208634495735,
+            "absolute_error": 0.00540303580077026,
+            "relative_error": -286.98082982786576
+          },
+          {
+            "epsilon": 1e-08,
+            "directional_difference": -0.008731149137020111,
+            "absolute_error": -0.008712321970745587,
+            "relative_error": 462.7526970181607
+          }
+        ]
+      }
+    ]
+  }
+]
