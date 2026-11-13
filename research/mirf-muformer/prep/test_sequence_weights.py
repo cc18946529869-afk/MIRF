@@ -114,79 +114,121 @@ class NeighborCountTest(unittest.TestCase):
 
 
 class A2mColumnTest(unittest.TestCase):
-    def test_insertion_dot_is_removed_with_its_column(self) -> None:
-        text = ">q\nA.C\n>h\nAaC\n"
+    def test_lowercase_standard_residue_is_kept(self) -> None:
+        text = ">q\nAxC\n>h\na.c\n"
         records = msa_prepare.read_a2m(text)
-        columns = msa_prepare.match_column_index(records[0][1])
-        np.testing.assert_array_equal(columns, [0, 2])
-        encoded, nonstandard = msa_prepare.encode_match_columns(records, columns)
-        np.testing.assert_array_equal(
-            encoded,
-            [[msa_prepare.CODE["A"], msa_prepare.CODE["C"]],
-             [msa_prepare.CODE["A"], msa_prepare.CODE["C"]]],
-        )
-        self.assertEqual(nonstandard, {})
-
-    def test_dot_inside_match_column_stops(self) -> None:
-        text = ">q\nAC\n>h\nA.\n"
-        records = msa_prepare.read_a2m(text)
-        columns = msa_prepare.match_column_index(records[0][1])
-        with self.assertRaises(msa_prepare.MsaFormatError):
-            msa_prepare.encode_match_columns(records, columns)
-
-    def test_match_dash_is_gap_and_x_is_counted(self) -> None:
-        text = ">q\nA-C\n>h\nAXC\n"
-        records = msa_prepare.read_a2m(text)
-        columns = msa_prepare.match_column_index(records[0][1])
-        encoded, nonstandard = msa_prepare.encode_match_columns(records, columns)
+        encoded, nonstandard = msa_prepare.encode_fixed_columns(records)
+        self.assertEqual(encoded.shape, (2, 3))
         np.testing.assert_array_equal(
             encoded[0],
-            [msa_prepare.CODE["A"], msa_prepare.GAP_CODE, msa_prepare.CODE["C"]],
+            [
+                msa_prepare.CODE["A"],
+                msa_prepare.GAP_CODE,
+                msa_prepare.CODE["C"],
+            ],
         )
         np.testing.assert_array_equal(
             encoded[1],
-            [msa_prepare.CODE["A"], msa_prepare.GAP_CODE, msa_prepare.CODE["C"]],
+            [
+                msa_prepare.CODE["A"],
+                msa_prepare.GAP_CODE,
+                msa_prepare.CODE["C"],
+            ],
+        )
+        self.assertEqual(nonstandard, {"x": 1})
+
+    def test_dot_and_dash_are_gaps(self) -> None:
+        text = ">q\nA.C\n>h\nA-C\n"
+        records = msa_prepare.read_a2m(text)
+        encoded, nonstandard = msa_prepare.encode_fixed_columns(records)
+        np.testing.assert_array_equal(
+            encoded,
+            [
+                [
+                    msa_prepare.CODE["A"],
+                    msa_prepare.GAP_CODE,
+                    msa_prepare.CODE["C"],
+                ],
+                [
+                    msa_prepare.CODE["A"],
+                    msa_prepare.GAP_CODE,
+                    msa_prepare.CODE["C"],
+                ],
+            ],
+        )
+        self.assertEqual(nonstandard, {})
+
+    def test_uppercase_x_is_counted_and_column_kept(self) -> None:
+        text = ">q\nA-C\n>h\nAXC\n"
+        records = msa_prepare.read_a2m(text)
+        encoded, nonstandard = msa_prepare.encode_fixed_columns(records)
+        np.testing.assert_array_equal(
+            encoded[1],
+            [
+                msa_prepare.CODE["A"],
+                msa_prepare.GAP_CODE,
+                msa_prepare.CODE["C"],
+            ],
         )
         self.assertEqual(nonstandard, {"X": 1})
 
-    def test_mature_crop_uses_match_columns(self) -> None:
+    def test_mature_crop_keeps_lowercase_target_positions(self) -> None:
         target = msa_prepare.TARGET_SEQUENCE
-        insert_at = 5
-        query = target[:insert_at] + "." + target[insert_at:]
-        homolog = target[:insert_at] + "a" + target[insert_at:]
-        text = f">query\n{query}\n>homolog\n{homolog}\n"
+        query = target[:23].lower() + target[23:39].lower() + target[39:]
+        homolog = "." * 23 + target[23:]
+        text = (
+            f">{msa_prepare.OFFICIAL_HEADER}\n{query}\n"
+            f">homolog\n{homolog}\n"
+        )
         mature, audit = msa_prepare.mature_alignment(text)
         self.assertEqual(mature.shape, (2, 263))
-        self.assertEqual(audit.n_match_columns, 286)
-        self.assertEqual(audit.n_insert_columns, 1)
-        self.assertEqual(audit.nonstandard_mapped_to_gap, {})
-        decoded = "".join(msa_prepare.AMINO_ACIDS[code - 1] for code in mature[0])
+        self.assertEqual(audit.n_alignment_columns, 286)
+        self.assertEqual(audit.n_lowercase_columns, 23 + 16)
+        self.assertEqual(len(audit.mature_lowercase_positions), 16)
+        self.assertEqual(audit.mature_lowercase_positions[0], 24)
+        self.assertEqual(audit.mature_lowercase_positions[-1], 39)
+        decoded = "".join(
+            msa_prepare.AMINO_ACIDS[code - 1] for code in mature[0]
+        )
         self.assertEqual(decoded, target[23:])
         self.assertEqual(decoded[0], "H")
         np.testing.assert_array_equal(audit.mature_gap_fraction, np.zeros(263))
+
+    def test_query_must_match_target_after_case_folding(self) -> None:
+        target = msa_prepare.TARGET_SEQUENCE
+        query = "A" + target[1:]
+        text = f">{msa_prepare.OFFICIAL_HEADER}\n{query}\n"
+        with self.assertRaises(msa_prepare.MsaFormatError):
+            msa_prepare.mature_alignment(text)
 
     def test_unequal_lengths_stop(self) -> None:
         with self.assertRaises(msa_prepare.MsaFormatError):
             msa_prepare.read_a2m(">q\nAC\n>h\nA.C\n")
 
-    def test_lowercase_x_in_first_sequence_is_an_insertion_column(self) -> None:
-        text = ">q\nAxC\n>h\nAAC\n"
-        records = msa_prepare.read_a2m(text)
-        columns = msa_prepare.match_column_index(records[0][1])
-        np.testing.assert_array_equal(columns, [0, 2])
-        encoded, nonstandard = msa_prepare.encode_match_columns(records, columns)
-        np.testing.assert_array_equal(
-            encoded,
-            [[msa_prepare.CODE["A"], msa_prepare.CODE["C"]]] * 2,
-        )
-        self.assertEqual(nonstandard, {})
 
-    def test_lowercase_x_in_a_match_column_stops(self) -> None:
-        text = ">q\nAC\n>h\nAx\n"
-        records = msa_prepare.read_a2m(text)
-        columns = msa_prepare.match_column_index(records[0][1])
-        with self.assertRaises(msa_prepare.MsaFormatError):
-            msa_prepare.encode_match_columns(records, columns)
+class RealMsaTest(unittest.TestCase):
+    def test_official_a2m_keeps_48_mature_low_coverage_sites(self) -> None:
+        path = Path(__file__).resolve().parent / "BLAT_ECOLX_full_11-26-2021_b02.a2m"
+        if not path.is_file():
+            self.skipTest("official A2M is not in prep/")
+        mature, audit = msa_prepare.mature_alignment(path.read_text())
+        self.assertEqual(audit.n_sequences, 209644)
+        self.assertEqual(audit.n_alignment_columns, 286)
+        self.assertEqual(audit.n_uppercase_columns, 215)
+        self.assertEqual(audit.n_lowercase_columns, 71)
+        self.assertEqual(len(audit.mature_lowercase_positions), 48)
+        self.assertEqual(mature.shape, (209644, 263))
+        self.assertGreaterEqual(int(mature.min()), 0)
+        self.assertLessEqual(int(mature.max()), 20)
+        decoded = "".join(
+            msa_prepare.AMINO_ACIDS[code - 1] for code in mature[0]
+        )
+        self.assertEqual(decoded, msa_prepare.TARGET_SEQUENCE[23:])
+        self.assertEqual(audit.mature_gap_fraction.shape, (263,))
+        self.assertEqual(
+            audit.nonstandard_mapped_to_gap,
+            {"X": 1676, "x": 209, "B": 2, "b": 1},
+        )
 
 
 if __name__ == "__main__":

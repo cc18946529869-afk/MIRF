@@ -1,9 +1,8 @@
-"""Read an A2M alignment and cut the mature 263 match columns.
+"""Read a ProteinGym A2M alignment and cut the mature 263 columns.
 
-Column type follows HH-suite and is decided by the first sequence. Uppercase
-standard amino acids and '-' are match states. Any lowercase letter and '.'
-are insertion states, and that whole column is removed. A '.' or any lowercase
-letter inside a match column stops the conversion; it is not treated as a gap.
+In this file every column is one fixed target position. Uppercase and lowercase
+letters are both residues; case marks coverage, not an insertion. '-' and '.'
+are gaps. No column is dropped because it is lowercase.
 """
 
 from __future__ import annotations
@@ -23,6 +22,7 @@ TARGET_SEQUENCE = (
     "ADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGA"
     "SLIKHW"
 )
+OFFICIAL_HEADER = "BLAT_ECOLX/1-286"
 MATURE_START = 24
 MATURE_END = 286
 
@@ -34,18 +34,20 @@ class MsaFormatError(ValueError):
 @dataclass(frozen=True)
 class MsaAudit:
     n_sequences: int
-    raw_columns: int
-    n_match_columns: int
-    n_insert_columns: int
+    n_alignment_columns: int
+    n_uppercase_columns: int
+    n_lowercase_columns: int
+    mature_lowercase_positions: tuple[int, ...]
     nonstandard_mapped_to_gap: dict[str, int]
     mature_gap_fraction: np.ndarray
 
     def as_dict(self) -> dict[str, object]:
         return {
             "n_sequences": self.n_sequences,
-            "raw_columns": self.raw_columns,
-            "n_match_columns": self.n_match_columns,
-            "n_insert_columns": self.n_insert_columns,
+            "n_alignment_columns": self.n_alignment_columns,
+            "n_uppercase_columns": self.n_uppercase_columns,
+            "n_lowercase_columns": self.n_lowercase_columns,
+            "mature_lowercase_positions": self.mature_lowercase_positions,
             "nonstandard_mapped_to_gap": dict(self.nonstandard_mapped_to_gap),
             "mature_gap_fraction": self.mature_gap_fraction.copy(),
         }
@@ -91,43 +93,32 @@ def is_lowercase_letter(symbol: str) -> bool:
     return len(symbol) == 1 and symbol.isalpha() and symbol.islower()
 
 
-def match_column_index(first_sequence: str) -> np.ndarray:
-    """Return indices of match columns. Insertion columns are omitted."""
-    chosen: list[int] = []
-    for index, symbol in enumerate(first_sequence):
-        if symbol in AMINO_ACIDS or symbol == "-":
-            chosen.append(index)
-        elif is_lowercase_letter(symbol) or symbol == ".":
-            continue
-        else:
-            raise MsaFormatError(
-                f"first sequence column {index + 1} has unclassified symbol {symbol!r}"
-            )
-    return np.asarray(chosen, dtype=np.int64)
+def encode_symbol(symbol: str, nonstandard: Counter[str]) -> int:
+    """Map one alignment character. Lowercase standard residues stay residues."""
+    if symbol in ("-", "."):
+        return GAP_CODE
+    normalized = symbol.upper()
+    code = CODE.get(normalized)
+    if code is None:
+        nonstandard[symbol] += 1
+        return GAP_CODE
+    return code
 
 
-def encode_match_columns(
+def encode_fixed_columns(
     records: list[tuple[str, str]],
-    columns: np.ndarray,
 ) -> tuple[np.ndarray, dict[str, int]]:
-    """Encode match columns. '-' is gap. '.' or lowercase stops the conversion."""
-    encoded = np.empty((len(records), len(columns)), dtype=np.int8)
+    """Encode every column. Nothing is removed because of letter case."""
+    width = len(records[0][1])
+    encoded = np.empty((len(records), width), dtype=np.int8)
     nonstandard: Counter[str] = Counter()
     for row, (_, sequence) in enumerate(records):
-        for column, source in enumerate(columns):
-            symbol = sequence[int(source)]
-            if symbol == "-":
-                encoded[row, column] = GAP_CODE
-            elif symbol in CODE:
-                encoded[row, column] = CODE[symbol]
-            elif symbol == "." or is_lowercase_letter(symbol):
-                raise MsaFormatError(
-                    "match column "
-                    f"{column + 1} contains insertion symbol {symbol!r} in row {row + 1}"
-                )
-            else:
-                nonstandard[symbol] += 1
-                encoded[row, column] = GAP_CODE
+        if len(sequence) != width:
+            raise MsaFormatError(
+                f"row {row + 1} has length {len(sequence)}; expected {width}"
+            )
+        for column, symbol in enumerate(sequence):
+            encoded[row, column] = encode_symbol(symbol, nonstandard)
     return encoded, dict(nonstandard)
 
 
@@ -137,29 +128,35 @@ def mature_alignment(
     start: int = MATURE_START,
     end: int = MATURE_END,
 ) -> tuple[np.ndarray, MsaAudit]:
-    """Convert A2M text to the mature integer matrix and an audit."""
+    """Convert fixed-column A2M text to the mature integer matrix and an audit."""
     if len(target) != end or start < 1 or end < start:
         raise ValueError("crop bounds must address the target sequence")
     records = read_a2m(text)
-    columns = match_column_index(records[0][1])
-    encoded, nonstandard = encode_match_columns(records, columns)
-    if encoded.shape[1] != len(target):
+    header, first = records[0]
+    if len(first) != len(target):
         raise MsaFormatError(
-            f"found {encoded.shape[1]} match columns; the target has {len(target)}"
+            f"expected {len(target)} fixed alignment columns, found {len(first)}"
         )
-    first = "".join(
-        "-" if code == GAP_CODE else AMINO_ACIDS[code - 1]
-        for code in encoded[0]
-    )
-    if first != target:
-        raise MsaFormatError("first sequence match states differ from the target")
+    if target == TARGET_SEQUENCE and header != OFFICIAL_HEADER:
+        raise MsaFormatError(
+            f"first header is {header!r}; expected {OFFICIAL_HEADER!r}"
+        )
+    if first.upper() != target:
+        raise MsaFormatError("query sequence differs from target")
+    encoded, nonstandard = encode_fixed_columns(records)
     mature = encoded[:, start - 1 : end]
+    lowercase_positions = tuple(
+        index + 1
+        for index, symbol in enumerate(first)
+        if symbol.islower() and start <= index + 1 <= end
+    )
     gap_fraction = np.mean(mature == GAP_CODE, axis=0).astype(np.float64)
     audit = MsaAudit(
         n_sequences=encoded.shape[0],
-        raw_columns=len(records[0][1]),
-        n_match_columns=encoded.shape[1],
-        n_insert_columns=len(records[0][1]) - encoded.shape[1],
+        n_alignment_columns=encoded.shape[1],
+        n_uppercase_columns=sum(symbol.isupper() for symbol in first),
+        n_lowercase_columns=sum(symbol.islower() for symbol in first),
+        mature_lowercase_positions=lowercase_positions,
         nonstandard_mapped_to_gap=nonstandard,
         mature_gap_fraction=gap_fraction,
     )

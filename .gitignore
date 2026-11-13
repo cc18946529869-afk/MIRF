@@ -7,6 +7,9 @@
 # Upstream datasets, not this project's source or experiment notes.
 /proteingym_v0.1_split/
 /Mu-Protein/mu-search/src/flexs/flexs/landscapes/data/
+/research/mirf-muformer/prep/*.a2m
+/research/mirf-muformer/prep/*.zip
+/research/mirf-muformer/prep/*.npy
 
 # Local editor state.
 /.cursor/
