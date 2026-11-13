@@ -402,7 +402,10 @@ class SolverV2Tests(unittest.TestCase):
         self.assertFalse(any(row.get("acceptance") == "strong_wolfe" for row in events))
 
     def test_no_sufficient_decrease_is_a_line_search_failure(self):
+        calls = {"n": 0}
+
         def objective(point):
+            calls["n"] += 1
             x = float(point[0])
             return 10.0 * x * x, np.array([20.0 * x])
 
@@ -415,7 +418,9 @@ class SolverV2Tests(unittest.TestCase):
             1.0,
             max_evals=5,
         )
-        self.assertIsNone(found)
+        self.assertEqual(found.acceptance, "failed")
+        self.assertEqual(found.evaluations, 5)
+        self.assertEqual(found.evaluations, calls["n"])
 
     def test_nonpositive_curvature_is_not_stored(self):
         def objective(point):
@@ -490,8 +495,11 @@ class SolverV2Tests(unittest.TestCase):
         self.assertFalse(any(row.get("reason") == "budget" for row in events))
 
     def test_nonfinite_absolute_objective_is_rejected_before_the_direct_delta(self):
+        calls = {"n": 0}
+
         def objective(point):
             del point
+            calls["n"] += 1
             return math.inf, np.array([1.0])
 
         def delta_fn(position, direction, alpha):
@@ -508,7 +516,8 @@ class SolverV2Tests(unittest.TestCase):
             max_evals=2,
             delta_fn=delta_fn,
         )
-        self.assertIsNone(found)
+        self.assertEqual(found.acceptance, "failed")
+        self.assertEqual(found.evaluations, calls["n"])
 
     def test_direct_delta_accepts_wolfe_and_fallback_on_the_same_objective(self):
         rng = np.random.default_rng(23)
@@ -646,8 +655,11 @@ class SolverV2Tests(unittest.TestCase):
         self.assertEqual([row["alpha"] for row in events if row.get("stage") == "trial"], [1.0])
 
     def test_nonfinite_step_collapse_has_no_invented_candidate(self):
+        calls = {"n": 0}
+
         def objective(point):
             del point
+            calls["n"] += 1
             return math.nan, np.array([math.nan])
 
         events = []
@@ -661,8 +673,9 @@ class SolverV2Tests(unittest.TestCase):
             max_evals=20,
             events=events,
         )
-        self.assertIsNone(found)
-        self.assertFalse(any(row.get("acceptance") for row in events))
+        self.assertEqual(found.acceptance, "failed")
+        self.assertEqual(found.evaluations, calls["n"])
+        self.assertFalse(any(row.get("stage") == "acceptance" for row in events))
         self.assertEqual(events[-1]["line_search_exit"], "nonfinite_step")
 
     def test_lbfgs_records_curvature_scale_and_descent_directions(self):
@@ -686,6 +699,38 @@ class SolverV2Tests(unittest.TestCase):
         later = [row for row in directions if row["history_pairs"] > 0]
         self.assertTrue(later)
         self.assertTrue(all(math.isfinite(row["history_rho_max"]) and row["history_rho_max"] > 0.0 for row in later))
+
+    def test_failed_line_search_adds_its_evaluations(self):
+        calls = {"n": 0}
+
+        def objective(point):
+            calls["n"] += 1
+            x = float(point[0])
+            if x == 0.0:
+                return 0.0, np.array([-1.0])
+            return 100.0 * x, np.array([100.0])
+
+        solved = potts_fit.lbfgs(objective, np.zeros(1), max_iter=4, max_fun_evals=30, line_search_evals=6)
+        self.assertEqual(solved.status, "line_search")
+        self.assertEqual(solved.evaluations, calls["n"])
+        self.assertGreater(solved.evaluations, 1)
+
+    def test_direct_nll_increment_cancels_before_adding_the_logarithm(self):
+        probability = np.array([[0.5, 0.5]], dtype=np.float64)
+        larger = 16.0
+        smaller = np.nextafter(larger, -np.inf)
+        velocity = np.array([[larger, smaller]], dtype=np.float64)
+        observed = np.array([0], dtype=np.int8)
+        weights = np.array([1.0], dtype=np.float64)
+        direct = potts_fit._delta_nll(probability, velocity, observed, weights, 1.0)
+        maximum = larger
+        mass = 0.5 * math.exp(0.0) + 0.5 * math.exp(smaller - larger)
+        stable = (maximum - larger) + math.log(mass)
+        unstable = maximum + math.log(mass) - larger
+        self.assertNotEqual(stable, unstable)
+        self.assertAlmostEqual(unstable, -1.7763568394002505e-15)
+        self.assertAlmostEqual(stable, -8.881784197001252e-16)
+        self.assertEqual(direct, stable)
 
 
 class ComponentCheckTests(unittest.TestCase):

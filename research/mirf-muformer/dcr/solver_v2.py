@@ -22,8 +22,8 @@ import energy_components
 import potts_fit
 
 SITES = potts_fit.SOLVER_V2_SITES
-OUTPUT = Path(__file__).resolve().parent / "solver_v2_delta"
-PREVIOUS = Path(__file__).resolve().parent / "solver_v2"
+OUTPUT = Path(__file__).resolve().parent / "solver_v2_stable"
+PREVIOUS = Path(__file__).resolve().parent / "solver_v2_delta"
 
 
 def _load_saved_site(path: Path) -> tuple[np.ndarray, np.ndarray]:

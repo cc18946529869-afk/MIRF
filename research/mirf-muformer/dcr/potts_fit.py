@@ -810,7 +810,15 @@ def strong_wolfe(
     chosen = choose_armijo_fallback(candidates)
     if chosen is None:
         _note(events, stage="line_search", reason="no_sufficient_decrease", line_search_exit=exit_reason)
-        return None
+        return LineSearchResult(
+            math.nan,
+            math.nan,
+            np.zeros(direction.shape, dtype=np.float64),
+            evaluations,
+            "failed",
+            math.nan,
+            math.nan,
+        )
     return _line_search_result(chosen, evaluations, "armijo_fallback", events, exit_reason)
 
 
@@ -985,8 +993,18 @@ def lbfgs(
             trace,
             delta_fn,
         )
-        if found is None:
-            trace.append({"event": "stop", "reason": "line_search", "iteration": iterations, "gtd": slope})
+        if found is None or found.acceptance == "failed":
+            if found is not None:
+                evaluations += found.evaluations
+            trace.append(
+                {
+                    "event": "stop",
+                    "reason": "line_search",
+                    "iteration": iterations,
+                    "gtd": slope,
+                    "evaluations": evaluations,
+                }
+            )
             return _optimizer_result(
                 "line_search",
                 position,

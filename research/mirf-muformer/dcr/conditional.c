@@ -385,7 +385,10 @@ int site_delta_nll(
         if (!isfinite(mass) || mass <= 0.0) {
             return -1;
         }
-        const double term = weights[row] * (max_shift + log(mass) - alpha * velocity[state]);
+        /* Cancel the two large shifts before adding the small logarithm. */
+        const double observed_shift = alpha * velocity[state];
+        const double centered_shift = max_shift - observed_shift;
+        const double term = weights[row] * (centered_shift + log(mass));
         if (!isfinite(term)) {
             return -1;
         }
