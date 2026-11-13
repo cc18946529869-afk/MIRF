@@ -1,8 +1,10 @@
 """Numerical solver for one asymmetric L2 Potts conditional model.
 
-The frozen point-estimate configuration is L-BFGS with a strong Wolfe line
-search, a zero start, and the unnormalized weighted objective. Only a gradient
-infinity norm at or below the optimality tolerance is a successful stop.
+Solver v2 keeps the unnormalized objective, the gradient, and optTol. A site
+is converged only when the gradient infinity norm is at or below that
+tolerance. Step length, function change, and a negative directional derivative
+are recorded and do not stop the iteration. A non-negative directional
+derivative does not start a line search.
 """
 
 from __future__ import annotations
@@ -54,6 +56,12 @@ class FitResult:
     iterations: int
     evaluations: int
     message: str
+    trace: tuple = ()
+    objective_accumulated: float = math.nan
+    n_strong_wolfe: int = 0
+    n_armijo_fallback: int = 0
+    n_curvature_skipped: int = 0
+    curvature_sy: tuple = ()
 
     @property
     def converged(self) -> bool:
@@ -95,19 +103,16 @@ def stopping_status(
 ) -> str | None:
     """Return a stop label, or None when the iteration may continue.
 
-    The gradient test is decided before the progress test. A step or a
-    function change below ``prog_tol`` does not become a successful stop.
+    Only the gradient infinity norm is a successful stop. Step length,
+    function change, and the directional derivative are not stop tests.
+    ``prog_tol`` remains in the signature so a caller can record the old
+    comparison; this function does not apply it.
     """
+    del step_inf, function_change, direction_derivative, prog_tol
     if not finite:
         return "nonfinite"
     if grad_inf <= opt_tol:
         return "converged"
-    if direction_derivative is not None and direction_derivative > -prog_tol:
-        return "stagnation_direction"
-    if step_inf is not None and step_inf <= prog_tol:
-        return "stagnation_step"
-    if function_change is not None and function_change < prog_tol:
-        return "stagnation_function"
     if evaluations >= max_fun_evals:
         return "max_eval"
     if iteration >= max_iter:
@@ -243,6 +248,29 @@ def _compile_library() -> ctypes.CDLL:
         ctypes.POINTER(ctypes.c_int),
     ]
     library.site_logit_stats.restype = ctypes.c_int
+    library.site_direction_cache.argtypes = [
+        ctypes.POINTER(ctypes.c_int8),
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_double),
+    ]
+    library.site_direction_cache.restype = ctypes.c_int
+    library.site_delta_nll.argtypes = [
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_int8),
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.c_double,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_double),
+    ]
+    library.site_delta_nll.restype = ctypes.c_int
     _COMPILED = library
     return library
 
@@ -386,6 +414,125 @@ def conditional_probabilities(
     return (shifted / shifted.sum(axis=0)).T
 
 
+def penalty_delta(
+    theta: np.ndarray,
+    direction: np.ndarray,
+    alpha: float,
+    length: int,
+    weight_total: float,
+    lambda_h: float,
+    lambda_j_prime: float,
+    q: int = Q,
+) -> float:
+    """Return the exact quadratic change of the weighted penalty."""
+    fields, couplings = unpack_parameters(np.ascontiguousarray(theta, dtype=np.float64), length, q)
+    step_fields, step_couplings = unpack_parameters(np.ascontiguousarray(direction, dtype=np.float64), length, q)
+    field_change = (2.0 * alpha) * float(np.dot(fields, step_fields)) + (alpha * alpha) * float(np.dot(step_fields, step_fields))
+    flat = couplings.ravel()
+    step_flat = step_couplings.ravel()
+    coupling_change = (2.0 * alpha) * float(np.dot(flat, step_flat)) + (alpha * alpha) * float(np.dot(step_flat, step_flat))
+    return float(weight_total) * (float(lambda_h) * field_change + float(lambda_j_prime) * coupling_change)
+
+
+def _direction_cache(theta: np.ndarray, direction: np.ndarray, msa: np.ndarray, site: int, q: int) -> tuple[np.ndarray, np.ndarray]:
+    alignment = _as_alignment(msa, q)
+    n_rows, length = alignment.shape
+    vector = np.ascontiguousarray(theta, dtype=np.float64)
+    step = np.ascontiguousarray(direction, dtype=np.float64)
+    unpack_parameters(vector, length, q)
+    unpack_parameters(step, length, q)
+    probability = np.zeros((n_rows, q), dtype=np.float64)
+    velocity = np.zeros((n_rows, q), dtype=np.float64)
+    library = _compile_library()
+    code = library.site_direction_cache(
+        alignment.ctypes.data_as(ctypes.POINTER(ctypes.c_int8)),
+        vector.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        step.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        n_rows,
+        length,
+        q,
+        int(site),
+        probability.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        velocity.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+    )
+    if code != 0:
+        raise RuntimeError("the directional cache could not be evaluated")
+    return probability, velocity
+
+
+def _delta_nll(probability: np.ndarray, velocity: np.ndarray, observed: np.ndarray, weights: np.ndarray, alpha: float) -> float:
+    n_rows, q = probability.shape
+    observed_codes = np.ascontiguousarray(observed, dtype=np.int8)
+    row_weights = np.ascontiguousarray(weights, dtype=np.float64)
+    probabilities = np.ascontiguousarray(probability, dtype=np.float64)
+    velocities = np.ascontiguousarray(velocity, dtype=np.float64)
+    delta = ctypes.c_double()
+    library = _compile_library()
+    code = library.site_delta_nll(
+        probabilities.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        velocities.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        observed_codes.ctypes.data_as(ctypes.POINTER(ctypes.c_int8)),
+        row_weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        float(alpha),
+        n_rows,
+        q,
+        ctypes.byref(delta),
+    )
+    if code != 0:
+        raise RuntimeError("the direct objective change could not be evaluated")
+    return float(delta.value)
+
+
+def make_direct_delta(
+    msa: np.ndarray,
+    weights: np.ndarray,
+    site: int,
+    weight_total: float,
+    lambda_h: float = LAMBDA_H,
+    lambda_j_prime: float = LAMBDA_J_PRIME,
+    q: int = Q,
+):
+    """Return ΔF(α) from probabilities at the base point and the closed-form penalty.
+
+    The statistical objective is unchanged. The returned number is the change
+    used by the line search, not a second definition of F.
+    """
+    alignment = _as_alignment(msa, q)
+    length = alignment.shape[1]
+    observed = np.ascontiguousarray(alignment[:, int(site)])
+    row_weights = _as_weights(weights, alignment.shape[0])
+    cache: dict[str, np.ndarray] = {}
+
+    def delta(position: np.ndarray, direction: np.ndarray, alpha: float) -> float:
+        cached_position = cache.get("position")
+        cached_direction = cache.get("direction")
+        if (
+            cached_position is None
+            or cached_direction is None
+            or not np.array_equal(position, cached_position)
+            or not np.array_equal(direction, cached_direction)
+        ):
+            probability, velocity = _direction_cache(position, direction, alignment, int(site), q)
+            cache["position"] = np.array(position, dtype=np.float64, copy=True)
+            cache["direction"] = np.array(direction, dtype=np.float64, copy=True)
+            cache["probability"] = probability
+            cache["velocity"] = velocity
+        data_change = _delta_nll(cache["probability"], cache["velocity"], observed, row_weights, float(alpha))
+        regularizer = penalty_delta(
+            position,
+            direction,
+            float(alpha),
+            length,
+            float(weight_total),
+            float(lambda_h),
+            float(lambda_j_prime),
+            q,
+        )
+        return data_change + regularizer
+
+    return delta
+
+
 def _cubic_minimizer(left, f_left, slope_left, right, f_right, slope_right) -> float:
     if left == right or not np.isfinite(f_right):
         return 0.5 * (left + right)
@@ -403,12 +550,33 @@ def _cubic_minimizer(left, f_left, slope_left, right, f_right, slope_right) -> f
     return step
 
 
-def _evaluate_step(objective, position, direction, alpha: float):
-    trial = position + alpha * direction
-    value, gradient = objective(trial)
-    if not np.isfinite(value) or not np.all(np.isfinite(gradient)):
+@dataclass(frozen=True)
+class LineSearchResult:
+    """One accepted trial. ``acceptance`` is never inferred from the step existing."""
+
+    alpha: float
+    value: float
+    gradient: np.ndarray
+    evaluations: int
+    acceptance: str
+    delta: float
+    slope: float
+
+
+def choose_armijo_fallback(candidates: list[dict]) -> dict | None:
+    """Return the lowest-ΔF sufficient-decrease trial.
+
+    The trial must already have been evaluated, be finite, and have a positive
+    step. An earlier trial wins a tie. The zero step is not a candidate.
+    """
+    qualified = [
+        item
+        for item in candidates
+        if item["armijo"] and item["alpha"] > 0.0 and math.isfinite(item["delta"]) and math.isfinite(item["value"])
+    ]
+    if not qualified:
         return None
-    return float(value), gradient
+    return min(qualified, key=lambda item: (item["delta"], item["index"]))
 
 
 def _note(events, **payload) -> None:
@@ -417,7 +585,52 @@ def _note(events, **payload) -> None:
         events.append({key: (float(value) if isinstance(value, float) else value) for key, value in payload.items()})
 
 
-def _zoom(objective, position, direction, low, high, f_low, f_high, g_low, g_high, f0, slope0, c1, c2, evaluations, max_evals, events=None):
+def _record_trial(objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, stage):
+    absolute_value, gradient = objective(position + alpha * direction)
+    if not np.all(np.isfinite(gradient)):
+        _note(events, stage=stage, alpha=float(alpha), finite=False, armijo=False, curvature=False, reason="nonfinite")
+        return None
+    if delta_fn is None:
+        if not np.isfinite(absolute_value):
+            _note(events, stage=stage, alpha=float(alpha), finite=False, armijo=False, curvature=False, reason="nonfinite")
+            return None
+        delta = float(absolute_value) - float(f0)
+        value = float(absolute_value)
+    else:
+        delta = float(delta_fn(position, direction, float(alpha)))
+        if not np.isfinite(delta):
+            _note(events, stage=stage, alpha=float(alpha), finite=False, armijo=False, curvature=False, reason="nonfinite")
+            return None
+        value = float(f0) + delta
+    slope = float(np.dot(gradient, direction))
+    armijo = bool(delta <= c1 * alpha * slope0)
+    curvature = bool(np.isfinite(slope) and abs(slope) <= c2 * abs(slope0))
+    record = {
+        "index": len(candidates),
+        "alpha": float(alpha),
+        "delta": float(delta),
+        "value": float(value),
+        "gradient": gradient,
+        "slope": slope,
+        "armijo": armijo,
+        "curvature": curvature,
+    }
+    candidates.append(record)
+    _note(
+        events,
+        stage=stage,
+        alpha=float(alpha),
+        finite=True,
+        delta=float(delta),
+        f=float(value),
+        slope=slope,
+        armijo=armijo,
+        curvature=curvature,
+    )
+    return record
+
+
+def _zoom(objective, delta_fn, position, direction, low, high, f_low, f_high, g_low, g_high, f0, slope0, c1, c2, evaluations, max_evals, candidates, events=None):
     while evaluations < max_evals:
         slope_low = float(np.dot(g_low, direction))
         slope_high = float(np.dot(g_high, direction)) if g_high is not None else None
@@ -427,53 +640,85 @@ def _zoom(objective, position, direction, low, high, f_low, f_high, g_low, g_hig
             alpha = _cubic_minimizer(low, f_low, slope_low, high, f_high, slope_high)
         width = abs(high - low)
         if width == 0.0 or not np.isfinite(alpha):
-            return None
+            _note(events, stage="zoom", reason="collapsed")
+            return evaluations
         if min(abs(alpha - low), abs(alpha - high)) < 0.05 * width:
             alpha = 0.5 * (low + high)
-        probed = _evaluate_step(objective, position, direction, alpha)
+        record = _record_trial(
+            objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, "zoom_trial"
+        )
         evaluations += 1
-        if probed is None or probed[0] > f0 + c1 * alpha * slope0 or probed[0] >= f_low:
-            _note(
-                events,
-                stage="zoom_trial",
-                alpha=float(alpha),
-                finite=probed is not None,
-                armijo=False if probed is None else bool(probed[0] <= f0 + c1 * alpha * slope0),
-                reason="nonfinite" if probed is None else "armijo_or_bracket",
-            )
+        if record is None or (not record["armijo"]) or record["value"] >= f_low:
             high = alpha
-            f_high = math.inf if probed is None else probed[0]
-            g_high = None if probed is None else probed[1]
+            f_high = math.inf if record is None else record["value"]
+            g_high = None if record is None else record["gradient"]
             continue
-        value, gradient = probed
-        slope = float(np.dot(gradient, direction))
-        if abs(slope) <= c2 * abs(slope0):
-            _note(events, stage="zoom_trial", alpha=float(alpha), finite=True, armijo=True, curvature=True, reason="accepted")
-            return alpha, value, gradient, evaluations
-        if slope * (high - low) >= 0.0:
+        if record["curvature"]:
+            _note(events, stage="zoom_trial", alpha=float(alpha), reason="strong_wolfe")
+            return evaluations
+        if record["slope"] * (high - low) >= 0.0:
             high = low
             f_high = f_low
             g_high = g_low
         low = alpha
-        f_low = value
-        g_low = gradient
-        _note(events, stage="zoom_trial", alpha=float(alpha), finite=True, armijo=True, curvature=False, slope=slope, reason="curvature")
+        f_low = record["value"]
+        g_low = record["gradient"]
     _note(events, stage="zoom", reason="budget")
-    return None
+    return evaluations
 
 
-def strong_wolfe(objective, position, f0, g0, direction, alpha0, c1=C1, c2=C2, max_evals=LINE_SEARCH_EVALS, events=None):
-    """Return (alpha, value, gradient, evaluations) or None when no Wolfe point is found."""
+def _line_search_result(record: dict, evaluations: int, acceptance: str, events) -> LineSearchResult:
+    _note(
+        events,
+        stage="acceptance",
+        acceptance=acceptance,
+        alpha=record["alpha"],
+        delta=record["delta"],
+        slope=record["slope"],
+        armijo=True,
+        curvature=bool(record["curvature"]),
+    )
+    return LineSearchResult(
+        alpha=record["alpha"],
+        value=record["value"],
+        gradient=record["gradient"],
+        evaluations=evaluations,
+        acceptance=acceptance,
+        delta=record["delta"],
+        slope=record["slope"],
+    )
+
+
+def strong_wolfe(
+    objective,
+    position,
+    f0,
+    g0,
+    direction,
+    alpha0,
+    c1=C1,
+    c2=C2,
+    max_evals=LINE_SEARCH_EVALS,
+    events=None,
+    delta_fn=None,
+):
+    """Find a Strong Wolfe step, or the best sufficient-decrease step already tried.
+
+    ``delta_fn(position, direction, alpha)`` supplies ΔF. Without it, ΔF is the
+    difference of the two values returned by ``objective``. A fallback result
+    has acceptance ``armijo_fallback`` and is not a Strong Wolfe step.
+    """
     slope0 = float(np.dot(g0, direction))
-    if not np.isfinite(slope0) or not np.isfinite(alpha0) or alpha0 <= 0.0:
+    if not np.isfinite(slope0) or slope0 >= 0.0 or not np.isfinite(alpha0) or alpha0 <= 0.0:
         _note(
             events,
             stage="line_search",
-            reason="invalid_slope_or_step",
+            reason="not_descent" if np.isfinite(slope0) and slope0 >= 0.0 else "invalid_slope_or_step",
             slope0=float(slope0) if np.isfinite(slope0) else math.nan,
             alpha0=float(alpha0) if np.isfinite(alpha0) else math.nan,
         )
         return None
+    candidates: list[dict] = []
     previous = 0.0
     f_previous = f0
     g_previous = g0
@@ -483,66 +728,54 @@ def strong_wolfe(objective, position, f0, g0, direction, alpha0, c1=C1, c2=C2, m
     while evaluations < max_evals:
         if alpha > 1e8:
             _note(events, stage="line_search", reason="alpha_cap", alpha=float(alpha))
-            return None
-        probed = _evaluate_step(objective, position, direction, alpha)
+            break
+        record = _record_trial(
+            objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, "trial"
+        )
         evaluations += 1
-        if probed is None:
-            _note(events, stage="trial", alpha=float(alpha), finite=False, reason="nonfinite")
+        if record is None:
             alpha *= 0.5
             if alpha <= np.finfo(np.float64).tiny:
                 _note(events, stage="line_search", reason="nonfinite_step_collapsed")
-                return None
+                break
             continue
-        value, gradient = probed
-        slope = float(np.dot(gradient, direction))
-        armijo = bool(value <= f0 + c1 * alpha * slope0)
-        curvature = bool(abs(slope) <= c2 * abs(slope0))
-        _note(
-            events,
-            stage="trial",
-            alpha=float(alpha),
-            finite=True,
-            f=float(value),
-            slope=slope,
-            armijo=armijo,
-            curvature=curvature,
-        )
-        if (not armijo) or (finite_trials > 0 and value >= f_previous):
-            _note(events, stage="zoom_enter", reason="armijo" if not armijo else "previous_value")
-            found = _zoom(
+        if (not record["armijo"]) or (finite_trials > 0 and record["value"] >= f_previous):
+            _note(events, stage="zoom_enter", reason="armijo" if not record["armijo"] else "previous_value")
+            evaluations = _zoom(
                 objective,
+                delta_fn,
                 position,
                 direction,
                 previous,
                 alpha,
                 f_previous,
-                value,
+                record["value"],
                 g_previous,
-                gradient,
+                record["gradient"],
                 f0,
                 slope0,
                 c1,
                 c2,
                 evaluations,
                 max_evals,
+                candidates,
                 events,
             )
-            if found is None:
-                _note(events, stage="line_search", reason="zoom_failed")
-            return found
-        if curvature:
-            return alpha, value, gradient, evaluations
-        if slope >= 0.0:
+            break
+        if record["curvature"]:
+            return _line_search_result(record, evaluations, "strong_wolfe", events)
+        if record["slope"] >= 0.0:
             _note(events, stage="zoom_enter", reason="nonnegative_slope")
-            found = _zoom(
+            evaluations = _zoom(
                 objective,
+                delta_fn,
                 position,
                 direction,
                 alpha,
                 previous,
-                value,
+                record["value"],
                 f_previous,
-                gradient,
+                record["gradient"],
                 g_previous,
                 f0,
                 slope0,
@@ -550,19 +783,24 @@ def strong_wolfe(objective, position, f0, g0, direction, alpha0, c1=C1, c2=C2, m
                 c2,
                 evaluations,
                 max_evals,
+                candidates,
                 events,
             )
-            if found is None:
-                _note(events, stage="line_search", reason="zoom_failed")
-            return found
+            break
         previous = alpha
-        f_previous = value
-        g_previous = gradient
+        f_previous = record["value"]
+        g_previous = record["gradient"]
         finite_trials += 1
-        _note(events, stage="expand", alpha_next=float(alpha * 2.0), slope=slope, reason="curvature")
+        _note(events, stage="expand", alpha_next=float(alpha * 2.0), slope=record["slope"], reason="curvature")
         alpha *= 2.0
-    _note(events, stage="line_search", reason="evaluation_budget")
-    return None
+    for record in reversed(candidates):
+        if record["armijo"] and record["curvature"]:
+            return _line_search_result(record, evaluations, "strong_wolfe", events)
+    chosen = choose_armijo_fallback(candidates)
+    if chosen is None:
+        _note(events, stage="line_search", reason="no_sufficient_decrease")
+        return None
+    return _line_search_result(chosen, evaluations, "armijo_fallback", events)
 
 
 def _two_loop(gradient: np.ndarray, steps: list[np.ndarray], changes: list[np.ndarray], curvatures: list[float]) -> np.ndarray:
@@ -594,6 +832,28 @@ class OptimizerResult:
     evaluations: int
     message: str
     trace: tuple = ()
+    curvature_sy: tuple = ()
+    n_strong_wolfe: int = 0
+    n_armijo_fallback: int = 0
+    n_curvature_skipped: int = 0
+
+
+def _optimizer_result(status, position, value, grad_inf, iterations, evaluations, message, trace) -> OptimizerResult:
+    accepted = [row for row in trace if row.get("event") == "accepted"]
+    return OptimizerResult(
+        status,
+        position,
+        float(value),
+        grad_inf,
+        iterations,
+        evaluations,
+        message,
+        tuple(trace),
+        tuple(row["curvature_sy"] for row in accepted),
+        sum(row["acceptance"] == "strong_wolfe" for row in accepted),
+        sum(row["acceptance"] == "armijo_fallback" for row in accepted),
+        sum(not row["curvature_stored"] for row in accepted),
+    )
 
 
 def lbfgs(
@@ -607,6 +867,8 @@ def lbfgs(
     max_fun_evals: int = MAX_FUN_EVALS,
     c1: float = C1,
     c2: float = C2,
+    line_search_evals: int = LINE_SEARCH_EVALS,
+    delta_fn=None,
 ) -> OptimizerResult:
     """Minimize with limited-memory BFGS and a strong Wolfe line search.
 
@@ -658,20 +920,69 @@ def lbfgs(
                 "direction_inf": direction_inf,
                 "alpha0": alpha0,
                 "descent": bool(slope < 0.0),
+                "history_pairs": len(steps),
+                "legacy_direction_stop": bool(slope > -prog_tol),
             }
         )
-        if slope > -prog_tol:
-            trace.append({"event": "stop", "reason": "stagnation_direction", "iteration": iterations, "gtd": slope})
-            return OptimizerResult("stagnation_direction", position, float(value), grad_inf, iterations, evaluations, "directional derivative reached progTol", tuple(trace))
-        found = strong_wolfe(objective, position, float(value), gradient, direction, alpha0, c1, c2, LINE_SEARCH_EVALS, trace)
+        if slope >= 0.0:
+            trace.append({"event": "stop", "reason": "ascent_direction", "iteration": iterations, "gtd": slope})
+            return _optimizer_result(
+                "ascent_direction",
+                position,
+                float(value),
+                grad_inf,
+                iterations,
+                evaluations,
+                "directional derivative is not negative",
+                trace,
+            )
+        remaining = max_fun_evals - evaluations
+        if remaining <= 0:
+            trace.append({"event": "stop", "reason": "max_eval", "iteration": iterations})
+            return _optimizer_result(
+                "max_eval",
+                position,
+                float(value),
+                grad_inf,
+                iterations,
+                evaluations,
+                "function-evaluation limit reached",
+                trace,
+            )
+        found = strong_wolfe(
+            objective,
+            position,
+            float(value),
+            gradient,
+            direction,
+            alpha0,
+            c1,
+            c2,
+            min(line_search_evals, remaining),
+            trace,
+            delta_fn,
+        )
         if found is None:
             trace.append({"event": "stop", "reason": "line_search", "iteration": iterations, "gtd": slope})
-            return OptimizerResult("line_search", position, float(value), grad_inf, iterations, evaluations, "strong Wolfe line search failed", tuple(trace))
-        alpha, new_value, new_gradient, used = found
-        evaluations += used
+            return _optimizer_result(
+                "line_search",
+                position,
+                float(value),
+                grad_inf,
+                iterations,
+                evaluations,
+                "no finite sufficient-decrease step",
+                trace,
+            )
+        if found.acceptance not in {"strong_wolfe", "armijo_fallback"}:
+            raise RuntimeError(f"unknown line-search acceptance {found.acceptance}")
+        alpha = found.alpha
+        new_value = found.value
+        new_gradient = found.gradient
+        evaluations += found.evaluations
         step = alpha * direction
         step_inf = float(np.max(np.abs(step)))
-        change = abs(new_value - float(value))
+        change = abs(found.delta)
         new_grad_inf = float(np.max(np.abs(new_gradient)))
         finite = bool(np.isfinite(new_value) and np.all(np.isfinite(new_gradient)) and np.isfinite(step_inf))
         iterations += 1
@@ -680,7 +991,7 @@ def lbfgs(
             grad_inf=new_grad_inf,
             step_inf=step_inf,
             function_change=change,
-            direction_derivative=None,
+            direction_derivative=slope,
             opt_tol=opt_tol,
             prog_tol=prog_tol,
             evaluations=evaluations,
@@ -690,20 +1001,31 @@ def lbfgs(
         )
         y_change = new_gradient - gradient
         curvature = float(np.dot(y_change, step))
+        stored = bool(finite and curvature > 0.0)
+        legacy_progress = None
+        if step_inf <= prog_tol:
+            legacy_progress = "step"
+        elif change < prog_tol:
+            legacy_progress = "function"
         trace.append(
             {
                 "event": "accepted",
                 "iteration": iterations,
+                "acceptance": found.acceptance,
                 "alpha": float(alpha),
+                "delta": float(found.delta),
                 "step_inf": step_inf,
                 "function_change": float(change),
                 "curvature_sy": curvature,
                 "curvature_positive": bool(curvature > 0.0),
+                "curvature_stored": stored,
                 "new_grad_inf": new_grad_inf,
+                "legacy_progress": legacy_progress,
+                "history_pairs_before": len(steps),
                 "stop": status,
             }
         )
-        if finite and curvature > 0.0:
+        if stored:
             steps.append(step.copy())
             changes.append(y_change)
             curvatures.append(curvature)
@@ -718,13 +1040,11 @@ def lbfgs(
         if status is not None:
             messages = {
                 "converged": "gradient infinity norm reached optTol",
-                "stagnation_step": "parameter step reached progTol before the gradient test",
-                "stagnation_function": "objective change reached progTol before the gradient test",
                 "nonfinite": "non-finite value during the iteration",
                 "max_eval": "function-evaluation limit reached",
                 "max_iter": "iteration limit reached",
             }
-            return OptimizerResult(status, position, float(value), grad_inf, iterations, evaluations, messages[status], tuple(trace))
+            return _optimizer_result(status, position, float(value), grad_inf, iterations, evaluations, messages[status], trace)
 
 
 def fit_site(
@@ -751,6 +1071,15 @@ def fit_site(
     if not np.isfinite(weight_total):
         raise ValueError("weight_total must be finite")
     theta0 = np.zeros(parameter_count(length, q), dtype=np.float64)
+    delta_fn = make_direct_delta(
+        alignment,
+        row_weights,
+        int(site),
+        float(weight_total),
+        lambda_h,
+        lambda_j_prime,
+        q,
+    )
 
     def objective(theta: np.ndarray):
         nll, penalty, gradient = site_terms(
@@ -773,6 +1102,7 @@ def fit_site(
         prog_tol=prog_tol,
         max_iter=max_iter,
         max_fun_evals=max_fun_evals,
+        delta_fn=delta_fn,
     )
     nll, penalty, _gradient = site_terms(
         solved.x,
@@ -797,6 +1127,12 @@ def fit_site(
         iterations=solved.iterations,
         evaluations=solved.evaluations,
         message=solved.message,
+        trace=solved.trace,
+        objective_accumulated=float(solved.f),
+        n_strong_wolfe=solved.n_strong_wolfe,
+        n_armijo_fallback=solved.n_armijo_fallback,
+        n_curvature_skipped=solved.n_curvature_skipped,
+        curvature_sy=solved.curvature_sy,
     )
 
 
@@ -865,48 +1201,17 @@ def _fit_official_site(site: int) -> dict[str, float | int | str]:
 
 
 def run_official_point_estimate(output_dir: Path, workers: int = 12, threads: int = 4) -> None:
-    """Fit all 263 sites. A progTol stop is saved and is not counted as success."""
-    output = Path(output_dir)
-    output.mkdir(parents=True, exist_ok=True)
-    os.environ["POTTS_THREADS"] = str(threads)
-    os.environ["POTTS_OUTPUT"] = str(output)
-    pending = [site for site in range(263) if not (output / f"site_{site:03d}.npz").exists()]
-    summary_path = output / "summary.json"
-    existing = []
-    if summary_path.exists():
-        existing = json.loads(summary_path.read_text())["sites"]
-    by_site = {row["site"]: row for row in existing}
-    context = multiprocessing.get_context("spawn")
-    with context.Pool(workers, initializer=_worker_init) as pool:
-        for row in pool.imap_unordered(_fit_official_site, pending, chunksize=1):
-            by_site[int(row["site"])] = row
-            rows = [by_site[site] for site in sorted(by_site)]
-            counts: dict[str, int] = {}
-            for item in rows:
-                counts[str(item["status"])] = counts.get(str(item["status"]), 0) + 1
-            summary_path.write_text(
-                json.dumps(
-                    {
-                        "weight_total": OFFICIAL_M_EFF,
-                        "lambda_h": LAMBDA_H,
-                        "lambda_j_prime": LAMBDA_J_PRIME,
-                        "opt_tol": OPT_TOL,
-                        "prog_tol": PROG_TOL,
-                        "corrections": CORRECTIONS,
-                        "finished_sites": len(rows),
-                        "converged_sites": sum(1 for item in rows if item["converged"]),
-                        "status_counts": counts,
-                        "sites": rows,
-                    },
-                    indent=2,
-                )
-            )
-            print(
-                f"site {int(row['site']):3d}  {row['status']}  grad {row['grad_inf']:.3e}  "
-                f"{len(rows)}/263",
-                flush=True,
-            )
+    """Refuse a 263-site fit. Solver v2 is limited to the five named sites."""
+    del output_dir, workers, threads
+    raise RuntimeError(
+        "The 263-site fit is not authorized. Solver v2 runs only sites 12, 95, 103, 208, and 256."
+    )
+
+
+SOLVER_V2_SITES = (12, 95, 103, 208, 256)
 
 
 if __name__ == "__main__":
-    run_official_point_estimate(_DIRECTORY / "point_estimate")
+    raise RuntimeError(
+        "The 263-site fit is not authorized. Run research/mirf-muformer/dcr/solver_v2.py for the five named sites."
+    )

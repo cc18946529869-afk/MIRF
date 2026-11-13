@@ -277,3 +277,126 @@ int site_logit_stats(
     }
     return 0;
 }
+
+/* Probabilities at theta and the logit change of one unit step along direction.
+   Both arrays are row-major, length B * q. This does not change the objective. */
+
+int site_direction_cache(
+    const int8_t *msa,
+    const double *theta,
+    const double *direction,
+    int B,
+    int L,
+    int q,
+    int site,
+    double *probability,
+    double *direction_logit
+) {
+    const int K = L - 1;
+    const double *h = theta;
+    const double *J = theta + q;
+    const double *dh = direction;
+    const double *dJ = direction + q;
+
+    for (int row = 0; row < B; row++) {
+        const int8_t *sequence = msa + (size_t)row * (size_t)L;
+        double *logits = probability + (size_t)row * (size_t)q;
+        double *velocity = direction_logit + (size_t)row * (size_t)q;
+        for (int a = 0; a < q; a++) {
+            logits[a] = h[a];
+            velocity[a] = dh[a];
+        }
+        int partner = 0;
+        for (int column = 0; column < L; column++) {
+            if (column == site) {
+                continue;
+            }
+            const int state = (int)sequence[column];
+            for (int a = 0; a < q; a++) {
+                const size_t index = ((size_t)a * (size_t)K + (size_t)partner) * (size_t)q + (size_t)state;
+                logits[a] += J[index];
+                velocity[a] += dJ[index];
+            }
+            partner++;
+        }
+        double max_logit = logits[0];
+        int finite = 1;
+        for (int a = 0; a < q; a++) {
+            if (!isfinite(logits[a]) || !isfinite(velocity[a])) {
+                finite = 0;
+            }
+            if (logits[a] > max_logit) {
+                max_logit = logits[a];
+            }
+        }
+        if (!finite) {
+            return -1;
+        }
+        double sum_exp = 0.0;
+        for (int a = 0; a < q; a++) {
+            logits[a] = exp(logits[a] - max_logit);
+            sum_exp += logits[a];
+        }
+        if (!isfinite(sum_exp) || sum_exp == 0.0) {
+            return -1;
+        }
+        for (int a = 0; a < q; a++) {
+            logits[a] /= sum_exp;
+        }
+    }
+    return 0;
+}
+
+/* ΔF_NLL = Σ_b w_b [log Σ_a p_ba exp(α v_ba) - α v_b,y_b], summed in row order. */
+
+int site_delta_nll(
+    const double *probability,
+    const double *direction_logit,
+    const int8_t *observed,
+    const double *weights,
+    double alpha,
+    int B,
+    int q,
+    double *delta_nll
+) {
+    double sum = 0.0;
+    double compensation = 0.0;
+    for (int row = 0; row < B; row++) {
+        const double *prob = probability + (size_t)row * (size_t)q;
+        const double *velocity = direction_logit + (size_t)row * (size_t)q;
+        const int state = (int)observed[row];
+        if (state < 0 || state >= q) {
+            return -1;
+        }
+        double max_shift = alpha * velocity[0];
+        for (int a = 1; a < q; a++) {
+            const double shift = alpha * velocity[a];
+            if (shift > max_shift) {
+                max_shift = shift;
+            }
+        }
+        if (!isfinite(max_shift)) {
+            return -1;
+        }
+        double mass = 0.0;
+        for (int a = 0; a < q; a++) {
+            mass += prob[a] * exp(alpha * velocity[a] - max_shift);
+        }
+        if (!isfinite(mass) || mass <= 0.0) {
+            return -1;
+        }
+        const double term = weights[row] * (max_shift + log(mass) - alpha * velocity[state]);
+        if (!isfinite(term)) {
+            return -1;
+        }
+        const double updated = sum + term;
+        if (fabs(sum) >= fabs(term)) {
+            compensation += (sum - updated) + term;
+        } else {
+            compensation += (term - updated) + sum;
+        }
+        sum = updated;
+    }
+    *delta_nll = sum + compensation;
+    return 0;
+}

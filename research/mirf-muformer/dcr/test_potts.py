@@ -10,6 +10,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import energy_components
 import gauge
 import potts_energy
 import potts_fit
@@ -180,12 +181,10 @@ class SolverTests(unittest.TestCase):
             return potts_fit.stopping_status(**values)
 
         self.assertEqual(status(grad_inf=1e-8, step_inf=1e-12, function_change=1e-12), "converged")
-        self.assertEqual(status(grad_inf=1e-3, step_inf=1e-12), "stagnation_step")
-        self.assertEqual(status(grad_inf=1e-3, function_change=1e-12), "stagnation_function")
-        self.assertEqual(
-            status(step_inf=None, function_change=None, direction_derivative=-1e-12),
-            "stagnation_direction",
-        )
+        self.assertIsNone(status(grad_inf=1e-3, step_inf=1e-12))
+        self.assertIsNone(status(grad_inf=1e-3, function_change=1e-12))
+        self.assertIsNone(status(step_inf=None, function_change=None, direction_derivative=-1e-12))
+        self.assertIsNone(status(step_inf=None, function_change=None, direction_derivative=-1e-4))
         self.assertEqual(status(finite=False, grad_inf=0.0), "nonfinite")
         self.assertEqual(status(evaluations=1000), "max_eval")
         self.assertEqual(status(iteration=500), "max_iter")
@@ -199,10 +198,10 @@ class SolverTests(unittest.TestCase):
         direction = -gradient
         found = potts_fit.strong_wolfe(objective, position, value, gradient, direction, 1.0)
         self.assertIsNotNone(found)
-        alpha, new_value, new_gradient, _used = found
+        self.assertEqual(found.acceptance, "strong_wolfe")
         slope0 = float(np.dot(gradient, direction))
-        self.assertLessEqual(new_value, value + potts_fit.C1 * alpha * slope0)
-        self.assertLessEqual(abs(float(np.dot(new_gradient, direction))), potts_fit.C2 * abs(slope0))
+        self.assertLessEqual(found.delta, potts_fit.C1 * found.alpha * slope0)
+        self.assertLessEqual(abs(found.slope), potts_fit.C2 * abs(slope0))
 
     def test_trace_keeps_descent_directions_and_positive_curvature(self):
         def objective(point):
@@ -214,13 +213,14 @@ class SolverTests(unittest.TestCase):
         self.assertTrue(directions)
         self.assertTrue(all(row["descent"] and row["gtd"] < 0.0 for row in directions))
         self.assertTrue(accepted)
-        self.assertTrue(all(row["curvature_positive"] and row["curvature_sy"] > 0.0 for row in accepted))
+        self.assertTrue(all(row["acceptance"] == "strong_wolfe" for row in accepted))
+        self.assertTrue(all(row["curvature_positive"] and row["curvature_sy"] > 0.0 and row["curvature_stored"] for row in accepted))
 
     def test_lbfgs_quadratic_reaches_the_gradient_tolerance(self):
         def objective(point):
             return 0.5 * float(np.dot(point, point)), np.array(point, copy=True)
 
-        solved = potts_fit.lbfgs(objective, np.array([1.0, -2.0, 0.5, 4.0]))
+        solved = potts_fit.lbfgs(objective, np.array([1.0, -2.0, 0.5, 4.0]), prog_tol=1e9)
         self.assertEqual(solved.status, "converged")
         self.assertLessEqual(solved.grad_inf, potts_fit.OPT_TOL)
         np.testing.assert_allclose(solved.x, np.zeros(4), atol=1e-6)
@@ -261,8 +261,8 @@ class SolverTests(unittest.TestCase):
         self.assertEqual(easy.h.shape, (q,))
         self.assertEqual(easy.couplings.shape, (q, length - 1, q))
         official_scale = potts_fit.fit_site(msa, weights, 1, potts_fit.OFFICIAL_M_EFF)
-        self.assertEqual(official_scale.status, "stagnation_direction")
-        self.assertGreater(official_scale.grad_inf, potts_fit.OPT_TOL)
+        self.assertEqual(official_scale.status, "converged")
+        self.assertLessEqual(official_scale.grad_inf, potts_fit.OPT_TOL)
         _nll, _penalty, gradient = potts_fit.site_terms_numpy(
             official_scale.theta,
             msa,
@@ -273,7 +273,7 @@ class SolverTests(unittest.TestCase):
             potts_fit.LAMBDA_J_PRIME,
             q,
         )
-        self.assertGreater(float(np.max(np.abs(gradient))), potts_fit.OPT_TOL)
+        self.assertLessEqual(float(np.max(np.abs(gradient))), potts_fit.OPT_TOL)
 
 
 class GaugeTests(unittest.TestCase):
@@ -326,6 +326,199 @@ class GaugeTests(unittest.TestCase):
             sequence, fields, couplings
         )
         self.assertAlmostEqual(delta, full)
+
+
+class SolverV2Tests(unittest.TestCase):
+    def test_full_msa_run_is_refused(self):
+        with self.assertRaises(RuntimeError):
+            potts_fit.run_official_point_estimate(Path("/tmp/potts-v2-not-authorized"))
+
+    def test_large_progress_tolerance_does_not_stop_a_quadratic(self):
+        def objective(point):
+            return 0.5 * float(np.dot(point, point)), np.array(point, copy=True)
+
+        solved = potts_fit.lbfgs(objective, np.array([0.2, -0.4]), prog_tol=1e9)
+        self.assertEqual(solved.status, "converged")
+        self.assertTrue(any(row.get("legacy_progress") for row in solved.trace if row.get("event") == "accepted"))
+
+    def test_ascent_direction_fails_and_is_not_converged(self):
+        def objective(point):
+            return 0.5 * float(np.dot(point, point)), np.array(point, copy=True)
+
+        original = potts_fit._two_loop
+
+        def ascent(gradient, steps, changes, curvatures):
+            del steps, changes, curvatures
+            return np.array(gradient, copy=True)
+
+        potts_fit._two_loop = ascent
+        try:
+            solved = potts_fit.lbfgs(objective, np.array([1.0, -0.5]))
+        finally:
+            potts_fit._two_loop = original
+        self.assertEqual(solved.status, "ascent_direction")
+        self.assertFalse(solved.n_strong_wolfe or solved.n_armijo_fallback)
+        np.testing.assert_allclose(solved.x, np.array([1.0, -0.5]))
+
+    def test_site_103_candidate_rule_selects_the_lowest_decrease(self):
+        candidates = [
+            {"index": 0, "alpha": 1.0, "delta": -1.6e-10, "value": 0.0, "armijo": True, "curvature": False},
+            {"index": 1, "alpha": 0.617, "delta": 1.0e-9, "value": 0.0, "armijo": False, "curvature": False},
+            {"index": 2, "alpha": 0.99999743, "delta": -2.0e-10, "value": 0.0, "armijo": True, "curvature": False},
+            {"index": 3, "alpha": 0.99999745, "delta": -2.0e-10, "value": 0.0, "armijo": True, "curvature": False},
+        ]
+        chosen = potts_fit.choose_armijo_fallback(candidates)
+        self.assertEqual(chosen["alpha"], 0.99999743)
+        self.assertIsNone(potts_fit.choose_armijo_fallback([]))
+
+    def test_budget_exhaustion_accepts_fallback_and_not_wolfe(self):
+        def objective(point):
+            x = float(point[0])
+            value = -0.05 * x + 0.2 * (x - 0.3) ** 2
+            gradient = np.array([4.0 if x >= 0.5 else -4.0])
+            return value, gradient
+
+        position = np.zeros(1)
+        value, gradient = 0.0, np.array([-1.0])
+        events = []
+        found = potts_fit.strong_wolfe(
+            objective,
+            position,
+            value,
+            gradient,
+            np.array([1.0]),
+            1.0,
+            max_evals=6,
+            events=events,
+        )
+        self.assertIsNotNone(found)
+        self.assertEqual(found.acceptance, "armijo_fallback")
+        self.assertNotEqual(found.acceptance, "strong_wolfe")
+        armijo = [row for row in events if row.get("armijo") and row.get("alpha", 0.0) > 0.0]
+        self.assertGreaterEqual(len(armijo), 2)
+        self.assertAlmostEqual(found.delta, min(row["delta"] for row in armijo))
+        self.assertGreater(abs(found.slope), potts_fit.C2 * 1.0)
+        self.assertFalse(any(row.get("acceptance") == "strong_wolfe" for row in events))
+
+    def test_no_sufficient_decrease_is_a_line_search_failure(self):
+        def objective(point):
+            x = float(point[0])
+            return 10.0 * x * x, np.array([20.0 * x])
+
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            0.0,
+            np.array([-1.0]),
+            np.array([1.0]),
+            1.0,
+            max_evals=5,
+        )
+        self.assertIsNone(found)
+
+    def test_nonpositive_curvature_is_not_stored(self):
+        def objective(point):
+            x = float(point[0])
+            return -0.01 * x, np.array([-1.0 - 4.0 * x])
+
+        solved = potts_fit.lbfgs(objective, np.zeros(1), max_iter=1, max_fun_evals=8, line_search_evals=3)
+        accepted = [row for row in solved.trace if row["event"] == "accepted"]
+        self.assertTrue(accepted)
+        self.assertEqual(accepted[0]["acceptance"], "armijo_fallback")
+        self.assertLessEqual(accepted[0]["curvature_sy"], 0.0)
+        self.assertFalse(accepted[0]["curvature_stored"])
+        self.assertEqual(solved.n_curvature_skipped, 1)
+        self.assertEqual(solved.n_strong_wolfe, 0)
+        self.assertGreater(len(solved.curvature_sy), 0)
+
+    def test_direct_delta_matches_the_objective_difference(self):
+        rng = np.random.default_rng(11)
+        q = 21
+        length = 4
+        rows = 7
+        msa = rng.integers(0, q, size=(rows, length), dtype=np.int8)
+        weights = rng.uniform(0.2, 1.0, size=rows)
+        theta = rng.normal(scale=0.05, size=potts_fit.parameter_count(length, q))
+        direction = rng.normal(scale=0.05, size=theta.shape)
+        alpha = 0.37
+        weight_total = 3.5
+        base_nll, base_penalty, _gradient = potts_fit.site_terms_numpy(
+            theta, msa, weights, 2, weight_total
+        )
+        moved_nll, moved_penalty, _gradient = potts_fit.site_terms_numpy(
+            theta + alpha * direction, msa, weights, 2, weight_total
+        )
+        delta_fn = potts_fit.make_direct_delta(msa, weights, 2, weight_total)
+        direct = delta_fn(theta, direction, alpha)
+        self.assertAlmostEqual(direct, (moved_nll + moved_penalty) - (base_nll + base_penalty), places=8)
+
+
+class ComponentCheckTests(unittest.TestCase):
+    def test_paired_block_matches_the_gauge_average(self):
+        rng = np.random.default_rng(13)
+        length = 4
+        q = 5
+        directional = rng.normal(size=(length, length, q, q))
+        for site in range(length):
+            directional[site, site] = 0.0
+        averaged = gauge.average_couplings(directional)
+        fields = [directional[site, site, 0].copy() for site in range(length)]
+        del fields
+        packed = []
+        for site in range(length):
+            partners = [column for column in range(length) if column != site]
+            block = np.stack([directional[site, partner] for partner in partners], axis=1)
+            packed.append(block)
+        for site in range(length):
+            for partner in range(length):
+                if partner == site:
+                    continue
+                block = energy_components.paired_ising_block(
+                    energy_components.packed_block(packed[site], site, partner),
+                    energy_components.packed_block(packed[partner], partner, site),
+                )
+                np.testing.assert_allclose(block, averaged[site, partner])
+
+    def test_components_sum_to_the_mutation_energy_and_change(self):
+        rng = np.random.default_rng(31)
+        length = 5
+        q = 6
+        directional = rng.normal(size=(length, length, q, q))
+        for site in range(length):
+            directional[site, site] = 0.0
+        raw_fields = rng.normal(size=(length, q))
+        recovered = gauge.recover_fields(raw_fields, directional)
+        couplings = gauge.average_couplings(directional)
+        sequence = rng.integers(0, q, size=length)
+        background = rng.random((length, q))
+        background /= background.sum(axis=1, keepdims=True)
+        groups = [np.array([0, 1, 2]), np.array([3, 4])]
+        new_state = (int(sequence[1]) + 2) % q
+        background_term, group_terms = energy_components.mutation_components(
+            sequence, 1, new_state, recovered, couplings, background, groups
+        )
+        energy = potts_energy.mutation_energy(sequence, 1, new_state, recovered, couplings)
+        self.assertAlmostEqual(background_term + sum(group_terms), energy)
+        packed = []
+        field_list = []
+        for site in range(length):
+            field_list.append(raw_fields[site].copy())
+            partners = [column for column in range(length) if column != site]
+            packed.append(np.stack([directional[site, partner] for partner in partners], axis=1))
+        split_background, split_groups, split_energy = energy_components.components_from_directional(
+            sequence, 1, new_state, field_list, packed, background, groups
+        )
+        self.assertAlmostEqual(split_background + sum(split_groups), split_energy)
+        self.assertAlmostEqual(split_energy, energy)
+        packed[1] = np.array(packed[1], copy=True)
+        packed[1][new_state, 0, int(sequence[0])] += 1.0
+        changed_background, changed_groups, changed_energy = energy_components.components_from_directional(
+            sequence, 1, new_state, field_list, packed, background, groups
+        )
+        self.assertNotAlmostEqual(changed_energy, split_energy)
+        self.assertTrue(
+            changed_background != split_background or changed_groups != split_groups
+        )
 
 
 if __name__ == "__main__":
