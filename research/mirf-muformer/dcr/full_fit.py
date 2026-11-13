@@ -51,6 +51,7 @@ def main() -> None:
     os.environ["POTTS_OUTPUT"] = str(OUTPUT)
     os.environ["POTTS_THREADS"] = "1"
     os.environ["OMP_NUM_THREADS"] = "1"
+    potts_fit._compile_library()
     OUTPUT.mkdir(parents=True, exist_ok=True)
     sites = list(range(SITE_COUNT))
     context = multiprocessing.get_context("spawn")

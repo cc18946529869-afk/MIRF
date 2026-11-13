@@ -196,26 +196,33 @@ def site_terms_numpy(
     return nll, penalty, gradient
 
 
+def _library_is_current() -> bool:
+    return _LIBRARY.is_file() and _LIBRARY.stat().st_size > 0 and _LIBRARY.stat().st_mtime >= _SOURCE.stat().st_mtime
+
+
 def _compile_library() -> ctypes.CDLL:
     global _COMPILED
-    if _COMPILED is not None and _LIBRARY.exists() and _LIBRARY.stat().st_mtime >= _SOURCE.stat().st_mtime:
+    if _COMPILED is not None and _library_is_current():
         return _COMPILED
-    subprocess.run(
-        [
-            "gcc",
-            "-O3",
-            "-fPIC",
-            "-shared",
-            "-Wall",
-            "-Wextra",
-            "-fopenmp",
-            str(_SOURCE),
-            "-o",
-            str(_LIBRARY),
-            "-lm",
-        ],
-        check=True,
-    )
+    if not _library_is_current():
+        temporary = _LIBRARY.with_name(f".{_LIBRARY.stem}.{os.getpid()}.so")
+        subprocess.run(
+            [
+                "gcc",
+                "-O3",
+                "-fPIC",
+                "-shared",
+                "-Wall",
+                "-Wextra",
+                "-fopenmp",
+                str(_SOURCE),
+                "-o",
+                str(temporary),
+                "-lm",
+            ],
+            check=True,
+        )
+        os.replace(temporary, _LIBRARY)
     library = ctypes.CDLL(str(_LIBRARY))
     library.site_objective.argtypes = [
         ctypes.POINTER(ctypes.c_int8),
