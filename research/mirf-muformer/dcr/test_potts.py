@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import math
 import unittest
 from pathlib import Path
 
@@ -451,6 +452,240 @@ class SolverV2Tests(unittest.TestCase):
         delta_fn = potts_fit.make_direct_delta(msa, weights, 2, weight_total)
         direct = delta_fn(theta, direction, alpha)
         self.assertAlmostEqual(direct, (moved_nll + moved_penalty) - (base_nll + base_penalty), places=8)
+
+    def test_tied_absolute_values_still_accept_the_lower_delta_inside_zoom(self):
+        f0 = 85825.06840460224
+        slope0 = -1e-12
+        curvature_scale = 1.95e-12
+
+        def phi(step):
+            return slope0 * step + 0.5 * curvature_scale * step * step
+
+        def objective(point):
+            step = float(point[0])
+            return f0, np.array([slope0 + curvature_scale * step])
+
+        def delta_fn(position, direction, alpha):
+            start = float(position[0])
+            moved = start + alpha * float(direction[0])
+            return phi(moved) - phi(start)
+
+        self.assertEqual(f0 + phi(1.0), f0)
+        self.assertEqual(f0 + phi(1.0 / 1.95), f0)
+        events = []
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            f0,
+            np.array([slope0]),
+            np.array([1.0]),
+            1.0,
+            events=events,
+            delta_fn=delta_fn,
+        )
+        self.assertIsNotNone(found)
+        self.assertEqual(found.acceptance, "strong_wolfe")
+        self.assertLess(found.delta, phi(1.0))
+        self.assertTrue(any(row.get("stage") == "zoom_trial" and row.get("reason") == "strong_wolfe" for row in events))
+        self.assertFalse(any(row.get("reason") == "budget" for row in events))
+
+    def test_nonfinite_absolute_objective_is_rejected_before_the_direct_delta(self):
+        def objective(point):
+            del point
+            return math.inf, np.array([1.0])
+
+        def delta_fn(position, direction, alpha):
+            del position, direction, alpha
+            raise AssertionError("a nonfinite objective must not become a candidate")
+
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            0.0,
+            np.array([-1.0]),
+            np.array([1.0]),
+            1.0,
+            max_evals=2,
+            delta_fn=delta_fn,
+        )
+        self.assertIsNone(found)
+
+    def test_direct_delta_accepts_wolfe_and_fallback_on_the_same_objective(self):
+        rng = np.random.default_rng(23)
+        q = 21
+        length = 3
+        msa = rng.integers(0, q, size=(8, length), dtype=np.int8)
+        weights = np.ones(8)
+        weight_total = 4.0
+        theta = np.zeros(potts_fit.parameter_count(length, q))
+        nll, penalty, gradient = potts_fit.site_terms(theta, msa, weights, 0, weight_total)
+        f0 = nll + penalty
+        direction = -gradient
+        delta_fn = potts_fit.make_direct_delta(msa, weights, 0, weight_total)
+
+        def objective(point):
+            value_nll, value_penalty, value_gradient = potts_fit.site_terms(point, msa, weights, 0, weight_total)
+            return value_nll + value_penalty, value_gradient
+
+        wolfe = potts_fit.strong_wolfe(objective, theta, f0, gradient, direction, 1.0, delta_fn=delta_fn)
+        self.assertEqual(wolfe.acceptance, "strong_wolfe")
+        moved_nll, moved_penalty, _gradient = potts_fit.site_terms(
+            theta + wolfe.alpha * direction, msa, weights, 0, weight_total
+        )
+        self.assertAlmostEqual(wolfe.delta, (moved_nll + moved_penalty) - f0, places=8)
+
+        fallback = None
+        for alpha0 in (1e-6, 1e-3, 1.0, 1e2, 1e4):
+            trial = potts_fit.strong_wolfe(
+                objective,
+                theta,
+                f0,
+                gradient,
+                direction,
+                alpha0,
+                max_evals=1,
+                delta_fn=delta_fn,
+            )
+            if trial is not None and trial.acceptance == "armijo_fallback":
+                fallback = trial
+                break
+        self.assertIsNotNone(fallback)
+        self.assertNotEqual(fallback.acceptance, "strong_wolfe")
+        checked_nll, checked_penalty, _gradient = potts_fit.site_terms(
+            theta + fallback.alpha * direction, msa, weights, 0, weight_total
+        )
+        self.assertAlmostEqual(fallback.delta, (checked_nll + checked_penalty) - f0, places=8)
+
+    def test_budget_exit_selects_only_an_evaluated_sufficient_decrease(self):
+        def objective(point):
+            return 0.0, np.array([-4.0])
+
+        def delta_fn(position, direction, alpha):
+            del position, direction
+            return -0.1 * alpha * (1.0 - alpha)
+
+        events = []
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            10.0,
+            np.array([-1.0]),
+            np.array([1.0]),
+            1.0,
+            max_evals=4,
+            events=events,
+            delta_fn=delta_fn,
+        )
+        self.assertEqual(found.acceptance, "armijo_fallback")
+        self.assertEqual(events[-1]["line_search_exit"], "budget_exhausted")
+        evaluated = [row["alpha"] for row in events if row.get("delta") is not None]
+        self.assertIn(found.alpha, evaluated)
+        armijo = [row for row in events if row.get("armijo") and row.get("alpha", 0.0) > 0.0]
+        self.assertAlmostEqual(found.delta, min(row["delta"] for row in armijo))
+
+    def test_alpha_cap_does_not_use_an_unevaluated_step(self):
+        def objective(point):
+            del point
+            return 0.0, np.array([-1.0])
+
+        def delta_fn(position, direction, alpha):
+            del position
+            return -alpha * float(direction[0])
+
+        events = []
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            0.0,
+            np.array([-1.0]),
+            np.array([1.0]),
+            1.0,
+            max_evals=40,
+            events=events,
+            delta_fn=delta_fn,
+        )
+        self.assertEqual(found.acceptance, "armijo_fallback")
+        self.assertEqual(events[-1]["line_search_exit"], "alpha_cap")
+        self.assertLessEqual(found.alpha, 1e8)
+        self.assertFalse(any(row.get("alpha", 0.0) > 1e8 and row.get("delta") is not None for row in events))
+        self.assertAlmostEqual(found.delta, -found.alpha)
+
+    def test_bracket_collapse_keeps_the_evaluated_candidate(self):
+        def objective(point):
+            del point
+            return 0.0, np.array([1.0])
+
+        def delta_fn(position, direction, alpha):
+            del position, direction
+            return -0.05 * alpha
+
+        original = potts_fit._cubic_minimizer
+
+        def collapsed(left, f_left, slope_left, right, f_right, slope_right):
+            del left, f_left, slope_left, right, f_right, slope_right
+            return math.nan
+
+        potts_fit._cubic_minimizer = collapsed
+        events = []
+        try:
+            found = potts_fit.strong_wolfe(
+                objective,
+                np.zeros(1),
+                0.0,
+                np.array([-1.0]),
+                np.array([1.0]),
+                1.0,
+                events=events,
+                delta_fn=delta_fn,
+            )
+        finally:
+            potts_fit._cubic_minimizer = original
+        self.assertEqual(found.acceptance, "armijo_fallback")
+        self.assertEqual(found.alpha, 1.0)
+        self.assertEqual(events[-1]["line_search_exit"], "bracket_collapse")
+        self.assertEqual([row["alpha"] for row in events if row.get("stage") == "trial"], [1.0])
+
+    def test_nonfinite_step_collapse_has_no_invented_candidate(self):
+        def objective(point):
+            del point
+            return math.nan, np.array([math.nan])
+
+        events = []
+        found = potts_fit.strong_wolfe(
+            objective,
+            np.zeros(1),
+            0.0,
+            np.array([-1.0]),
+            np.array([1.0]),
+            1e-306,
+            max_evals=20,
+            events=events,
+        )
+        self.assertIsNone(found)
+        self.assertFalse(any(row.get("acceptance") for row in events))
+        self.assertEqual(events[-1]["line_search_exit"], "nonfinite_step")
+
+    def test_lbfgs_records_curvature_scale_and_descent_directions(self):
+        def objective(point):
+            return 0.5 * float(np.dot(point, point)), np.array(point, copy=True)
+
+        solved = potts_fit.lbfgs(objective, np.array([1.0, -2.0]), max_iter=4)
+        directions = [row for row in solved.trace if row["event"] == "direction"]
+        accepted = [row for row in solved.trace if row["event"] == "accepted"]
+        self.assertTrue(directions and accepted)
+        self.assertTrue(all(row["direction_finite"] and row["descent"] and math.isfinite(row["direction_l2"]) for row in directions))
+        self.assertTrue(all(row["gtd"] < 0.0 for row in directions))
+        for row in accepted:
+            self.assertGreater(row["step_l2"], 0.0)
+            self.assertGreater(row["y_l2"], 0.0)
+            if row["curvature_stored"]:
+                self.assertAlmostEqual(row["rho"], 1.0 / row["curvature_sy"])
+                self.assertAlmostEqual(row["cos_phi"], row["curvature_sy"] / (row["step_l2"] * row["y_l2"]))
+            else:
+                self.assertIsNone(row["rho"])
+        later = [row for row in directions if row["history_pairs"] > 0]
+        self.assertTrue(later)
+        self.assertTrue(all(math.isfinite(row["history_rho_max"]) and row["history_rho_max"] > 0.0 for row in later))
 
 
 class ComponentCheckTests(unittest.TestCase):

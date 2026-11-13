@@ -587,13 +587,10 @@ def _note(events, **payload) -> None:
 
 def _record_trial(objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, stage):
     absolute_value, gradient = objective(position + alpha * direction)
-    if not np.all(np.isfinite(gradient)):
+    if not np.isfinite(absolute_value) or not np.all(np.isfinite(gradient)):
         _note(events, stage=stage, alpha=float(alpha), finite=False, armijo=False, curvature=False, reason="nonfinite")
         return None
     if delta_fn is None:
-        if not np.isfinite(absolute_value):
-            _note(events, stage=stage, alpha=float(alpha), finite=False, armijo=False, curvature=False, reason="nonfinite")
-            return None
         delta = float(absolute_value) - float(f0)
         value = float(absolute_value)
     else:
@@ -630,48 +627,54 @@ def _record_trial(objective, delta_fn, position, direction, alpha, f0, slope0, c
     return record
 
 
-def _zoom(objective, delta_fn, position, direction, low, high, f_low, f_high, g_low, g_high, f0, slope0, c1, c2, evaluations, max_evals, candidates, events=None):
+def _zoom(objective, delta_fn, position, direction, low, high, delta_low, delta_high, g_low, g_high, f0, slope0, c1, c2, evaluations, max_evals, candidates, events=None):
+    """Shrink a bracket. Endpoints and trials are compared by ΔF, not by F0+ΔF.
+
+    The cubic step uses those same increments. ``delta_low`` and ``delta_high``
+    are relative to the line-search base point, so a zero step has increment 0.
+    """
     while evaluations < max_evals:
         slope_low = float(np.dot(g_low, direction))
         slope_high = float(np.dot(g_high, direction)) if g_high is not None else None
-        if slope_high is None or not np.isfinite(f_high):
+        if slope_high is None or not np.isfinite(delta_high):
             alpha = 0.5 * (low + high)
         else:
-            alpha = _cubic_minimizer(low, f_low, slope_low, high, f_high, slope_high)
+            alpha = _cubic_minimizer(low, delta_low, slope_low, high, delta_high, slope_high)
         width = abs(high - low)
         if width == 0.0 or not np.isfinite(alpha):
             _note(events, stage="zoom", reason="collapsed")
-            return evaluations
+            return evaluations, "bracket_collapse"
         if min(abs(alpha - low), abs(alpha - high)) < 0.05 * width:
             alpha = 0.5 * (low + high)
         record = _record_trial(
             objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, "zoom_trial"
         )
         evaluations += 1
-        if record is None or (not record["armijo"]) or record["value"] >= f_low:
+        if record is None or (not record["armijo"]) or record["delta"] >= delta_low:
             high = alpha
-            f_high = math.inf if record is None else record["value"]
+            delta_high = math.inf if record is None else record["delta"]
             g_high = None if record is None else record["gradient"]
             continue
         if record["curvature"]:
             _note(events, stage="zoom_trial", alpha=float(alpha), reason="strong_wolfe")
-            return evaluations
+            return evaluations, None
         if record["slope"] * (high - low) >= 0.0:
             high = low
-            f_high = f_low
+            delta_high = delta_low
             g_high = g_low
         low = alpha
-        f_low = record["value"]
+        delta_low = record["delta"]
         g_low = record["gradient"]
     _note(events, stage="zoom", reason="budget")
-    return evaluations
+    return evaluations, "budget_exhausted"
 
 
-def _line_search_result(record: dict, evaluations: int, acceptance: str, events) -> LineSearchResult:
+def _line_search_result(record: dict, evaluations: int, acceptance: str, events, line_search_exit=None) -> LineSearchResult:
     _note(
         events,
         stage="acceptance",
         acceptance=acceptance,
+        line_search_exit=line_search_exit,
         alpha=record["alpha"],
         delta=record["delta"],
         slope=record["slope"],
@@ -705,8 +708,10 @@ def strong_wolfe(
     """Find a Strong Wolfe step, or the best sufficient-decrease step already tried.
 
     ``delta_fn(position, direction, alpha)`` supplies ΔF. Without it, ΔF is the
-    difference of the two values returned by ``objective``. A fallback result
-    has acceptance ``armijo_fallback`` and is not a Strong Wolfe step.
+    difference of the two values returned by ``objective``. Bracket updates and
+    the cubic step compare those increments. They do not compare ``F0 + ΔF``.
+    A fallback result has acceptance ``armijo_fallback`` and is not a Strong
+    Wolfe step. Its ``line_search_exit`` names which search limit was reached.
     """
     slope0 = float(np.dot(g0, direction))
     if not np.isfinite(slope0) or slope0 >= 0.0 or not np.isfinite(alpha0) or alpha0 <= 0.0:
@@ -720,14 +725,16 @@ def strong_wolfe(
         return None
     candidates: list[dict] = []
     previous = 0.0
-    f_previous = f0
+    delta_previous = 0.0
     g_previous = g0
     alpha = float(alpha0)
     finite_trials = 0
     evaluations = 0
+    exit_reason = None
     while evaluations < max_evals:
         if alpha > 1e8:
             _note(events, stage="line_search", reason="alpha_cap", alpha=float(alpha))
+            exit_reason = "alpha_cap"
             break
         record = _record_trial(
             objective, delta_fn, position, direction, alpha, f0, slope0, c1, c2, candidates, events, "trial"
@@ -737,19 +744,20 @@ def strong_wolfe(
             alpha *= 0.5
             if alpha <= np.finfo(np.float64).tiny:
                 _note(events, stage="line_search", reason="nonfinite_step_collapsed")
+                exit_reason = "nonfinite_step"
                 break
             continue
-        if (not record["armijo"]) or (finite_trials > 0 and record["value"] >= f_previous):
-            _note(events, stage="zoom_enter", reason="armijo" if not record["armijo"] else "previous_value")
-            evaluations = _zoom(
+        if (not record["armijo"]) or (finite_trials > 0 and record["delta"] >= delta_previous):
+            _note(events, stage="zoom_enter", reason="armijo" if not record["armijo"] else "previous_delta")
+            evaluations, exit_reason = _zoom(
                 objective,
                 delta_fn,
                 position,
                 direction,
                 previous,
                 alpha,
-                f_previous,
-                record["value"],
+                delta_previous,
+                record["delta"],
                 g_previous,
                 record["gradient"],
                 f0,
@@ -766,15 +774,15 @@ def strong_wolfe(
             return _line_search_result(record, evaluations, "strong_wolfe", events)
         if record["slope"] >= 0.0:
             _note(events, stage="zoom_enter", reason="nonnegative_slope")
-            evaluations = _zoom(
+            evaluations, exit_reason = _zoom(
                 objective,
                 delta_fn,
                 position,
                 direction,
                 alpha,
                 previous,
-                record["value"],
-                f_previous,
+                record["delta"],
+                delta_previous,
                 record["gradient"],
                 g_previous,
                 f0,
@@ -788,19 +796,22 @@ def strong_wolfe(
             )
             break
         previous = alpha
-        f_previous = record["value"]
+        delta_previous = record["delta"]
         g_previous = record["gradient"]
         finite_trials += 1
         _note(events, stage="expand", alpha_next=float(alpha * 2.0), slope=record["slope"], reason="curvature")
         alpha *= 2.0
+    else:
+        exit_reason = "budget_exhausted"
+        _note(events, stage="line_search", reason="budget")
     for record in reversed(candidates):
         if record["armijo"] and record["curvature"]:
-            return _line_search_result(record, evaluations, "strong_wolfe", events)
+            return _line_search_result(record, evaluations, "strong_wolfe", events, exit_reason)
     chosen = choose_armijo_fallback(candidates)
     if chosen is None:
-        _note(events, stage="line_search", reason="no_sufficient_decrease")
+        _note(events, stage="line_search", reason="no_sufficient_decrease", line_search_exit=exit_reason)
         return None
-    return _line_search_result(chosen, evaluations, "armijo_fallback", events)
+    return _line_search_result(chosen, evaluations, "armijo_fallback", events, exit_reason)
 
 
 def _two_loop(gradient: np.ndarray, steps: list[np.ndarray], changes: list[np.ndarray], curvatures: list[float]) -> np.ndarray:
@@ -907,10 +918,19 @@ def lbfgs(
         slope = float(np.dot(gradient, direction))
         direction_inf = float(np.max(np.abs(direction))) if direction.size else 0.0
         if not np.all(np.isfinite(direction)) or not np.isfinite(slope):
-            trace.append({"event": "stop", "reason": "nonfinite_direction", "iteration": iterations})
+            trace.append(
+                {
+                    "event": "stop",
+                    "reason": "nonfinite_direction",
+                    "iteration": iterations,
+                    "direction_finite": bool(np.all(np.isfinite(direction))),
+                    "direction_l2": float(np.linalg.norm(direction)) if np.all(np.isfinite(direction)) else None,
+                }
+            )
             return OptimizerResult("nonfinite", position, float(value), grad_inf, iterations, evaluations, "non-finite search direction", tuple(trace))
         gradient_mass = float(np.sum(np.abs(gradient)))
         alpha0 = min(1.0, 1.0 / gradient_mass) if iterations == 0 else 1.0
+        history_rho = [1.0 / curvature for curvature in curvatures]
         trace.append(
             {
                 "event": "direction",
@@ -918,9 +938,12 @@ def lbfgs(
                 "gtd": slope,
                 "grad_inf": grad_inf,
                 "direction_inf": direction_inf,
+                "direction_l2": float(np.linalg.norm(direction)),
+                "direction_finite": True,
                 "alpha0": alpha0,
                 "descent": bool(slope < 0.0),
                 "history_pairs": len(steps),
+                "history_rho_max": max(history_rho) if history_rho else None,
                 "legacy_direction_stop": bool(slope > -prog_tol),
             }
         )
@@ -1002,6 +1025,10 @@ def lbfgs(
         y_change = new_gradient - gradient
         curvature = float(np.dot(y_change, step))
         stored = bool(finite and curvature > 0.0)
+        step_l2 = float(np.linalg.norm(step))
+        y_l2 = float(np.linalg.norm(y_change))
+        rho = float(1.0 / curvature) if stored else None
+        cos_phi = float(curvature / (step_l2 * y_l2)) if step_l2 > 0.0 and y_l2 > 0.0 and np.isfinite(curvature) else None
         legacy_progress = None
         if step_inf <= prog_tol:
             legacy_progress = "step"
@@ -1019,6 +1046,10 @@ def lbfgs(
                 "curvature_sy": curvature,
                 "curvature_positive": bool(curvature > 0.0),
                 "curvature_stored": stored,
+                "step_l2": step_l2,
+                "y_l2": y_l2,
+                "rho": rho,
+                "cos_phi": cos_phi,
                 "new_grad_inf": new_grad_inf,
                 "legacy_progress": legacy_progress,
                 "history_pairs_before": len(steps),

@@ -22,7 +22,8 @@ import energy_components
 import potts_fit
 
 SITES = potts_fit.SOLVER_V2_SITES
-OUTPUT = Path(__file__).resolve().parent / "solver_v2"
+OUTPUT = Path(__file__).resolve().parent / "solver_v2_delta"
+PREVIOUS = Path(__file__).resolve().parent / "solver_v2"
 
 
 def _load_saved_site(path: Path) -> tuple[np.ndarray, np.ndarray]:
@@ -116,7 +117,11 @@ def _fit_one(site: int) -> dict:
     )
     (output / f"site_{site:03d}_trace.json").write_text(json.dumps(_json_ready(first.trace)))
     accepted = [row for row in first.trace if row.get("event") == "accepted"]
+    directions = [row for row in first.trace if row.get("event") == "direction"]
     increases = [row["delta"] for row in accepted if row["delta"] > 0.0]
+    rhos = [row["rho"] for row in accepted if row.get("rho") is not None]
+    cosines = [row["cos_phi"] for row in accepted if row.get("cos_phi") is not None]
+    exits = [row.get("line_search_exit") for row in first.trace if row.get("line_search_exit")]
     return {
         "site": site,
         "status": first.status,
@@ -131,6 +136,12 @@ def _fit_one(site: int) -> dict:
         "n_curvature_skipped": first.n_curvature_skipped,
         "curvature_sy_min": min(first.curvature_sy) if first.curvature_sy else None,
         "curvature_sy_max": max(first.curvature_sy) if first.curvature_sy else None,
+        "rho_max": max(rhos) if rhos else None,
+        "cos_phi_min": min(cosines) if cosines else None,
+        "direction_l2_max": max(row["direction_l2"] for row in directions) if directions else None,
+        "nonfinite_directions": sum(not row.get("direction_finite", False) for row in directions),
+        "ascent_directions": sum(not row.get("descent", False) for row in directions),
+        "line_search_exits": exits,
         "positive_curvature_steps": sum(value > 0.0 for value in first.curvature_sy),
         "nonpositive_curvature_steps": sum(value <= 0.0 for value in first.curvature_sy),
         "unexpected_increases": len(increases),
@@ -213,6 +224,18 @@ def main() -> None:
     with context.Pool(len(SITES)) as pool:
         rows = list(pool.map(_fit_one, SITES))
     alignment, weights, total = potts_fit.load_official_alignment()
+    previous = {}
+    previous_path = PREVIOUS / "summary.json"
+    if previous_path.is_file():
+        for row in json.loads(previous_path.read_text())["sites"]:
+            previous[int(row["site"])] = row
+    for row in rows:
+        earlier = previous.get(int(row["site"]))
+        if earlier is not None:
+            row["previous_grad_inf"] = earlier["grad_inf"]
+            row["previous_status"] = earlier["status"]
+            row["previous_iterations"] = earlier["iterations"]
+            row["grad_inf_difference"] = row["grad_inf"] - earlier["grad_inf"]
     report = {
         "opt_tol": potts_fit.OPT_TOL,
         "max_iter": potts_fit.MAX_ITER,
