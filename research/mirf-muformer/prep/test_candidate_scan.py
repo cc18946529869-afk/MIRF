@@ -105,6 +105,38 @@ class UnionTest(unittest.TestCase):
         self.assertEqual(compared, sequence_weights.N_COLUMNS - len(blocks[-1]))
 
 
+class CompiledBoundaryTest(unittest.TestCase):
+    def test_native_scan_keeps_52_mismatches_and_rejects_53(self) -> None:
+        blocks = block_index.contiguous_partition()
+        alignment = np.ones((3, sequence_weights.N_COLUMNS), dtype=np.uint8)
+        for block in blocks[:-1]:
+            alignment[1, block[0]] = 2
+        alignment[2, blocks[0][0]] = 2
+        alignment[2, blocks[0][1]] = 2
+        for block in blocks[1:-1]:
+            alignment[2, block[0]] = 2
+        self.assertEqual(int(np.count_nonzero(alignment[0] == alignment[1])), 211)
+        self.assertEqual(int(np.count_nonzero(alignment[0] == alignment[2])), 210)
+        coded, starts, ends, members = candidate_scan.build_block_index(alignment, blocks)
+        owners = candidate_scan.column_block_ids(blocks)
+        _scores, order = candidate_scan.discrimination(coded)
+        counts = np.ones(coded.shape[0], dtype=np.int64)
+        stats = candidate_scan.early_abort_stats(
+            coded,
+            starts,
+            ends,
+            members,
+            owners,
+            order,
+            np.arange(coded.shape[0], dtype=np.int32),
+            higher_only=True,
+            neighbor_counts=counts,
+        )
+        np.testing.assert_array_equal(counts, sequence_weights.neighbor_counts(alignment))
+        self.assertEqual(int(counts[0]), 2)
+        self.assertEqual(int(np.sum(counts - 1)), 2 * stats["n_accept"])
+
+
 class NeighborCountTest(unittest.TestCase):
     def test_accepted_pairs_update_both_endpoints(self) -> None:
         generator = np.random.default_rng(11)
