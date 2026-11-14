@@ -644,6 +644,44 @@ def build_reference(destination: Path | None = None) -> dict:
     return manifest
 
 
+def require_reference(data: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Load the full-fit gauge only when its manifest matches this data identity.
+
+    A missing reference is built from ``full_fit`` without refitting. A manifest
+    that names another alignment, weight file, or commit is left unchanged.
+    """
+    reference = OUTPUT / "reference"
+    manifest_path = reference / "manifest.json"
+    if not manifest_path.is_file():
+        build_reference(reference)
+    manifest = json.loads(manifest_path.read_text())
+    if manifest.get("role") != "reference" or manifest.get("refit") is not False:
+        raise RuntimeError("the reference must be the frozen full-fit gauge, not a refit")
+    if int(manifest.get("sites", -1)) != int(SITE_COUNT) or manifest.get("source") != str(FULL_FIT):
+        raise RuntimeError("the reference does not come from the accepted 263-site full fit")
+    if manifest.get("both_triangles") is not True:
+        raise RuntimeError("the reference manifest does not record both triangles")
+    for key in ("alignment_sha256", "neighbor_counts_sha256", "code_revision"):
+        if manifest.get(key) != data.get(key):
+            raise RuntimeError(f"the reference {key} does not match the current data identity")
+    if (
+        manifest.get("official_m_eff") != data.get("official_m_eff")
+        or manifest.get("draw_count") != data.get("draw_count")
+        or manifest.get("weight_total") != data.get("weight_total")
+    ):
+        raise RuntimeError("the reference sample constants do not match the current data identity")
+    for name in ("fields.npy", "directional.npy", "h_hat.npy", "j_star.npy"):
+        if not (reference / name).is_file():
+            raise RuntimeError(f"the reference is missing {name}")
+    recovered = np.load(reference / "h_hat.npy")
+    averaged = np.load(reference / "j_star.npy")
+    if recovered.shape != (SITE_COUNT, potts_fit.Q) or averaged.shape != (SITE_COUNT, SITE_COUNT, potts_fit.Q, potts_fit.Q):
+        raise RuntimeError("the reference parameter shapes do not match the 263-site gauge")
+    if not np.array_equal(averaged, np.transpose(averaged, (1, 0, 3, 2))):
+        raise RuntimeError("the reference J* does not keep both triangles")
+    return recovered, averaged
+
+
 def run_verification(seed: int = VERIFICATION_SEED, workers: int = WORKERS) -> dict:
     """Fit one 263-site sample. This replicate has no formal ID."""
     if int(seed) == TIMING_SEED:
@@ -652,8 +690,7 @@ def run_verification(seed: int = VERIFICATION_SEED, workers: int = WORKERS) -> d
     if alignment.shape != (weights.shape[0], SITE_COUNT):
         raise RuntimeError("the official alignment does not have 263 columns")
     pairing = verify_official_weight_rows()
-    if not (OUTPUT / "reference" / "manifest.json").exists():
-        build_reference()
+    require_reference(data_record())
     manifest = execute_replicate(
         role="verification",
         seed=int(seed),
@@ -928,14 +965,14 @@ def write_stage_decision(stage: int, seed: int) -> dict:
     require_clean_worktree()
     recorded = data_record()
     lock = read_formal_lock(int(seed), recorded)
-    reference = OUTPUT / "reference"
-    if not (reference / "manifest.json").exists():
-        build_reference()
+    if int(stage) == 200:
+        require_stage_extension(int(seed))
+    field_reference, coupling_reference = require_reference(recorded)
     outcome = decide_formal_stage(
         int(stage),
         int(seed),
-        np.load(reference / "h_hat.npy"),
-        np.load(reference / "j_star.npy"),
+        field_reference,
+        coupling_reference,
         recorded,
     )
     saved = {
@@ -965,6 +1002,7 @@ def run_formal(seed: int, start: int = 1, stop: int = 100, workers: int = WORKER
     pairing = verify_official_weight_rows()
     recorded = data_record()
     lock_formal_seed(int(seed), recorded)
+    require_reference(recorded)
     replicate_ids = []
     for replicate_id in range(start, stop + 1):
         manifest = execute_replicate(

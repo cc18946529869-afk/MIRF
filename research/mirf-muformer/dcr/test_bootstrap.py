@@ -437,19 +437,14 @@ class IntegrityTests(unittest.TestCase):
     def test_stage_file_records_the_locked_identity(self):
         originals = (
             bootstrap_fit.require_clean_worktree,
-            bootstrap_fit.build_reference,
+            bootstrap_fit.require_reference,
             bootstrap_fit.decide_formal_stage,
         )
         bootstrap_fit.require_clean_worktree = lambda lines=None: None
-        bootstrap_fit.build_reference = lambda: (_ for _ in ()).throw(AssertionError("reference"))
+        bootstrap_fit.require_reference = lambda data: (np.zeros(1), np.zeros(1))
         bootstrap_fit.decide_formal_stage = lambda *args: {"action": "extend", "stage": 100}
         try:
             with _temporary_output():
-                reference = bootstrap_fit.OUTPUT / "reference"
-                reference.mkdir()
-                (reference / "manifest.json").write_text("{}\n")
-                np.save(reference / "h_hat.npy", np.zeros(1))
-                np.save(reference / "j_star.npy", np.zeros(1))
                 data = bootstrap_fit.data_record()
                 bootstrap_fit.lock_formal_seed(3, data)
                 saved = bootstrap_fit.write_stage_decision(100, 3)
@@ -463,7 +458,7 @@ class IntegrityTests(unittest.TestCase):
         finally:
             (
                 bootstrap_fit.require_clean_worktree,
-                bootstrap_fit.build_reference,
+                bootstrap_fit.require_reference,
                 bootstrap_fit.decide_formal_stage,
             ) = originals
 
@@ -501,6 +496,96 @@ class IntegrityTests(unittest.TestCase):
                 self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "stage_100.json").exists())
         finally:
             bootstrap_fit.require_clean_worktree = original
+
+    def test_stage_200_decision_requires_the_stage_100_extension(self):
+        original_clean = bootstrap_fit.require_clean_worktree
+        original_reference = bootstrap_fit.require_reference
+        original_decide = bootstrap_fit.decide_formal_stage
+        bootstrap_fit.require_clean_worktree = lambda lines=None: None
+        bootstrap_fit.require_reference = lambda data: (np.zeros(1), np.zeros(1))
+        bootstrap_fit.decide_formal_stage = lambda *args: {"action": "no_conclusion", "stage": 200}
+        try:
+            with _temporary_output():
+                data = bootstrap_fit.data_record()
+                bootstrap_fit.lock_formal_seed(11, data)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.write_stage_decision(200, 11)
+                identity = {
+                    "code_revision": data["code_revision"],
+                    "alignment_sha256": data["alignment_sha256"],
+                    "neighbor_counts_sha256": data["neighbor_counts_sha256"],
+                }
+                stage_path = bootstrap_fit.OUTPUT / "formal" / "stage_100.json"
+                bootstrap_fit.atomic_json(
+                    stage_path,
+                    {"action": "pass", "formal_seed": 11, "stage": 100, **identity},
+                )
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.write_stage_decision(200, 11)
+                self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "stage_200.json").exists())
+                bootstrap_fit.atomic_json(
+                    stage_path,
+                    {"action": "extend", "formal_seed": 11, "stage": 100, **identity},
+                )
+                saved = bootstrap_fit.write_stage_decision(200, 11)
+                self.assertEqual(saved["action"], "no_conclusion")
+                self.assertEqual(saved["code_revision"], data["code_revision"])
+                self.assertTrue((bootstrap_fit.OUTPUT / "formal" / "stage_200.json").is_file())
+        finally:
+            bootstrap_fit.require_clean_worktree = original_clean
+            bootstrap_fit.require_reference = original_reference
+            bootstrap_fit.decide_formal_stage = original_decide
+
+    def test_reference_identity_must_match_before_it_is_used(self):
+        with _temporary_output():
+            data = bootstrap_fit.data_record()
+            reference = bootstrap_fit.OUTPUT / "reference"
+            reference.mkdir()
+            manifest = {
+                "role": "reference",
+                "source": str(bootstrap_fit.FULL_FIT),
+                "refit": False,
+                "sites": bootstrap_fit.SITE_COUNT,
+                "both_triangles": True,
+                **data,
+            }
+            manifest["alignment_sha256"] = "different-alignment"
+            bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_reference(data)
+            self.assertEqual(
+                json.loads((reference / "manifest.json").read_text())["alignment_sha256"],
+                "different-alignment",
+            )
+            manifest["alignment_sha256"] = data["alignment_sha256"]
+            manifest["code_revision"] = "other-commit"
+            bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_reference(data)
+            manifest["code_revision"] = data["code_revision"]
+            bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_reference(data)
+            original = bootstrap_fit.SITE_COUNT
+            bootstrap_fit.SITE_COUNT = 2
+            try:
+                manifest["sites"] = 2
+                bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+                for name in ("fields.npy", "directional.npy", "h_hat.npy", "j_star.npy"):
+                    array = np.zeros((2, 21)) if name == "h_hat.npy" else np.zeros((2, 2, 21, 21))
+                    if name in ("fields.npy", "directional.npy"):
+                        array = np.zeros(1)
+                    np.save(reference / name, array)
+                recovered, averaged = bootstrap_fit.require_reference(data)
+                self.assertEqual(recovered.shape, (2, 21))
+                self.assertEqual(averaged.shape, (2, 2, 21, 21))
+                broken = np.zeros((2, 2, 21, 21))
+                broken[0, 1, 0, 0] = 1.0
+                np.save(reference / "j_star.npy", broken)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.require_reference(data)
+            finally:
+                bootstrap_fit.SITE_COUNT = original
 
     def test_count_audit_reports_every_difference(self):
         stored = np.array([2, 3, 4], dtype=np.int64)
