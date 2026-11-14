@@ -181,6 +181,9 @@ class SamplingTests(unittest.TestCase):
         self.assertTrue(report["identical_sequences_share_counts"])
         self.assertGreater(report["duplicate_groups"], 0)
         self.assertFalse(report["full_pair_recount"])
+        self.assertFalse(report["spot_check_covers_every_row"])
+        self.assertEqual(report["spot_check_row_count"], 32)
+        self.assertTrue(report["stored_weight_column_matches_inverse_count"])
         self.assertEqual(report["query_m"], 720)
         self.assertEqual(report["recount_rows"][0], {"row": 0, "m_i": 720})
 
@@ -337,10 +340,49 @@ class IntegrityTests(unittest.TestCase):
 
     def test_formal_seed_lock_rejects_a_second_seed(self):
         with _temporary_output():
-            data = {"alignment_sha256": "a", "neighbor_counts_sha256": "b"}
+            data = {"alignment_sha256": "a", "neighbor_counts_sha256": "b", "code_revision": "abc"}
             bootstrap_fit.lock_formal_seed(5, data)
             with self.assertRaises(RuntimeError):
                 bootstrap_fit.lock_formal_seed(6, data)
+
+    def test_code_revision_mismatch_rejects_resume(self):
+        with _temporary_output():
+            data = {"alignment_sha256": "a", "neighbor_counts_sha256": "b", "code_revision": "aaa"}
+            bootstrap_fit.lock_formal_seed(5, data)
+            changed = dict(data, code_revision="bbb")
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.lock_formal_seed(5, changed)
+
+    def test_dirty_worktree_rejects_a_formal_run(self):
+        with self.assertRaises(RuntimeError):
+            bootstrap_fit.require_clean_worktree([" M research/mirf-muformer/dcr/bootstrap_fit.py"])
+        with self.assertRaises(RuntimeError):
+            bootstrap_fit.require_clean_worktree(["?? research/mirf-muformer/dcr/extra.py"])
+        bootstrap_fit.require_clean_worktree(["?? research/mirf-muformer/prep/early_abort_histogram.tsv"])
+        bootstrap_fit.require_clean_worktree([])
+
+    def test_initial_command_cannot_cross_100(self):
+        bootstrap_fit.validate_formal_span(20, 40)
+        bootstrap_fit.validate_formal_span(1, 100)
+        with self.assertRaises(RuntimeError):
+            bootstrap_fit.validate_formal_span(90, 110)
+        with self.assertRaises(RuntimeError):
+            bootstrap_fit.run_formal(4, 1, 200)
+        self.assertFalse((bootstrap_fit.OUTPUT / "formal").exists())
+
+    def test_extension_follows_the_stage_100_decision(self):
+        with _temporary_output():
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_stage_extension(9)
+            for action in ("pass", "parameter_unstable", "undefined"):
+                _write_stage_decision(action, 9)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.require_stage_extension(9)
+            _write_stage_decision("extend", 8)
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_stage_extension(9)
+            _write_stage_decision("extend", 9)
+            bootstrap_fit.require_stage_extension(9)
 
     def test_later_formal_ids_do_not_redraw_a_missing_prefix(self):
         with _temporary_output():
@@ -374,6 +416,15 @@ class IntegrityTests(unittest.TestCase):
             (directory / "manifest.json").write_text(json.dumps(manifest))
             with self.assertRaises(RuntimeError):
                 bootstrap_fit.load_formal_samples(100, indices_seed, data)
+
+
+def _write_stage_decision(action: str, seed: int) -> None:
+    directory = bootstrap_fit.OUTPUT / "formal"
+    directory.mkdir(parents=True, exist_ok=True)
+    bootstrap_fit.atomic_json(
+        directory / "stage_100.json",
+        {"action": action, "formal_seed": seed, "stage": 100},
+    )
 
 
 def _plant_formal(replicate_id: int, seed: int, success: bool, field: np.ndarray, coupling: np.ndarray) -> None:

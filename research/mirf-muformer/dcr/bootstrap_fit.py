@@ -177,20 +177,26 @@ def verify_official_weight_rows() -> dict:
     """Require the weight file's row ids to be the MSA order, then test that claim.
 
     The table has a row number and no sequence header. Identical MSA rows must
-    share ``m_i``. A fixed set of rows is recounted against ``mature_codes.npy``.
-    This does not repeat the full pair scan.
+    share ``m_i``. Thirty-two anchor rows are recounted against
+    ``mature_codes.npy``. That spot check does not prove all 209644 rows.
+    Sampling uses ``1/m_i`` recomputed from the count column. The stored ``w_i``
+    column is compared with that inverse and is not itself the sampling weight.
     """
     alignment, weights, total = potts_fit.load_official_alignment()
-    table = np.loadtxt(PREP / "neighbor_counts.tsv", skiprows=1, usecols=(0, 1))
+    table = np.loadtxt(PREP / "neighbor_counts.tsv", skiprows=1, usecols=(0, 1, 2))
     row_index = table[:, 0].astype(np.int64)
     counts = table[:, 1].astype(np.int64)
+    stored_weights = table[:, 2]
     if alignment.shape != (counts.shape[0], SITE_COUNT):
         raise RuntimeError("the alignment and neighbor counts do not have the same rows")
     require_msa_row_order(row_index, alignment.shape[0])
     if np.any(counts < 1):
         raise RuntimeError("a neighbor count is below one")
-    if not np.array_equal(weights, np.float64(1.0) / counts.astype(np.float64)):
+    expected_weights = np.float64(1.0) / counts.astype(np.float64)
+    if not np.array_equal(weights, expected_weights):
         raise RuntimeError("official weights are not 1/m_i in MSA row order")
+    if not np.array_equal(stored_weights, expected_weights):
+        raise RuntimeError("neighbor_counts.tsv w_i is not 1/m_i")
     if float(total) != float(potts_fit.OFFICIAL_M_EFF):
         raise RuntimeError("the official weight sum changed")
     summary = json.loads((PREP / "neighbor_summary.json").read_text())
@@ -219,6 +225,9 @@ def verify_official_weight_rows() -> dict:
         "identical_sequences_share_counts": True,
         "duplicate_groups": groups,
         "recount_rows": recounted,
+        "spot_check_row_count": len(recounted),
+        "spot_check_covers_every_row": False,
+        "stored_weight_column_matches_inverse_count": True,
         "full_pair_recount": False,
         "query_row": 0,
         "query_m": int(counts[0]),
@@ -678,10 +687,80 @@ def _formal_directory(replicate_id: int) -> Path:
     return OUTPUT / "formal" / f"replicate_{int(replicate_id):03d}"
 
 
+def worktree_status_lines() -> list[str]:
+    """Return porcelain status lines for this repository."""
+    try:
+        output = subprocess.check_output(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            cwd=ROOT,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise RuntimeError("the formal run cannot read the git worktree") from exc
+    return [line for line in output.splitlines() if line.strip()]
+
+
+def dirty_worktree_reason(lines: list[str]) -> str | None:
+    """Return why these status lines block a formal run.
+
+    Tracked edits block the run. Untracked source files block it as well.
+    Untracked data products do not, because they are not the code being run.
+    """
+    for line in lines:
+        if len(line) < 4:
+            return f"unreadable git status line {line!r}"
+        path = line[3:].strip()
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1].strip()
+        if line[:2] == "??":
+            if Path(path).suffix.lower() in {".py", ".c", ".h"}:
+                return f"untracked source file {path}"
+            continue
+        return f"uncommitted change {line}"
+    return None
+
+
+def require_clean_worktree(lines: list[str] | None = None) -> None:
+    """Refuse a formal run when the code on disk is not the recorded commit."""
+    if lines is None:
+        lines = worktree_status_lines()
+    reason = dirty_worktree_reason(lines)
+    if reason is not None:
+        raise RuntimeError(f"the formal run requires a clean code worktree: {reason}")
+
+
+def validate_formal_span(start: int, stop: int) -> None:
+    """Allow a batch inside 1–100, or a later batch inside 101–200, but not both."""
+    if not 1 <= int(start) <= int(stop) <= 200:
+        raise ValueError("formal replicate ids run from 1 through 200")
+    if int(start) <= 100 < int(stop):
+        raise RuntimeError(
+            "replicates 1-100 must be decided before later replicates; one command cannot cross 100"
+        )
+
+
+def require_stage_extension(seed: int) -> None:
+    """Allow replicates 101–200 only after stage 100 decided to extend."""
+    path = OUTPUT / "formal" / "stage_100.json"
+    if not path.is_file():
+        raise RuntimeError("replicates 101-200 require stage_100.json")
+    saved = json.loads(path.read_text())
+    if int(saved.get("formal_seed", -1)) != int(seed):
+        raise RuntimeError("stage_100.json belongs to another formal seed")
+    action = saved.get("action")
+    if action != "extend":
+        raise RuntimeError(
+            f"stage_100.json action is {action}; only extend can start replicates 101-200"
+        )
+
+
 def lock_formal_seed(seed: int, data: dict) -> None:
-    """Keep every formal replicate on the seed and alignment recorded first."""
+    """Keep every formal replicate on the seed, alignment, and code revision."""
     if int(seed) == TIMING_SEED:
         raise ValueError("the timing seed is not the formal seed")
+    revision = str(data.get("code_revision", ""))
+    if revision in {"", "unknown"} or "alignment_sha256" not in data or "neighbor_counts_sha256" not in data:
+        raise RuntimeError("the formal lock needs the seed, both data hashes, and a git commit")
     root = OUTPUT / "formal"
     root.mkdir(parents=True, exist_ok=True)
     path = root / "seed.json"
@@ -689,15 +768,15 @@ def lock_formal_seed(seed: int, data: dict) -> None:
         "formal_seed": int(seed),
         "alignment_sha256": data["alignment_sha256"],
         "neighbor_counts_sha256": data["neighbor_counts_sha256"],
+        "code_revision": revision,
     }
     if path.exists():
         saved = json.loads(path.read_text())
-        if (
-            int(saved["formal_seed"]) != int(seed)
-            or saved["alignment_sha256"] != payload["alignment_sha256"]
-            or saved["neighbor_counts_sha256"] != payload["neighbor_counts_sha256"]
-        ):
-            raise RuntimeError("the formal run is already bound to another seed or alignment")
+        for key, value in payload.items():
+            if saved.get(key) != value:
+                raise RuntimeError(
+                    "the formal run is already bound to another seed, alignment, or code revision"
+                )
         return
     atomic_json(path, payload)
 
@@ -816,14 +895,16 @@ def run_formal(seed: int, start: int = 1, stop: int = 100, workers: int = WORKER
         raise ValueError("the timing seed is not the formal seed")
     start = int(start)
     stop = int(stop)
-    if not 1 <= start <= stop <= 200:
-        raise ValueError("formal replicate ids run from 1 through 200")
+    validate_formal_span(start, stop)
+    require_clean_worktree()
+    if start > 100:
+        require_stage_extension(int(seed))
+    if start > 1:
+        _require_prefix(int(seed), start - 1)
     alignment, weights, total = potts_fit.load_official_alignment()
     pairing = verify_official_weight_rows()
     recorded = data_record()
     lock_formal_seed(int(seed), recorded)
-    if start > 1:
-        _require_prefix(int(seed), start - 1)
     replicate_ids = []
     for replicate_id in range(start, stop + 1):
         manifest = execute_replicate(
@@ -844,9 +925,9 @@ def run_formal(seed: int, start: int = 1, stop: int = 100, workers: int = WORKER
             flush=True,
         )
     decisions = {}
-    if stop >= 100 and _stage_complete(100, int(seed)):
+    if start <= 100 <= stop and _stage_complete(100, int(seed)):
         decisions["100"] = write_stage_decision(100, int(seed))
-    if stop >= 200 and _stage_complete(200, int(seed)):
+    if stop == 200 and _stage_complete(200, int(seed)):
         decisions["200"] = write_stage_decision(200, int(seed))
     return {
         "role": "formal",
