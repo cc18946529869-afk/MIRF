@@ -384,6 +384,140 @@ class IntegrityTests(unittest.TestCase):
             _write_stage_decision("extend", 9)
             bootstrap_fit.require_stage_extension(9)
 
+    def test_extension_requires_the_decision_to_match_the_lock(self):
+        with _temporary_output():
+            _write_stage_decision("extend", 9)
+            stage_path = bootstrap_fit.OUTPUT / "formal" / "stage_100.json"
+            lock_path = bootstrap_fit.OUTPUT / "formal" / "seed.json"
+            stage = json.loads(stage_path.read_text())
+            stage["code_revision"] = "other-commit"
+            stage_path.write_text(json.dumps(stage))
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_stage_extension(9)
+            stage["code_revision"] = "rev"
+            stage["alignment_sha256"] = "other-alignment"
+            stage_path.write_text(json.dumps(stage))
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_stage_extension(9)
+            lock_path.unlink()
+            stage["alignment_sha256"] = "a"
+            stage_path.write_text(json.dumps(stage))
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.require_stage_extension(9)
+            self.assertFalse(lock_path.exists())
+
+    def test_existing_replicates_without_a_lock_are_not_adopted(self):
+        with _temporary_output():
+            directory = bootstrap_fit._formal_directory(1)
+            directory.mkdir(parents=True)
+            (directory / "manifest.json").write_text("{}\n")
+            data = {"alignment_sha256": "a", "neighbor_counts_sha256": "b", "code_revision": "abc"}
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.lock_formal_seed(5, data)
+            self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "seed.json").exists())
+
+    def test_decide_checks_the_worktree_and_does_not_create_a_lock(self):
+        original = bootstrap_fit.require_clean_worktree
+        calls = []
+
+        def stop(lines=None):
+            calls.append(lines)
+            raise RuntimeError("dirty worktree")
+
+        bootstrap_fit.require_clean_worktree = stop
+        try:
+            with _temporary_output():
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.write_stage_decision(100, 3)
+                self.assertEqual(calls, [None])
+                self.assertFalse((bootstrap_fit.OUTPUT / "formal").exists())
+        finally:
+            bootstrap_fit.require_clean_worktree = original
+
+    def test_stage_file_records_the_locked_identity(self):
+        originals = (
+            bootstrap_fit.require_clean_worktree,
+            bootstrap_fit.build_reference,
+            bootstrap_fit.decide_formal_stage,
+        )
+        bootstrap_fit.require_clean_worktree = lambda lines=None: None
+        bootstrap_fit.build_reference = lambda: (_ for _ in ()).throw(AssertionError("reference"))
+        bootstrap_fit.decide_formal_stage = lambda *args: {"action": "extend", "stage": 100}
+        try:
+            with _temporary_output():
+                reference = bootstrap_fit.OUTPUT / "reference"
+                reference.mkdir()
+                (reference / "manifest.json").write_text("{}\n")
+                np.save(reference / "h_hat.npy", np.zeros(1))
+                np.save(reference / "j_star.npy", np.zeros(1))
+                data = bootstrap_fit.data_record()
+                bootstrap_fit.lock_formal_seed(3, data)
+                saved = bootstrap_fit.write_stage_decision(100, 3)
+                self.assertEqual(saved["action"], "extend")
+                self.assertEqual(saved["formal_seed"], 3)
+                self.assertEqual(saved["code_revision"], data["code_revision"])
+                self.assertEqual(saved["alignment_sha256"], data["alignment_sha256"])
+                self.assertEqual(saved["neighbor_counts_sha256"], data["neighbor_counts_sha256"])
+                on_disk = json.loads((bootstrap_fit.OUTPUT / "formal" / "stage_100.json").read_text())
+                self.assertEqual(on_disk, saved)
+        finally:
+            (
+                bootstrap_fit.require_clean_worktree,
+                bootstrap_fit.build_reference,
+                bootstrap_fit.decide_formal_stage,
+            ) = originals
+
+    def test_stage_decision_does_not_create_a_missing_lock(self):
+        original = bootstrap_fit.require_clean_worktree
+        bootstrap_fit.require_clean_worktree = lambda lines=None: None
+        try:
+            with _temporary_output():
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.write_stage_decision(100, 3)
+                self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "seed.json").exists())
+                self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "stage_100.json").exists())
+        finally:
+            bootstrap_fit.require_clean_worktree = original
+
+    def test_stage_decision_refuses_a_lock_from_another_revision(self):
+        original = bootstrap_fit.require_clean_worktree
+        bootstrap_fit.require_clean_worktree = lambda lines=None: None
+        try:
+            with _temporary_output():
+                data = bootstrap_fit.data_record()
+                lock_path = bootstrap_fit.OUTPUT / "formal" / "seed.json"
+                lock_path.parent.mkdir(parents=True)
+                bootstrap_fit.atomic_json(
+                    lock_path,
+                    {
+                        "formal_seed": 3,
+                        "alignment_sha256": data["alignment_sha256"],
+                        "neighbor_counts_sha256": data["neighbor_counts_sha256"],
+                        "code_revision": "not-this-commit",
+                    },
+                )
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.write_stage_decision(100, 3)
+                self.assertFalse((bootstrap_fit.OUTPUT / "formal" / "stage_100.json").exists())
+        finally:
+            bootstrap_fit.require_clean_worktree = original
+
+    def test_count_audit_reports_every_difference(self):
+        stored = np.array([2, 3, 4], dtype=np.int64)
+        recomputed = np.array([2, 1, 4], dtype=np.int64)
+        summary = bootstrap_fit.summarize_count_audit(stored, recomputed)
+        self.assertEqual(summary["rows"], 3)
+        self.assertEqual(summary["n_mismatch"], 1)
+        self.assertEqual(summary["max_abs_difference"], 2)
+        self.assertEqual(summary["mismatch_rows"], [1])
+        self.assertEqual(summary["stored_m_eff"], float(np.sum(np.float64(1.0) / stored)))
+        self.assertEqual(summary["recomputed_m_eff"], float(np.sum(np.float64(1.0) / recomputed)))
+        matched = bootstrap_fit.summarize_count_audit(stored, stored)
+        self.assertEqual(matched["n_mismatch"], 0)
+        self.assertEqual(matched["max_abs_difference"], 0)
+        with self.assertRaises(ValueError):
+            bootstrap_fit.summarize_count_audit(stored, stored[:2])
+
     def test_later_formal_ids_do_not_redraw_a_missing_prefix(self):
         with _temporary_output():
             with self.assertRaises(RuntimeError):
@@ -397,9 +531,26 @@ class IntegrityTests(unittest.TestCase):
             for replicate_id in range(1, 101):
                 _plant_formal(replicate_id, indices_seed, True, field, coupling)
             data = bootstrap_fit.data_record()
+            bootstrap_fit.atomic_json(
+                bootstrap_fit.OUTPUT / "formal" / "seed.json",
+                {
+                    "formal_seed": indices_seed,
+                    "alignment_sha256": data["alignment_sha256"],
+                    "neighbor_counts_sha256": data["neighbor_counts_sha256"],
+                    "code_revision": data["code_revision"],
+                },
+            )
             outcome = bootstrap_fit.decide_formal_stage(100, indices_seed, field, coupling, data)
             self.assertEqual(outcome["action"], "pass")
             self.assertEqual(outcome["success_count"], 100)
+            changed = bootstrap_fit._formal_directory(1) / "manifest.json"
+            changed_manifest = json.loads(changed.read_text())
+            changed_manifest["code_revision"] = "not-the-lock"
+            changed.write_text(json.dumps(changed_manifest))
+            with self.assertRaises(RuntimeError):
+                bootstrap_fit.load_formal_samples(100, indices_seed, data)
+            changed_manifest["code_revision"] = data["code_revision"]
+            changed.write_text(json.dumps(changed_manifest))
             directory = bootstrap_fit._formal_directory(2)
             np.save(directory / "h_hat.npy", np.zeros((2, 2, 1, 1)))
             broken = np.zeros((2, 2, 1, 1))
@@ -421,10 +572,16 @@ class IntegrityTests(unittest.TestCase):
 def _write_stage_decision(action: str, seed: int) -> None:
     directory = bootstrap_fit.OUTPUT / "formal"
     directory.mkdir(parents=True, exist_ok=True)
+    identity = {
+        "code_revision": "rev",
+        "alignment_sha256": "a",
+        "neighbor_counts_sha256": "b",
+    }
     bootstrap_fit.atomic_json(
         directory / "stage_100.json",
-        {"action": action, "formal_seed": seed, "stage": 100},
+        {"action": action, "formal_seed": seed, "stage": 100, **identity},
     )
+    bootstrap_fit.atomic_json(directory / "seed.json", {"formal_seed": seed, **identity})
 
 
 def _plant_formal(replicate_id: int, seed: int, success: bool, field: np.ndarray, coupling: np.ndarray) -> None:

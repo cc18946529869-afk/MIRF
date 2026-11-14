@@ -4,6 +4,7 @@ The formal seed has no default. A verification run is not a formal replicate.
 Sampling indices and the replicate identity are written before any site is fit.
 A site file is reused only when it belongs to that same sample. One failed site
 keeps the replicate out of the gauge parameters and out of the formal statistic.
+A stage decision is written only from a clean worktree and the existing formal lock.
 """
 
 from __future__ import annotations
@@ -739,8 +740,35 @@ def validate_formal_span(start: int, stop: int) -> None:
         )
 
 
+def _formal_replicate_directories() -> list[Path]:
+    root = OUTPUT / "formal"
+    if not root.is_dir():
+        return []
+    return sorted(path for path in root.glob("replicate_*") if path.is_dir())
+
+
+def read_formal_lock(seed: int, data: dict) -> dict:
+    """Return the existing formal lock. This never creates one."""
+    path = OUTPUT / "formal" / "seed.json"
+    if not path.is_file():
+        raise RuntimeError("formal/seed.json is missing")
+    saved = json.loads(path.read_text())
+    expected = {
+        "formal_seed": int(seed),
+        "alignment_sha256": data["alignment_sha256"],
+        "neighbor_counts_sha256": data["neighbor_counts_sha256"],
+        "code_revision": str(data["code_revision"]),
+    }
+    for key, value in expected.items():
+        if saved.get(key) != value:
+            raise RuntimeError(
+                "formal/seed.json does not match the current seed, data hashes, or code revision"
+            )
+    return saved
+
+
 def require_stage_extension(seed: int) -> None:
-    """Allow replicates 101–200 only after stage 100 decided to extend."""
+    """Allow replicates 101–200 only after stage 100 decided to extend, on this lock."""
     path = OUTPUT / "formal" / "stage_100.json"
     if not path.is_file():
         raise RuntimeError("replicates 101-200 require stage_100.json")
@@ -752,6 +780,15 @@ def require_stage_extension(seed: int) -> None:
         raise RuntimeError(
             f"stage_100.json action is {action}; only extend can start replicates 101-200"
         )
+    lock_path = OUTPUT / "formal" / "seed.json"
+    if not lock_path.is_file():
+        raise RuntimeError("formal/seed.json is missing")
+    lock = json.loads(lock_path.read_text())
+    if int(lock.get("formal_seed", -1)) != int(seed):
+        raise RuntimeError("formal/seed.json belongs to another formal seed")
+    for key in ("code_revision", "alignment_sha256", "neighbor_counts_sha256"):
+        if saved.get(key) != lock.get(key):
+            raise RuntimeError(f"stage_100.json {key} does not match the formal lock")
 
 
 def lock_formal_seed(seed: int, data: dict) -> None:
@@ -778,6 +815,8 @@ def lock_formal_seed(seed: int, data: dict) -> None:
                     "the formal run is already bound to another seed, alignment, or code revision"
                 )
         return
+    if _formal_replicate_directories():
+        raise RuntimeError("formal replicates exist without seed.json; refusing to create a new lock")
     atomic_json(path, payload)
 
 
@@ -812,6 +851,19 @@ def load_formal_samples(stage: int, seed: int, data: dict) -> tuple[list[bool], 
     """Load successful gauge parameters. A failed replicate cannot contribute arrays."""
     if stage not in bootstrap_stats.STAGE_MINIMUM:
         raise ValueError("the stage must be 100 or 200")
+    lock_path = OUTPUT / "formal" / "seed.json"
+    if not lock_path.is_file():
+        raise RuntimeError("formal/seed.json is missing")
+    lock = json.loads(lock_path.read_text())
+    if int(lock.get("formal_seed", -1)) != int(seed):
+        raise RuntimeError("formal/seed.json belongs to another formal seed")
+    if (
+        lock.get("alignment_sha256") != data["alignment_sha256"]
+        or lock.get("neighbor_counts_sha256") != data["neighbor_counts_sha256"]
+        or str(lock.get("code_revision")) != str(data["code_revision"])
+    ):
+        raise RuntimeError("formal/seed.json does not match the current seed, data hashes, or code revision")
+    expected_revision = str(lock["code_revision"])
     required = (
         "state",
         "role",
@@ -828,7 +880,6 @@ def load_formal_samples(stage: int, seed: int, data: dict) -> tuple[list[bool], 
     success: list[bool] = []
     fields: dict[int, np.ndarray] = {}
     couplings: dict[int, np.ndarray] = {}
-    revisions: list[str] = []
     for replicate_id in range(1, int(stage) + 1):
         directory = _formal_directory(replicate_id)
         manifest_path = directory / "manifest.json"
@@ -847,7 +898,8 @@ def load_formal_samples(stage: int, seed: int, data: dict) -> tuple[list[bool], 
         saved_indices = np.load(directory / "indices.npy")
         if indices_sha256(saved_indices) != saved["indices_sha256"]:
             raise RuntimeError(f"replicate {replicate_id} indices do not match its manifest")
-        revisions.append(str(saved["code_revision"]))
+        if str(saved["code_revision"]) != expected_revision:
+            raise RuntimeError(f"replicate {replicate_id} code revision does not match the formal lock")
         replicate_success = bool(saved["replicate_success"])
         if bool(saved["entered_formal_statistics"]) != replicate_success:
             raise RuntimeError(f"replicate {replicate_id} does not agree on whether it enters the statistic")
@@ -862,8 +914,6 @@ def load_formal_samples(stage: int, seed: int, data: dict) -> tuple[list[bool], 
         elif _gauge_names_present(directory):
             raise RuntimeError(f"replicate {replicate_id} failed but still has gauge parameters")
         success.append(replicate_success)
-    if len(set(revisions)) != 1:
-        raise RuntimeError("formal replicates do not share one code revision")
     return success, fields, couplings
 
 
@@ -874,6 +924,10 @@ def decide_formal_stage(stage: int, seed: int, field_reference: np.ndarray, coup
 
 
 def write_stage_decision(stage: int, seed: int) -> dict:
+    """Write one stage decision from the locked seed, data hashes, and commit."""
+    require_clean_worktree()
+    recorded = data_record()
+    lock = read_formal_lock(int(seed), recorded)
     reference = OUTPUT / "reference"
     if not (reference / "manifest.json").exists():
         build_reference()
@@ -882,11 +936,17 @@ def write_stage_decision(stage: int, seed: int) -> dict:
         int(seed),
         np.load(reference / "h_hat.npy"),
         np.load(reference / "j_star.npy"),
-        data_record(),
+        recorded,
     )
-    saved = {**outcome, "formal_seed": int(seed)}
+    saved = {
+        **outcome,
+        "formal_seed": int(seed),
+        "code_revision": lock["code_revision"],
+        "alignment_sha256": lock["alignment_sha256"],
+        "neighbor_counts_sha256": lock["neighbor_counts_sha256"],
+    }
     atomic_json(OUTPUT / "formal" / f"stage_{int(stage)}.json", saved)
-    return outcome
+    return saved
 
 
 def run_formal(seed: int, start: int = 1, stop: int = 100, workers: int = WORKERS) -> dict:
@@ -937,9 +997,83 @@ def run_formal(seed: int, start: int = 1, stop: int = 100, workers: int = WORKER
     }
 
 
+def summarize_count_audit(stored: np.ndarray, recomputed: np.ndarray) -> dict:
+    """Compare one stored neighbor count per row with an independent recount."""
+    stored_array = np.asarray(stored)
+    recomputed_array = np.asarray(recomputed)
+    if stored_array.ndim != 1 or stored_array.shape != recomputed_array.shape:
+        raise ValueError("stored and recomputed neighbor counts must have one entry per row")
+    stored_counts = stored_array.astype(np.int64, copy=False)
+    recomputed_counts = recomputed_array.astype(np.int64, copy=False)
+    if np.any(stored_counts < 1) or np.any(recomputed_counts < 1):
+        raise ValueError("a neighbor count is below one")
+    difference = np.abs(stored_counts - recomputed_counts)
+    mismatch = np.flatnonzero(stored_counts != recomputed_counts)
+    return {
+        "rows": int(stored_counts.shape[0]),
+        "n_mismatch": int(mismatch.size),
+        "max_abs_difference": int(difference.max()) if difference.size else 0,
+        "mismatch_rows": [int(row) for row in mismatch[:20]],
+        "stored_m_eff": float(np.sum(np.float64(1.0) / stored_counts.astype(np.float64))),
+        "recomputed_m_eff": float(np.sum(np.float64(1.0) / recomputed_counts.astype(np.float64))),
+    }
+
+
+def audit_official_neighbor_counts(destination: Path | None = None) -> dict:
+    """Recount every neighbor count once and compare it with the weight table.
+
+    Formal and verification runs do not call this. It is a one-time data audit.
+    """
+    import sys
+
+    require_clean_worktree()
+    destination = OUTPUT / "weight_audit" if destination is None else Path(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+    prep = str(PREP)
+    if prep not in sys.path:
+        sys.path.insert(0, prep)
+    import sequence_weights
+
+    alignment, _, _ = potts_fit.load_official_alignment()
+    table = np.loadtxt(PREP / "neighbor_counts.tsv", skiprows=1, usecols=(0, 1))
+    row_index = table[:, 0].astype(np.int64)
+    stored = np.ascontiguousarray(table[:, 1].astype(np.int64), dtype=np.int64)
+    require_msa_row_order(row_index, alignment.shape[0])
+    started = time.perf_counter()
+    recomputed = np.ascontiguousarray(
+        sequence_weights.neighbor_counts(alignment, block_rows=64),
+        dtype=np.int64,
+    )
+    elapsed = time.perf_counter() - started
+    summary = summarize_count_audit(stored, recomputed)
+    summary.update(
+        {
+            "elapsed_seconds": elapsed,
+            "block_rows": 64,
+            "threshold": NEIGHBOR_THRESHOLD,
+            "method": "sequence_weights.neighbor_counts",
+            "full_row_recount": True,
+            "matches_stored_counts": summary["n_mismatch"] == 0,
+            "official_m_eff": potts_fit.OFFICIAL_M_EFF,
+            "code_revision": code_revision(),
+            "alignment_sha256": file_sha256(PREP / "mature_codes.npy"),
+            "neighbor_counts_sha256": file_sha256(PREP / "neighbor_counts.tsv"),
+            "counter_sha256": file_sha256(PREP / "sequence_weights.py"),
+            "stored_counts_sha256": hashlib.sha256(stored.tobytes()).hexdigest(),
+            "recomputed_counts_sha256": hashlib.sha256(recomputed.tobytes()).hexdigest(),
+        }
+    )
+    atomic_npy(destination / "recomputed_counts.npy", recomputed)
+    atomic_json(destination / "summary.json", summary)
+    return summary
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("verification", "reference", "formal", "decide"))
+    parser.add_argument(
+        "command",
+        choices=("verification", "reference", "formal", "decide", "audit-weights"),
+    )
     parser.add_argument("--seed", type=int)
     parser.add_argument("--start", type=int, default=1)
     parser.add_argument("--stop", type=int, default=100)
@@ -963,6 +1097,16 @@ def main(argv: list[str] | None = None) -> None:
             parser.error("decide requires --seed and --stage")
         outcome = write_stage_decision(args.stage, args.seed)
         summary = {"role": "decide", "stage": args.stage, "action": outcome["action"]}
+    elif args.command == "audit-weights":
+        audited = audit_official_neighbor_counts()
+        summary = {
+            "role": "weight_audit",
+            "rows": audited["rows"],
+            "n_mismatch": audited["n_mismatch"],
+            "max_abs_difference": audited["max_abs_difference"],
+            "recomputed_m_eff": audited["recomputed_m_eff"],
+            "matches_stored_counts": audited["matches_stored_counts"],
+        }
     else:
         seed = VERIFICATION_SEED if args.seed is None else args.seed
         manifest = run_verification(seed)
