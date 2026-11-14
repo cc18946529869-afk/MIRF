@@ -619,15 +619,70 @@ def execute_replicate(
     return finalize_replicate(directory, sample, indices, rows, identity, extra)
 
 
+def _require_accepted_point_estimate(directory: Path) -> dict:
+    """Require the full-fit summary to be the accepted 263-site point estimate."""
+    path = directory / "summary.json"
+    if not path.is_file():
+        raise RuntimeError("the full fit is missing summary.json")
+    summary = json.loads(path.read_text())
+    if summary.get("accepted_point_estimate") is not True:
+        raise RuntimeError("the full fit is not an accepted point estimate")
+    if int(summary.get("site_count", -1)) != int(SITE_COUNT) or int(summary.get("n_passed", -1)) != int(SITE_COUNT):
+        raise RuntimeError("the full fit did not pass every site")
+    if summary.get("failed_sites") != []:
+        raise RuntimeError("the full fit still lists failed sites")
+    return summary
+
+
+def _source_sha256(directory: Path) -> dict[str, str]:
+    """Hash the accepted summary and every site parameter file."""
+    _require_accepted_point_estimate(directory)
+    hashes = {"summary.json": file_sha256(directory / "summary.json")}
+    for site in range(int(SITE_COUNT)):
+        name = f"site_{site:03d}.npz"
+        path = directory / name
+        if not path.is_file():
+            raise RuntimeError(f"the full fit is missing {name}")
+        hashes[name] = file_sha256(path)
+    return hashes
+
+
+def _gauge_sha256(directory: Path) -> dict[str, str]:
+    """Hash the four gauge arrays saved for the reference."""
+    hashes = {}
+    for name in ("fields.npy", "directional.npy", "h_hat.npy", "j_star.npy"):
+        path = directory / name
+        if not path.is_file():
+            raise RuntimeError(f"the reference is missing {name}")
+        hashes[name] = file_sha256(path)
+    return hashes
+
+
+def _require_sha256(saved: object, actual: dict[str, str], label: str) -> None:
+    if not isinstance(saved, dict) or set(saved) != set(actual):
+        raise RuntimeError(f"the reference {label} hash list does not match the files")
+    for name, digest in actual.items():
+        if saved.get(name) != digest:
+            raise RuntimeError(f"the reference {label} hash does not match {name}")
+
+
+def _require_finite_gauge(recovered: np.ndarray, averaged: np.ndarray) -> None:
+    if not np.all(np.isfinite(recovered)) or not np.all(np.isfinite(averaged)):
+        raise RuntimeError("the reference gauge parameters are not finite")
+
+
 def build_reference(destination: Path | None = None) -> dict:
     """Gauge the accepted full-fit parameters without refitting them."""
     destination = OUTPUT / "reference" if destination is None else destination
     destination.mkdir(parents=True, exist_ok=True)
+    summary = _require_accepted_point_estimate(FULL_FIT)
+    source_sha256 = _source_sha256(FULL_FIT)
     fields, directional = bootstrap_gauge.load_directional(FULL_FIT, SITE_COUNT)
     recovered, averaged = bootstrap_gauge.gauge_parameters(fields, directional)
     both_triangles = bool(np.array_equal(averaged, np.transpose(averaged, (1, 0, 3, 2))))
     if not both_triangles:
         raise RuntimeError("the reference J* does not keep both triangles")
+    _require_finite_gauge(recovered, averaged)
     atomic_npy(destination / "fields.npy", fields)
     atomic_npy(destination / "directional.npy", directional)
     atomic_npy(destination / "h_hat.npy", recovered)
@@ -638,6 +693,10 @@ def build_reference(destination: Path | None = None) -> dict:
         "refit": False,
         "sites": SITE_COUNT,
         "both_triangles": True,
+        "accepted_point_estimate": True,
+        "n_passed": int(summary["n_passed"]),
+        "source_sha256": source_sha256,
+        "gauge_sha256": _gauge_sha256(destination),
         **data_record(),
     }
     atomic_json(destination / "manifest.json", manifest)
@@ -645,10 +704,10 @@ def build_reference(destination: Path | None = None) -> dict:
 
 
 def require_reference(data: dict) -> tuple[np.ndarray, np.ndarray]:
-    """Load the full-fit gauge only when its manifest matches this data identity.
+    """Load the full-fit gauge only when its files still match the manifest.
 
     A missing reference is built from ``full_fit`` without refitting. A manifest
-    that names another alignment, weight file, or commit is left unchanged.
+    that names another alignment, commit, or parameter file is left unchanged.
     """
     reference = OUTPUT / "reference"
     manifest_path = reference / "manifest.json"
@@ -670,15 +729,17 @@ def require_reference(data: dict) -> tuple[np.ndarray, np.ndarray]:
         or manifest.get("weight_total") != data.get("weight_total")
     ):
         raise RuntimeError("the reference sample constants do not match the current data identity")
-    for name in ("fields.npy", "directional.npy", "h_hat.npy", "j_star.npy"):
-        if not (reference / name).is_file():
-            raise RuntimeError(f"the reference is missing {name}")
+    if not isinstance(manifest.get("source_sha256"), dict) or not isinstance(manifest.get("gauge_sha256"), dict):
+        raise RuntimeError("the reference manifest does not bind the full-fit and gauge file hashes")
+    _require_sha256(manifest["source_sha256"], _source_sha256(FULL_FIT), "source")
+    _require_sha256(manifest["gauge_sha256"], _gauge_sha256(reference), "gauge")
     recovered = np.load(reference / "h_hat.npy")
     averaged = np.load(reference / "j_star.npy")
     if recovered.shape != (SITE_COUNT, potts_fit.Q) or averaged.shape != (SITE_COUNT, SITE_COUNT, potts_fit.Q, potts_fit.Q):
         raise RuntimeError("the reference parameter shapes do not match the 263-site gauge")
     if not np.array_equal(averaged, np.transpose(averaged, (1, 0, 3, 2))):
         raise RuntimeError("the reference J* does not keep both triangles")
+    _require_finite_gauge(recovered, averaged)
     return recovered, averaged
 
 

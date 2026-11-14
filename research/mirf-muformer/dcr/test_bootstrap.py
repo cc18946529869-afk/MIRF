@@ -566,26 +566,145 @@ class IntegrityTests(unittest.TestCase):
             bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
             with self.assertRaises(RuntimeError):
                 bootstrap_fit.require_reference(data)
-            original = bootstrap_fit.SITE_COUNT
+
+    def test_reference_rejects_nonfinite_or_swapped_parameters(self):
+        with _temporary_output():
+            data = bootstrap_fit.data_record()
+            source = bootstrap_fit.OUTPUT / "full_fit_source"
+            source.mkdir()
+            summary = {
+                "accepted_point_estimate": True,
+                "site_count": 2,
+                "n_passed": 2,
+                "failed_sites": [],
+            }
+            (source / "summary.json").write_text(json.dumps(summary))
+            for site in range(2):
+                np.savez(source / f"site_{site:03d}.npz", h=np.zeros(21), couplings=np.zeros((21, 1, 21)))
+            reference = bootstrap_fit.OUTPUT / "reference"
+            reference.mkdir()
+            fields = np.zeros((2, 21))
+            directional = np.zeros((2, 2, 21, 21))
+            recovered = np.zeros((2, 21))
+            averaged = np.zeros((2, 2, 21, 21))
+            np.save(reference / "fields.npy", fields)
+            np.save(reference / "directional.npy", directional)
+            np.save(reference / "h_hat.npy", recovered)
+            np.save(reference / "j_star.npy", averaged)
+            original_sites = bootstrap_fit.SITE_COUNT
+            original_full_fit = bootstrap_fit.FULL_FIT
             bootstrap_fit.SITE_COUNT = 2
+            bootstrap_fit.FULL_FIT = source
             try:
-                manifest["sites"] = 2
+                manifest = {
+                    "role": "reference",
+                    "source": str(source),
+                    "refit": False,
+                    "sites": 2,
+                    "both_triangles": True,
+                    "source_sha256": bootstrap_fit._source_sha256(source),
+                    "gauge_sha256": bootstrap_fit._gauge_sha256(reference),
+                    **data,
+                }
                 bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
-                for name in ("fields.npy", "directional.npy", "h_hat.npy", "j_star.npy"):
-                    array = np.zeros((2, 21)) if name == "h_hat.npy" else np.zeros((2, 2, 21, 21))
-                    if name in ("fields.npy", "directional.npy"):
-                        array = np.zeros(1)
-                    np.save(reference / name, array)
-                recovered, averaged = bootstrap_fit.require_reference(data)
-                self.assertEqual(recovered.shape, (2, 21))
-                self.assertEqual(averaged.shape, (2, 2, 21, 21))
-                broken = np.zeros((2, 2, 21, 21))
-                broken[0, 1, 0, 0] = 1.0
-                np.save(reference / "j_star.npy", broken)
+                loaded_fields, loaded_couplings = bootstrap_fit.require_reference(data)
+                self.assertEqual(loaded_fields.shape, (2, 21))
+                self.assertEqual(loaded_couplings.shape, (2, 2, 21, 21))
+                self.assertTrue(np.all(np.isfinite(loaded_fields)))
+                swapped = recovered.copy()
+                swapped[0, 0] = 1.0
+                np.save(reference / "h_hat.npy", swapped)
                 with self.assertRaises(RuntimeError):
                     bootstrap_fit.require_reference(data)
+                saved = json.loads((reference / "manifest.json").read_text())
+                self.assertEqual(saved["gauge_sha256"]["h_hat.npy"], manifest["gauge_sha256"]["h_hat.npy"])
+                np.save(reference / "h_hat.npy", recovered)
+                nonfinite = recovered.copy()
+                nonfinite[0, 0] = np.nan
+                np.save(reference / "h_hat.npy", nonfinite)
+                manifest["gauge_sha256"]["h_hat.npy"] = bootstrap_fit.file_sha256(reference / "h_hat.npy")
+                bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.require_reference(data)
+                nonfinite[0, 0] = np.inf
+                np.save(reference / "h_hat.npy", nonfinite)
+                manifest["gauge_sha256"]["h_hat.npy"] = bootstrap_fit.file_sha256(reference / "h_hat.npy")
+                bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.require_reference(data)
+                np.save(reference / "h_hat.npy", recovered)
+                manifest["gauge_sha256"]["h_hat.npy"] = bootstrap_fit.file_sha256(reference / "h_hat.npy")
+                np.savez(source / "site_000.npz", h=np.ones(21), couplings=np.zeros((21, 1, 21)))
+                bootstrap_fit.atomic_json(reference / "manifest.json", manifest)
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit.require_reference(data)
+                self.assertEqual(
+                    json.loads((reference / "manifest.json").read_text())["source_sha256"]["site_000.npz"],
+                    manifest["source_sha256"]["site_000.npz"],
+                )
             finally:
-                bootstrap_fit.SITE_COUNT = original
+                bootstrap_fit.SITE_COUNT = original_sites
+                bootstrap_fit.FULL_FIT = original_full_fit
+
+    def test_reference_rejects_an_unaccepted_point_estimate(self):
+        with _temporary_output():
+            source = bootstrap_fit.OUTPUT / "full_fit_source"
+            source.mkdir()
+            (source / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "accepted_point_estimate": False,
+                        "site_count": 1,
+                        "n_passed": 0,
+                        "failed_sites": [0],
+                    }
+                )
+            )
+            original_sites = bootstrap_fit.SITE_COUNT
+            bootstrap_fit.SITE_COUNT = 1
+            try:
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit._require_accepted_point_estimate(source)
+                (source / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "accepted_point_estimate": True,
+                            "site_count": 1,
+                            "n_passed": 1,
+                            "failed_sites": [],
+                        }
+                    )
+                )
+                np.savez(source / "site_000.npz", h=np.zeros(21))
+                hashes = bootstrap_fit._source_sha256(source)
+                self.assertEqual(set(hashes), {"summary.json", "site_000.npz"})
+                (source / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "accepted_point_estimate": True,
+                            "site_count": 1,
+                            "n_passed": 0,
+                            "failed_sites": [],
+                        }
+                    )
+                )
+                with self.assertRaises(RuntimeError):
+                    bootstrap_fit._source_sha256(source)
+            finally:
+                bootstrap_fit.SITE_COUNT = original_sites
+
+    def test_official_full_fit_is_still_the_accepted_point_estimate(self):
+        summary = json.loads((bootstrap_fit.FULL_FIT / "summary.json").read_text())
+        self.assertIs(summary["accepted_point_estimate"], True)
+        self.assertEqual(summary["site_count"], 263)
+        self.assertEqual(summary["n_passed"], 263)
+        self.assertEqual(summary["failed_sites"], [])
+        missing = [
+            site
+            for site in range(263)
+            if not (bootstrap_fit.FULL_FIT / f"site_{site:03d}.npz").is_file()
+        ]
+        self.assertEqual(missing, [])
 
     def test_count_audit_reports_every_difference(self):
         stored = np.array([2, 3, 4], dtype=np.int64)
