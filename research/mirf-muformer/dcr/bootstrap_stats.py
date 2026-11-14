@@ -22,8 +22,10 @@ def sample_deviation(samples: np.ndarray) -> np.ndarray:
     """
     values = np.asarray(samples, dtype=np.float64)
     count = int(values.shape[0])
-    if count < 2:
+    if values.ndim < 1 or count < 2:
         raise ValueError("a sample deviation needs at least two replicates")
+    if not np.all(np.isfinite(values)):
+        raise ValueError("a sample deviation needs finite parameter values")
     centered = values - values.mean(axis=0)
     variance = np.sum(centered * centered, axis=0) / float(count - 1)
     return np.sqrt(variance)
@@ -31,10 +33,16 @@ def sample_deviation(samples: np.ndarray) -> np.ndarray:
 
 def relative_frobenius(samples: np.ndarray, reference: np.ndarray) -> float | None:
     """Return ``||s||_F / ||reference||_F``, or ``None`` when the reference vanishes."""
-    scale = float(np.linalg.norm(np.asarray(reference, dtype=np.float64)))
+    values = np.asarray(samples, dtype=np.float64)
+    scale_array = np.asarray(reference, dtype=np.float64)
+    if values.ndim < 1 or values.shape[1:] != scale_array.shape:
+        raise ValueError("bootstrap samples and the reference must share a parameter shape")
+    if not np.all(np.isfinite(values)) or not np.all(np.isfinite(scale_array)):
+        raise ValueError("bootstrap samples and the reference must be finite")
+    scale = float(np.linalg.norm(scale_array))
     if scale == 0.0:
         return None
-    deviation = sample_deviation(samples)
+    deviation = sample_deviation(values)
     return float(np.linalg.norm(deviation) / scale)
 
 
@@ -50,10 +58,24 @@ def relative_change(full: float | None, half: float | None) -> float | None:
 
 
 def _stack(success: list[bool], values: Mapping[int, np.ndarray], start: int, stop: int) -> np.ndarray:
-    chosen = [values[identifier] for identifier in range(start, stop + 1) if success[identifier - 1]]
+    chosen = []
+    shape = None
+    for identifier in range(start, stop + 1):
+        if not success[identifier - 1]:
+            continue
+        if identifier not in values:
+            raise ValueError(f"replicate {identifier} is marked successful but has no parameters")
+        array = np.asarray(values[identifier], dtype=np.float64)
+        if shape is None:
+            shape = array.shape
+        elif array.shape != shape:
+            raise ValueError("replicates in one statistic do not share a parameter shape")
+        if not np.all(np.isfinite(array)):
+            raise ValueError(f"replicate {identifier} contains a nonfinite parameter")
+        chosen.append(array)
     if len(chosen) < 2:
         raise ValueError(f"replicates {start}-{stop} do not contain two successes")
-    return np.stack([np.asarray(item, dtype=np.float64) for item in chosen], axis=0)
+    return np.stack(chosen, axis=0)
 
 
 def evaluate_stage(
