@@ -1,0 +1,113 @@
+{
+  "entity_length": 263,
+  "entity_equals_ca_sequence": true,
+  "entity_equals_mature_slice_check": null,
+  "ca_count": 263,
+  "mapped_count": 263,
+  "identity_counts": {
+    "1XPB": 263,
+    "1ZG4": 261,
+    "1BTL": 261
+  },
+  "mapped_counts": {
+    "1XPB": 263,
+    "1ZG4": 263,
+    "1BTL": 263
+  },
+  "mismatches": [
+    {
+      "structure": "1ZG4",
+      "search_position": 82,
+      "search_residue": "V",
+      "auth_seq_id": 84,
+      "pdb_residue": "I"
+    },
+    {
+      "structure": "1ZG4",
+      "search_position": 182,
+      "search_residue": "A",
+      "auth_seq_id": 184,
+      "pdb_residue": "V"
+    },
+    {
+      "structure": "1BTL",
+      "search_position": 82,
+      "search_residue": "V",
+      "auth_seq_id": 84,
+      "pdb_residue": "I"
+    },
+    {
+      "structure": "1BTL",
+      "search_position": 182,
+      "search_residue": "A",
+      "auth_seq_id": 184,
+      "pdb_residue": "V"
+    }
+  ],
+  "unmapped_search_positions": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "nonrigid_modes": {
+    "1XPB": 783,
+    "1ZG4": 783,
+    "1BTL": 783
+  },
+  "shared_positions": 263,
+  "sulfate": [
+    {
+      "auth_seq_id": 291,
+      "auth_asym_id": "A",
+      "distances": [
+        {
+          "search_position": 68,
+          "auth_seq_id": 70,
+          "distance_A": 5.853868891596395
+        },
+        {
+          "search_position": 128,
+          "auth_seq_id": 130,
+          "distance_A": 5.460550704828222
+        },
+        {
+          "search_position": 130,
+          "auth_seq_id": 132,
+          "distance_A": 9.394118745257588
+        },
+        {
+          "search_position": 164,
+          "auth_seq_id": 166,
+          "distance_A": 12.123547789323057
+        },
+        {
+          "search_position": 232,
+          "auth_seq_id": 234,
+          "distance_A": 7.685744921606493
+        }
+      ]
+    }
+  ],
+  "max_abs_asymmetry": 2.3404889997091076,
+  "median_abs_asymmetry": 0.15532807356732725
+}

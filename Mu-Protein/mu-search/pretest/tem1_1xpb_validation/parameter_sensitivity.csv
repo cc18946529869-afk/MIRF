@@ -1,0 +1,20 @@
+comparison,value
+"1XPB cutoff 13, all_nonrigid vs lowest_10, dci_functional_to_i",0.84337952
+"1XPB cutoff 13, all_nonrigid vs lowest_10, dfi",0.99140001
+"1XPB cutoff 13, all_nonrigid vs lowest_20, dci_functional_to_i",0.92708116
+"1XPB cutoff 13, all_nonrigid vs lowest_20, dfi",0.99780267
+"1XPB cutoff 13, all_nonrigid vs lowest_50, dci_functional_to_i",0.97098155
+"1XPB cutoff 13, all_nonrigid vs lowest_50, dfi",0.99655921
+"1XPB all_nonrigid, cutoff 13 vs 10.0, dci_functional_to_i",0.94893504
+"1XPB all_nonrigid, cutoff 13 vs 15.0, dci_functional_to_i",0.9671852
+"1XPB cutoff 13 all_nonrigid, functional_to_i vs i_to_functional",0.74480979
+"1XPB cutoff 13 all_nonrigid, corrected reverse vs previous column-mean ratio",0.7536189
+"1XPB cutoff 13 all_nonrigid, dfi vs contact_count_8A",-0.64540128
+"1XPB cutoff 13 all_nonrigid, dci_functional_to_i vs contact_count_8A",0.14545075
+"1XPB vs 1ZG4, shared search positions, dci_functional_to_i",0.99660209
+"1XPB vs 1ZG4, shared search positions, dfi",0.99937398
+"1XPB vs 1BTL, shared search positions, dci_functional_to_i",0.99114736
+"1XPB vs 1BTL, shared search positions, dfi",0.99802102
+"1XPB vs 1ZG4 C-alpha RMSD on shared search positions, angstrom",0.17581753
+"1XPB vs 1BTL C-alpha RMSD on shared search positions, angstrom",0.4781842
+"1ZG4 vs 1BTL C-alpha RMSD on shared search positions, angstrom",0.41777031
