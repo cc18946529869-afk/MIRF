@@ -1,0 +1,119 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+self.action_dims:  8
+self.action_dims:  20
+self.action_dims:  286
+self.action_dims:  20
+Action distribution: the multi discrete action space is used!
+self.action_dims:  8
+latent_dim_pi in policy:  16
+action_net output in policy:  8
+latent_dim_vf in value:  16
+Sequential(
+  (0): Linear(in_features=4, out_features=16, bias=True)
+  (1): Tanh()
+)
+Sequential(
+  (0): Linear(in_features=4, out_features=16, bias=True)
+  (1): Tanh()
+)
+policy_net size:
+216
+value_net size:
+97
+Action distribution: the multi discrete action space is used!
+self.action_dims:  20
+latent_dim_pi in policy:  16
+action_net output in policy:  20
+latent_dim_vf in value:  16
+Sequential(
+  (0): Linear(in_features=4, out_features=16, bias=True)
+  (1): Tanh()
+)
+Sequential(
+  (0): Linear(in_features=4, out_features=16, bias=True)
+  (1): Tanh()
+)
+policy_net size:
+420
+value_net size:
+97
+{
+  "checks": {
+    "amino_acid_empirical_frequency": {
+      "categories": 20,
+      "draws": 40000,
+      "max_abs_error": 0.0019161737650632907,
+      "passed": true,
+      "sample_devices": [
+        "cpu"
+      ]
+    },
+    "amino_acid_log_prob": {
+      "logged": -1.525718331336975,
+      "marginal_formula": -1.5257183757391222,
+      "passed": true
+    },
+    "amino_acid_policy_evaluate_actions": {
+      "action_device": "cpu",
+      "marginal_formula": -2.731618020896685,
+      "new_log_prob": -2.7316179275512695,
+      "observation_device": "cpu",
+      "old_log_prob": -2.7316179275512695,
+      "passed": true,
+      "ratio": 1.0
+    },
+    "gpu_device": {
+      "available": false,
+      "passed": null,
+      "reason": "torch.cuda.is_available() is false in this interpreter",
+      "status": "not_available"
+    },
+    "legacy_log_prob_is_not_the_sampler": {
+      "legacy_formula": -1.8223639271894374,
+      "log_prob_is_not_marginal": true,
+      "log_prob_matches_legacy": true,
+      "logged": -1.8223638534545898,
+      "passed": true,
+      "sample_max_abs_error_versus_legacy_formula": 0.05708181378841401,
+      "sample_max_abs_error_versus_marginal": 0.0019860330209136023
+    },
+    "site_empirical_frequency": {
+      "categories": 8,
+      "draws": 40000,
+      "max_abs_error": 0.0029756197690963687,
+      "passed": true,
+      "sample_devices": [
+        "cpu"
+      ]
+    },
+    "site_length_286_log_prob": {
+      "logged": -5.674168586730957,
+      "marginal_formula": -5.6741685128058466,
+      "passed": true
+    },
+    "site_log_prob": {
+      "logged": -0.9168543815612793,
+      "marginal_formula": -0.9168543631938333,
+      "passed": true
+    },
+    "site_policy_evaluate_actions": {
+      "action_device": "cpu",
+      "marginal_formula": -2.116589898556785,
+      "new_log_prob": -2.1165900230407715,
+      "observation_device": "cpu",
+      "old_log_prob": -2.1165900230407715,
+      "passed": true,
+      "ratio": 1.0
+    }
+  },
+  "distribution_class": "stable_baselines3.common.distributions.MultiCategoricalDistribution",
+  "gpu_check_status": "not_available",
+  "gym_stub": false,
+  "interpreter": "/tmp/musearch-ppo-isolated/bin/python",
+  "python": "3.9.23",
+  "reason": "CPU checks ran. No GPU is available in this interpreter, so the GPU device check did not run and is not a pass.",
+  "required_checks_passed": true,
+  "status": "incomplete"
+}

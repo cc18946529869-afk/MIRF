@@ -170,6 +170,8 @@ def main(args):
             musearch_args = argparse.Namespace(
                 score_threshold=-np.inf,
                 horizon=5,
+                mixture_mode=args.musearch_mixture,
+                exclude_measured=args.musearch_exclude_measured,
             )
             oracle_model = flexs.LandscapeAsModel(landscape)
             return baselines.explorers.MuSearch(
@@ -186,6 +188,8 @@ def main(args):
             musearch_args = argparse.Namespace(
                 score_threshold=-np.inf,
                 horizon=5,
+                mixture_mode=args.musearch_mixture,
+                exclude_measured=args.musearch_exclude_measured,
             )
             oracle_model = baselines.models.CNN(len(starting_sequence), alphabet=alphabet,
                          num_filters=32, hidden_size=100, loss='MSE')
@@ -334,5 +338,20 @@ if __name__ == '__main__':
     parser.add_argument('--sequences_batch_size', type=int, default=100)
     parser.add_argument('--model_queries_per_batch', type=int, default=5000)
     parser.add_argument('--run', type=str, default=0)
+    parser.add_argument(
+        '--musearch-mixture',
+        choices=('marginal', 'legacy'),
+        default='marginal',
+        help=(
+            'marginal uses log(0.75*pi + 0.25/K) at the PPO update. '
+            'legacy keeps log(0.50*pi + 0.50/sum(action_dims)). '
+            'Dirichlet sampling stays 0.75*pi + 0.25*Dir(0.03) in both.'
+        ),
+    )
+    parser.add_argument(
+        '--musearch-exclude-measured',
+        action='store_true',
+        help='Drop landscape-measured sequences before top-k. Default leaves that pool unchanged.',
+    )
     args = parser.parse_args()
     main(args)

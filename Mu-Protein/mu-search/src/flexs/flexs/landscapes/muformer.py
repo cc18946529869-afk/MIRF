@@ -27,33 +27,128 @@ import flexs
 
 
 def load_ckpt(args):
-    tokendict_path = os.path.join(Path(__file__).parent, "src/protein/")
-    arg_overrides = { 
-        'data': tokendict_path
-    }
-    _models, _, task = checkpoint_utils.load_model_ensemble_and_task(args.pretrained_model.split(os.pathsep), 
-                                                                arg_overrides=arg_overrides)
-    encoder = _models[0]
-    encoder_dim = encoder.args.encoder_embed_dim
+    from flexs.musearch_baseline import inspect_torch_checkpoint, refuse_unsafe_checkpoints
+
+    # The original files stay closed to torch.load. refuse_unsafe_checkpoints still
+    # raises when the converted safetensors are not available.
+    converted = os.environ.get("MUSEARCH_CONVERTED_WEIGHTS")
+    ur50_path = os.path.join(converted, "ur50.safetensors") if converted else ""
+    finetuned_path = os.path.join(converted, "muformer.safetensors") if converted else ""
+    reports = [
+        inspect_torch_checkpoint(args.pretrained_model),
+        inspect_torch_checkpoint(args.muformer_model),
+    ]
+    converted_ready = bool(converted) and os.path.isfile(ur50_path) and os.path.isfile(finetuned_path)
+    if (not converted_ready) or any(not report.get("contains_pickle") for report in reports):
+        refuse_unsafe_checkpoints(args.pretrained_model, args.muformer_model)
+    return _load_converted_models(args, ur50_path, finetuned_path)
+
+
+def _load_converted_models(args, ur50_path, finetuned_path):
+    """Build PMLM and MuFormer from safetensors. Does not call torch.load."""
+    from fairseq.data import Dictionary
+    from safetensors.torch import load_file
+
+    protein_root = os.path.join(Path(__file__).parent, "src")
+    if protein_root not in sys.path:
+        sys.path.insert(0, protein_root)
+    # Importing the landscape package already registers the nested copy of this
+    # architecture. The weight-matched PMLM lives in landscapes/src/protein, so
+    # that second registration has to keep the class without replacing the first.
+    import fairseq.criterions as fairseq_criterions
+    import fairseq.models as fairseq_models
+    import fairseq.tasks as fairseq_tasks
+
+    registrations = (
+        (fairseq_criterions, "register_criterion"),
+        (fairseq_models, "register_model"),
+        (fairseq_models, "register_model_architecture"),
+        (fairseq_tasks, "register_task"),
+    )
+    saved_registrations = [
+        (module, name, getattr(module, name)) for module, name in registrations
+    ]
+
+    def _keep_existing(register):
+        def wrapper(*args, **kwargs):
+            decorator = register(*args, **kwargs)
+
+            def safe(obj):
+                try:
+                    return decorator(obj)
+                except ValueError as error:
+                    if "duplicate" not in str(error):
+                        raise
+                    return obj
+
+            return safe
+
+        return wrapper
+
+    for module, name, function in saved_registrations:
+        setattr(module, name, _keep_existing(function))
+    try:
+        from protein.models.pmlm import ProtPairwiseModel, prot_pair_1b_architecture
+    finally:
+        for module, name, function in saved_registrations:
+            setattr(module, name, function)
+
+    dictionary = Dictionary.load(os.path.join(Path(__file__).parent, "src/protein/dict.txt"))
+    dictionary.add_symbol("<mask>")
+    model_args = argparse.Namespace(
+        arch="prot_pmlm_1b",
+        pretrained_file=None,
+        tokens_per_sample=512,
+        max_positions=512,
+        dropout=0.1,
+        attention_dropout=0.1,
+        act_dropout=0.0,
+        encoder_embed_dim=1280,
+        encoder_layers=34,
+        encoder_attention_heads=20,
+        encoder_ffn_embed_dim=5120,
+        share_encoder_input_output_embed=False,
+        encoder_learned_pos=False,
+        no_token_positional_embeddings=False,
+        num_segment=2,
+        sentence_class_num=2,
+        sent_loss=False,
+        apply_bert_init=False,
+        activation_fn="relu",
+        pooler_activation_fn="tanh",
+        encoder_normalize_before=False,
+    )
+    prot_pair_1b_architecture(model_args)
+
+    class _DictionaryTask:
+        def __init__(self, dictionary):
+            self.dictionary = dictionary
+
+        @property
+        def source_dictionary(self):
+            return self.dictionary
+
+    task = _DictionaryTask(dictionary)
+    encoder = ProtPairwiseModel.build_model(model_args, task)
+    encoder_state = load_file(ur50_path)
+    encoder.load_state_dict(encoder_state, strict=True)
     num_heads = encoder.args.encoder_attention_heads
-
-    lm_encoder = FairseqLMEncoder(task)
-
-    model = Muformer(encoder=encoder, encoder_dim=encoder_dim, hidden_size=args.hidden_size, num_heads=num_heads, dropout=args.dropout,
-            decoder_name=args.decoder_name, freeze_lm=False, 
-            joint_mode_enabled=args.joint_mode_enabled, joint_method=args.joint_method).to(args.device)
-    
-    # Zero-shot: comment out the following line
-    # SECURITY: torch.load disabled to comply with the twin flames security incident (see microsoft/Mu-Protein#39).
-    # Uncomment the line below only after confirming the checkpoint source is trusted.
-    # pt = torch.load(args.muformer_model)
-    print('[ WARNING ] torch.load is disabled due to the twin flames security incident; uncomment it in this file to restore loading behavior.')
-    model_dict = model.state_dict()
-    model_pretrained_dict = {k: v for k, v in pt['model_state_dict'].items() if k in model_dict}
-    model_dict.update(model_pretrained_dict)
-    model.load_state_dict(model_dict)
-
-    return model, lm_encoder
+    model = Muformer(
+        encoder=encoder,
+        vocab_size=len(dictionary),
+        encoder_dim=encoder.args.encoder_embed_dim,
+        hidden_size=args.hidden_size,
+        num_heads=num_heads,
+        dropout=args.dropout,
+        decoder_name=args.decoder_name,
+        freeze_lm=False,
+        joint_mode_enabled=args.joint_mode_enabled,
+        joint_method=args.joint_method,
+    )
+    finetuned_state = load_file(finetuned_path)
+    model.load_state_dict(finetuned_state, strict=True)
+    model.eval()
+    return model, FairseqLMEncoder(task)
 
 
 class MuformerLandscapeList():
@@ -173,6 +268,8 @@ class MuformerLandscape(flexs.Landscape):
         self.muformer.eval()
 
         self.starting_sequence = starting_sequence
+        self.query_trace = []
+        self._query_trace_t0 = None
 
         # for normalize
         print(f"Landscape initialization: Loading Muformer model from {args.muformer_model}")
@@ -230,6 +327,11 @@ class MuformerLandscape(flexs.Landscape):
             scores.append(score)
             embeddings.append(embedding)
         self.cost += len(sequences)
+        recorded = getattr(self, "_budget_sequences", None)
+        if recorded is None:
+            recorded = []
+            self._budget_sequences = recorded
+        recorded.extend(str(sequence) for sequence in sequences)
         return scores
 
 
@@ -249,6 +351,10 @@ class MuformerLandscape(flexs.Landscape):
                 score = (score - self.WT_fitness) / (self.ESBL_fitness_median - self.WT_fitness)
             embedding = embedding.cpu().numpy()
             assert len(embedding.shape) == 1
+            from flexs.musearch_baseline import append_query_trace, note_forward
+
+            note_forward(self, [sequence])
+            append_query_trace(self, sequence, float(score))
             return score, embedding
     
     def gradient_function(self, sequences):
@@ -257,6 +363,9 @@ class MuformerLandscape(flexs.Landscape):
         glob_feat1 = feat1['glob_feat'].to(self.device)
         glob_mask1 = feat1['glob_mask'].to(self.device)
         score, embedding = self.muformer(x1=glob_feat1, x2=None, x1_mask=glob_mask1, include_embedding=True)
+        from flexs.musearch_baseline import note_forward
+
+        note_forward(self, sequences, kind="gradient")
         score = score.view(-1).cpu().numpy()
 
 

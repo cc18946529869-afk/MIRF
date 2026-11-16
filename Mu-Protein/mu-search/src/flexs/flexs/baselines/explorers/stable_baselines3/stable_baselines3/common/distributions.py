@@ -10,6 +10,11 @@ from gym import spaces
 from torch import nn
 from torch.distributions import Bernoulli, Categorical, Normal
 
+from stable_baselines3.common.mixture import (
+    LEGACY_LOG_PROB_WEIGHT,
+    POLICY_MIX_WEIGHT,
+    dirichlet_mixture_probabilities,
+)
 from stable_baselines3.common.preprocessing import get_action_dim
 
 
@@ -305,9 +310,12 @@ class MultiCategoricalDistribution(Distribution):
     :param action_dims: List of sizes of discrete action spaces
     """
 
-    def __init__(self, action_dims: List[int]):
+    def __init__(self, action_dims: List[int], mixture_mode: str = "marginal"):
         super().__init__()
         self.action_dims = action_dims
+        if mixture_mode not in ("marginal", "legacy"):
+            raise ValueError("mixture_mode must be 'marginal' or 'legacy'")
+        self.mixture_mode = mixture_mode
         print("self.action_dims: ", sum(self.action_dims))
 
     def proba_distribution_net(self, latent_dim: int) -> nn.Module:
@@ -332,15 +340,20 @@ class MultiCategoricalDistribution(Distribution):
         # Extract each discrete action and compute log prob for their respective distributions
         # https://discuss.pytorch.org/t/categorical-distribution-returning-breaking/165343/4
         if add_dirichlet_noise:
-            alpha = 0.50
+            if self.mixture_mode == "marginal":
+                weight = POLICY_MIX_WEIGHT
+            elif self.mixture_mode == "legacy":
+                weight = LEGACY_LOG_PROB_WEIGHT
+            else:
+                raise ValueError("mixture_mode must be 'marginal' or 'legacy'")
             logps = []
-            for i, (dist, action) in enumerate(zip(self.distribution, th.unbind(actions, dim=1))):
-                # print("dist.probs: ", dist.probs.shape)  # (k, 20)
-                # print("action: ", action)
-                # print("action: ", action.shape)  # (k,)
-                # print(action.dtype)
-                original_probs = th.gather(dist.probs, 1, action.unsqueeze(1)).flatten()  # (k)
-                logp = th.log(original_probs * alpha + (1-alpha) / sum(self.action_dims))
+            for dist, action in zip(self.distribution, th.unbind(actions, dim=1)):
+                original_probs = th.gather(dist.probs, 1, action.unsqueeze(1)).flatten()
+                if self.mixture_mode == "marginal":
+                    denominator = dist.probs.shape[-1]
+                else:
+                    denominator = sum(self.action_dims)
+                logp = th.log(original_probs * weight + (1.0 - weight) / denominator)
                 logps.append(logp)
             return th.stack(logps, dim=1).sum(dim=1)
         else:
@@ -367,17 +380,13 @@ class MultiCategoricalDistribution(Distribution):
         if add_dirichlet_noise:
             assert len(self.distribution) == 1
             def dirichlet_sample(dist):
-                probs = dist.probs.cpu().detach().numpy() # shape: (k, 20)
-                # example: probs = np.array([[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]])
-                alpha = 0.75
-                result = []
+                probs = dist.probs.detach().cpu().numpy()
                 assert len(probs) == 1
-                for i in range(len(probs)):
-                    new_prob = alpha * probs[i,:] + (1-alpha) * np.random.dirichlet(0.03 * np.ones(probs.shape[1]))  # shape: (20,)
-                    new_prob = new_prob / np.sum(new_prob)
-                    result.append(np.random.choice(probs.shape[1], p=new_prob))
-                result = th.tensor(result).cuda()
-                return result
+                chosen = []
+                for row in probs:
+                    mixed = dirichlet_mixture_probabilities(row)
+                    chosen.append(int(np.random.choice(row.shape[0], p=mixed)))
+                return th.tensor(chosen, dtype=th.long, device=dist.probs.device)
             return th.stack([dirichlet_sample(dist) for dist in self.distribution], dim=1)
         else:
             return th.stack([dist.sample() for dist in self.distribution], dim=1)

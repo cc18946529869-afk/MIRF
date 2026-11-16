@@ -1,0 +1,174 @@
+源码审查包
+2026-11-16
+
+这份包从工作区
+/data/cc233_data/work_dir/MIRF-musearch-pretest
+原样复制。分支 musearch-pretest，HEAD c0f950ba1627c1a6cb42f80842f91158545e612b。
+实验代码没有为了打包而改动。H=7、H=10 和缓存 AdaLead 没有启动。
+没有 8GB checkpoint，没有六次运行的 queries.csv，没有依赖和环境。
+
+树在 tree/，路径相对 Mu-Protein/mu-search/。
+Git 状态和已跟踪文件的 diff 在 git/。
+这次重新跑出的测试和 CPU 预算核对在 logs/。
+
+没有单独的 AdaLead 缓存配置文件。缓存开关是 run_one.py 的 --score-cache。
+horizon_ablation.json 里的 adalead_cache 只是计划说明。
+tem1_screen.json 是已经完成的 H=5 筛选配置。
+
+停止门没有源码。下面只列出现有 PPO、对数概率和 GAE 的位置，供对照数学设计。
+
+四个审查入口
+
+1. Horizon 的梯度步数是否随深度增加
+
+tree/src/flexs/flexs/baselines/explorers/dirichlet_ppo.py
+  37-42  floor_rollout_schedule 决定轨迹数、n_steps、total_timesteps
+  57     n_steps = horizon * episodes_per_update
+  68     PPO 的 batch_size 写死为 512，n_epochs 没有传入，用 PPO 默认 10
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/ppo/ppo.py
+  82     n_epochs 默认 10
+  147-157  buffer 不能被 512 整除时，最后一个 minibatch 更短
+  210-218  每个 epoch 遍历 rollout_buffer.get(batch_size)
+  379     位点策略 optimizer.step
+  382     氨基酸策略 optimizer.step
+  387     _n_updates 只加 n_epochs，不是 minibatch 次数
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/buffers.py
+  457-473  RolloutBuffer.get 按 batch_size 切，余数单独成批
+  622     蛋白质缓冲区沿用这个 get，只是样本多了第二套动作
+
+logs/horizon_schedule.txt
+  H=7 的警告：22 个整批之后有一个 398 的短批，合计每个 epoch 23 个 minibatch
+  H=10 的警告：32 个整批之后有一个 276 的短批，合计每个 epoch 33 个 minibatch
+  这次核对用长度 8 的假评分器，不加载 MuFormer
+
+2. AdaLead 缓存是否只让 cache miss 消耗 oracle
+
+tree/src/flexs/flexs/musearch_baseline.py
+  228-237  note_cache_hit：命中不是前向
+  306-309  record_cache_hit 加在 cache_hits，不进 events
+  412-442  CandidateQueryCap：只有真正调用它的序列才计入 4998
+  471-560  ExactScoreCache
+  510-516  第一次 get_fitness 时吸收评分器上已有的 query_trace
+  522-555  未命中才调用内层；cost 委托给内层，所以 AdaLead 看到的花费是未命中数
+  每个 ExactScoreCache 自己持有 _scores，构造时是空字典，不读写磁盘
+
+tree/pretest/run_one.py
+  118-126  每次进程新建 Landscape、Cap，只有 --score-cache 才包一层缓存
+  207-213  拒绝写入已经完成的 musearch_gt 和 adalead_gt 目录
+
+tree/src/flexs/flexs/baselines/explorers/adalead.py
+  97-184  propose_sequences。突变、重组和接受条件没有为缓存改写
+  114-118  停止条件用 model.cost
+  128-166  clip_to_remaining 按这个 cost 截断批次
+
+tree/src/flexs/flexs/utils/sequence_utils.py
+  110     generate_random_mutant，AdaLead 生成子代的函数
+
+tree/src/flexs/flexs/explorer.py
+  131-184  run：先把 model.cost 置 0，再做回合 0 测量，然后才 propose
+  回合 0 测量走 landscape，不走缓存；propose 时 query_trace 里已经有野生型
+
+tree/src/flexs/flexs/landscapes/muformer.py
+  244     搜索用的类是 MuformerLandscape，不是上面的 MuformerLandscapeList
+  322     get_fitness
+  338-357  predict：note_forward 和 append_query_trace 只在真正算分时调用
+  文件后部有注释掉的旧脚本，审查时不要把注释当成运行路径
+
+tree/tests/test_musearch_baseline.py
+  test_exact_cache_does_not_rescore_a_known_sequence
+tree/pretest/test_adalead_budget.py
+  propose_cached：预算 25 时内层 cost 是 25，请求多于 25，预载野生型不进入内层
+logs/test_musearch_baseline.txt
+logs/test_adalead_budget.txt
+
+3. 环境、重复位点和 GAE
+
+tree/src/flexs/flexs/baselines/explorers/environments/env.py
+  40-60  step：无条件写入 action 指定的位点，cur_mutations 加 1
+         没有“同一位点不能再选”的判断
+         只有 cur_mutations == horizon 时调用 get_fitness
+         否则奖励是 0
+  重复写同一位点或写回原氨基酸时，终点汉明距离可以小于 horizon
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/on_policy_algorithm.py
+  163     collect_rollouts
+  214-222  先采位点，再把位点拼进观测，采氨基酸
+  244     每个 env.step 把 num_timesteps 加 1
+  294     调用蛋白质缓冲区的 compute_returns_and_advantage
+  307     learn
+  343-346  num_timesteps + n_steps > total_timesteps 时不再开下一批
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/buffers.py
+  379     普通缓冲区的 GAE
+  487     RolloutBufferForProtein
+  570-620  两套价值各自做 GAE，奖励用同一条 rewards
+         delta = r + gamma * V(next) * (1-done) - V
+         advantage = delta + gamma * lambda * (1-done) * next_advantage
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/distributions.py
+  301     MultiCategoricalDistribution
+  339     log_prob：marginal 时是 log(0.75 * pi(a) + 0.25 / K)
+  379     sample：走 dirichlet_mixture_probabilities
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/mixture.py
+  混合概率的定义
+
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/policies.py
+  436-442  默认 net_arch 是 pi 和 vf 各 [256, 256, 256]
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/torch_layers.py
+  网络层
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/ppo/policies.py
+  MlpPolicy = ActorCriticPolicy
+tree/src/flexs/flexs/baselines/explorers/stable_baselines3/stable_baselines3/common/base_class.py
+  for_protein 时建立第二套策略
+
+4. 停止门
+
+没有对应的类或函数。现有对数概率、条件动作和 GAE 就是上面第 3 节的文件。
+不要在这个包里找 STOP 的训练实现。
+
+预算、AUC、Top 1%
+
+tree/src/flexs/flexs/musearch_baseline.py
+  454     floor_rollout_schedule
+  634     query_trace_rows：候选序号和 best-so-far
+  722     finish_score_budget 写 budget.json
+tree/pretest/plot_screen.py
+  17     curve_from_wild_type：野生型在 q=0
+  29     unique_first_scores
+  92-96  Search AUC 和 Top 1%
+tree/pretest/analyze_pool.py
+  六次全池统计，只读 CSV
+tree/pretest/analyze_screen.py
+  早先的汇总
+tree/pretest/check_one.py
+  读已完成目录，不改文件
+
+这次日志
+
+logs/horizon_schedule.txt
+  计数评分器重新执行 learn 循环。H=7 和 H=10 都是 3 批、4998 次终点评分。
+  不是 TEM-1，也不是授权的那九次搜索。
+logs/test_musearch_baseline.txt
+  含缓存和 H=5/7/10 的 floor schedule 测试，退出码 0。
+logs/test_adalead_budget.txt
+  未缓存最后一批仍是 [20, 5] 和 [10]；缓存测试退出码 0。
+logs/test_plot_queries.txt
+  plot_queries_ok
+logs/test_musearch_distribution_cpu.txt
+  这次把 CUDA_VISIBLE_DEVICES 设空。required_checks_passed 为 true。
+  status 是 incomplete，因为 GPU 设备检查没有跑，退出码 3。
+  这不是概率公式失败。
+logs/check_existing_h5.txt
+  已完成的 H=5 μSearch 种子 0 和 AdaLead 种子 0 仍是 CHECK_OK。
+logs/plan_horizon_no_launch.txt
+  只打印九条命令。
+logs/plan_horizon_launch_refused.txt
+  --launch 退出码 2，没有启动。
+
+git/diff-tracked.patch 包含已跟踪文件相对 HEAD 的差异。
+其中 ggs.py 只有预算用途标签，这份包没有收进 ggs.py 全文，因为本轮不跑 GWG。
+pretest/、musearch_baseline.py、mixture.py 和两个测试是未跟踪文件，全文在 tree/。
+git/untracked.txt 还列出了六次运行产物；那些 CSV 和 budget 没有放进 tree/。

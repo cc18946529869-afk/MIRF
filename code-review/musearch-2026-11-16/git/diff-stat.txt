@@ -1,0 +1,11 @@
+ Mu-Protein/mu-search/examples/baseline.py          |  19 +++
+ .../src/flexs/flexs/baselines/explorers/adalead.py |  38 +++--
+ .../flexs/baselines/explorers/dirichlet_ppo.py     |  50 +++++--
+ .../src/flexs/flexs/baselines/explorers/ggs.py     |  11 +-
+ .../stable_baselines3/common/distributions.py      |  47 +++---
+ .../src/flexs/flexs/baselines/models/cnn.py        |   3 +
+ .../flexs/baselines/models/noisy_abstract_model.py |   4 +
+ Mu-Protein/mu-search/src/flexs/flexs/explorer.py   |  28 +++-
+ Mu-Protein/mu-search/src/flexs/flexs/landscape.py  |   6 +-
+ .../src/flexs/flexs/landscapes/muformer.py         | 161 +++++++++++++++++----
+ 10 files changed, 296 insertions(+), 71 deletions(-)

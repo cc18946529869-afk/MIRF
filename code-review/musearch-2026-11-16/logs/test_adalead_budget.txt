@@ -1,0 +1,10 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-11-16 14:00:10 | INFO | fairseq.tasks.text_to_speech | Please install tensorboardX: pip install tensorboardX
+/data/cc233_data/work_dir/MIRF-musearch-pretest/Mu-Protein/mu-search/src/flexs/flexs/explorer.py:83: UserWarning: `model_queries_per_batch` should be >= `sequences_batch_size`
+  warnings.warn(
+limit 25 batches [20, 5] cost 25
+limit 10 batches [10] cost 10
+cached limit 25 batches [20, 5] cost 25 requests 45 hits 20
+adalead_budget_ok

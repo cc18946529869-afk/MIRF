@@ -1,0 +1,112 @@
+{
+  "name": "tem1_muformer_screen",
+  "launch_allowed": false,
+  "scheme": 1,
+  "question": "在相同的 4998 次 MuFormer 候选评分下，marginal μSearch 是否比 AdaLead 找到更高的分数，优势出现在搜索前期还是后期。这是预测景观上的优化，不是湿实验功能。",
+  "excluded": {
+    "gwg": "本轮不跑。现有实现不能在 5000 次 MuFormer 候选评分处停下，也不返回梯度差分。算法文件不改，留到下一阶段。",
+    "cnn_inner_model": "不采用。那比较的是 CNN 代理搜索，不是 MuFormer oracle 搜索。"
+  },
+  "landscape": {
+    "protein": "TEM-1",
+    "start": "wild_type",
+    "checkpoint_env": "MUSEARCH_CONVERTED_WEIGHTS",
+    "converted_weights": "/data/cc233_data/tmp/musearch-convert/out",
+    "score": "MuformerLandscape.get_fitness，normalize=false，分数越大越好",
+    "device_note": "模型代码写的是 cuda:0。启动命令设置 CUDA_VISIBLE_DEVICES=1，因此 cuda:0 是物理 GPU 1。不要改成 cuda:1，也不要使用 GPU 0。",
+    "construction_queries_per_process": {
+      "wild_type": 1,
+      "esbl_table": 104,
+      "baseline_py_probe": 0,
+      "note": "每个进程自己构造景观，都会再评野生型 1 次和 ESBL 104 次。六次运行合计 630 次，记在 initialization，不计入 5000，也不共享分数缓存。baseline.py 的额外探针本驱动不调用。normalize=false 时搜索不读取 ESBL 中位数。"
+    }
+  },
+  "budget": {
+    "candidate_queries_per_run": 4998,
+    "meaning": "一次搜索里进入该方法候选决策的 MuFormer predict 次数。用途标签是 reward。初始化、回合 0 测量和返回重评分不在这 4998 里。重复评分仍然计数。",
+    "rounds": 1,
+    "model_queries_per_batch": 4998,
+    "sequences_batch_size": 100,
+    "seeds": [0, 1, 2],
+    "methods": ["musearch_gt", "adalead_gt"],
+    "planned_runs": 6,
+    "nominal_candidate_total": 29988,
+    "outside_candidate_budget_per_run": {
+      "initialization": 105,
+      "search_measurement": 1,
+      "return_rescore_at_most": 100
+    },
+    "not_a_significance_claim": "3 组配对种子只做筛选。正式验证至少 10 组配对种子。",
+    "same_seed_is_not_the_same_stream": "同一编号会分别设给 Python random、NumPy、PyTorch 和 TensorFlow，并在解释器启动前设 PYTHONHASHSEED。两个算法随后取随机数的次数和顺序不同，随机数流并不相同。",
+    "parameters_are_existing_defaults": {
+      "musearch": {
+        "mixture_mode": "marginal",
+        "exclude_measured": false,
+        "horizon": 5,
+        "score_threshold": "-inf",
+        "requested_update_frequency": 3,
+        "ppo_batch_size": 512,
+        "actual_schedule": {
+          "reason": "保留原来的三次 PPO 更新。4998 // 3 = 1666，n_steps = 5 × 1666 = 8330，total_timesteps = 4998 × 5 = 24990。三次 rollout 正好用完，终点评分是 4998。不再把更新改成 4 次来凑 5000。",
+          "episodes_per_update": 1666,
+          "updates": 3,
+          "n_steps": 8330,
+          "total_timesteps": 24990,
+          "terminal_scores": 4998,
+          "unchanged": "采样分布、clipping、horizon、marginal 混合、update_frequency=3 和 learn 循环都不改。",
+          "rejected_alternative": "1250 条轨迹 × 4 次更新能得到 5000 次评分，但 PPO 更新次数从 3 变成 4，会改变策略学习过程。本轮不采用。",
+          "executed_check": "真实 learn 循环和 LandscapeEnv 已在 CPU 上用计数评分器执行过 n_steps=8330、total_timesteps=25000：num_timesteps=24990，终点评分 4998，rollout 3 次。total_timesteps 改为 24990 后，第三批 16660+8330 仍然不大于 24990，三次 rollout 都保留。"
+        },
+        "ppo_batch_note": "PPO batch_size 保持 512。8330 不能被 512 整除，日志里会有截断 minibatch 的警告。它不改变终点评分次数，也不改变三次更新。"
+      },
+      "adalead": {
+        "mu": 1,
+        "recomb_rate": 0,
+        "threshold": 0.05,
+        "rho": 0,
+        "eval_batch_size": 20,
+        "last_batch": "最后一批可以少于 20 条，只评剩余名额。",
+        "parent_rescore": "现有实现把已测量序列 resize 到 sequences_batch_size=100。回合 0 只有野生型，父本池是这条序列重复 100 次。它先评 20 条父本，再从这 20 条做 rollout；子代不低于根才继续，否则再评下一批父本。野生型重复评分的次数因此不固定，但每一次都计入 4998。本轮不改这个用法。"
+      }
+    }
+  },
+  "metrics": [
+    "Best Fitness",
+    "Query-level Search AUC",
+    "Top 1% candidate quality",
+    "Unique Sequences",
+    "Query Efficiency",
+    "Wall-clock Time"
+  ],
+  "search_auc": "野生型适应度是 q=0 的 best-so-far。之后每有一次候选评分，横轴加 1，纵轴取截至该次的最大值。初始化、回合 0 测量和返回重评分不占用候选横轴。候选点少于 3 个则拒绝。",
+  "top_1pct": "候选序列按序列去重，每条序列只用第一次分数。再取这些唯一序列里最高的 ceil(1%) 条，计算平均适应度。唯一序列数和候选重复率单独报告。",
+  "counts_that_must_stay_separate": [
+    "initialization",
+    "search_measurement",
+    "reward",
+    "return_rescore",
+    "gradient",
+    "cnn_surrogate"
+  ],
+  "muformer_batch": {
+    "score_path": "predict 把查询序列和固定野生型拼进同一个 batch，账本记 1 次评分。",
+    "tokens_per_sequence": 288,
+    "token_formula": "288 = <s> + 286 个残基 + eos。一次评分的模型输入是 2 × 288 个 token。",
+    "input_sequences_per_candidate_query": 2
+  },
+  "runtime_estimate": {
+    "basis": "第五阶段最小运行里，一次配对前向大约 0.4 秒。这不是 4998 次预算的实测。",
+    "one_run_forward_minutes": 35,
+    "six_runs_sequential_hours": "大约 3 到 5 小时。若单次前向比 0.4 秒慢一倍，大约 6 到 8 小时。",
+    "gpu": "物理 GPU 1，一次一个进程。GPU 0 不使用。"
+  },
+  "paths": {
+    "worktree": "/data/cc233_data/work_dir/MIRF-musearch-pretest",
+    "cwd": "/data/cc233_data/work_dir/MIRF/Mu-Protein/mu-search",
+    "pythonpath": "/data/cc233_data/work_dir/MIRF-musearch-pretest/Mu-Protein/mu-search/src/flexs",
+    "python": "/tmp/musearch-ppo-isolated/bin/python",
+    "driver": "/data/cc233_data/work_dir/MIRF-musearch-pretest/Mu-Protein/mu-search/pretest/run_one.py",
+    "runs": "/data/cc233_data/work_dir/MIRF-musearch-pretest/Mu-Protein/mu-search/pretest/runs"
+  },
+  "blockers": []
+}

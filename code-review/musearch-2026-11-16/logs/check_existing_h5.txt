@@ -1,0 +1,2 @@
+CHECK_OK musearch_gt_seed0 reward=4998 candidates=4998 init=105 start=1 return=100
+CHECK_OK adalead_gt_seed0 reward=4998 candidates=4998 init=105 start=1 return=99

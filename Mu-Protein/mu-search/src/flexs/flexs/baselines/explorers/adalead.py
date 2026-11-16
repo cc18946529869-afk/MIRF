@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 import flexs
+from flexs.musearch_baseline import clip_to_remaining
 from flexs.utils import sequence_utils as s_utils
 import warnings
 
@@ -111,23 +112,29 @@ class Adalead(flexs.Explorer):
 
         sequences = {}
         previous_model_cost = self.model.cost
-        while self.model.cost - previous_model_cost < self.model_queries_per_batch:
+        limit = self.model_queries_per_batch
+
+        def spent():
+            return self.model.cost - previous_model_cost
+
+        while spent() < limit:
             # generate recombinant mutants
             for i in range(self.rho):
                 parents = self._recombine_population(parents)
 
             for i in range(0, len(parents), self.eval_batch_size):
-                # Here we do rollouts from each parent (root of rollout tree)
-                roots = parents[i : i + self.eval_batch_size]
+                # Here we do rollouts from each parent (root of rollout tree).
+                # The last batch may be shorter than eval_batch_size.
+                roots = clip_to_remaining(
+                    parents[i : i + self.eval_batch_size], spent(), limit
+                )
+                if len(roots) == 0:
+                    break
                 root_fitnesses = self.model.get_fitness(roots)
 
                 nodes = list(enumerate(roots))
 
-                while (
-                    len(nodes) > 0
-                    and self.model.cost - previous_model_cost + self.eval_batch_size
-                    < self.model_queries_per_batch
-                ):
+                while len(nodes) > 0 and limit - spent() > 0:
                     child_idxs = []
                     children = []
                     while len(children) < len(nodes):
@@ -152,6 +159,10 @@ class Adalead(flexs.Explorer):
                     # fitness than the root of the rollout tree.
                     # Otherwise, set node = child and add child to the list
                     # of sequences to propose.
+                    children = clip_to_remaining(children, spent(), limit)
+                    if len(children) == 0:
+                        break
+                    child_idxs = child_idxs[: len(children)]
                     fitnesses = self.model.get_fitness(children)
                     sequences.update(zip(children, fitnesses))
 
@@ -160,9 +171,16 @@ class Adalead(flexs.Explorer):
                         if fitness >= root_fitnesses[idx]:
                             nodes.append((idx, child))
 
-        if self.model.cost - previous_model_cost + self.eval_batch_size < self.model_queries_per_batch:
+        used = spent()
+        if used > limit:
+            raise RuntimeError(
+                "AdaLead candidate queries {0} exceed {1}".format(used, limit)
+            )
+        if used < limit:
             warnings.warn(
-                "Ran out of model queries before proposing all sequences"
+                "AdaLead stopped with {0} of {1} candidate queries used".format(
+                    used, limit
+                )
             )
         # We propose the top `self.sequences_batch_size` new sequences we have generated
         new_seqs = np.array(list(sequences.keys()))

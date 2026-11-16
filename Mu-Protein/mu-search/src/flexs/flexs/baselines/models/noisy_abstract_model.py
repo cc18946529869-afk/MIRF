@@ -73,6 +73,10 @@ class NoisyAbstractModel(flexs.Model):
         # We use cached evaluations so that the model gives deterministic outputs
         cached = np.array([seq in self.cache for seq in sequences])
         fitnesses[cached] = np.array([self.cache[seq] for seq in sequences[cached]])
+        if cached.any():
+            from flexs.musearch_baseline import note_cache_hit
+
+            note_cache_hit(self, sequences[cached])
 
         new_fitnesses = []
         for seq in sequences[~cached]:

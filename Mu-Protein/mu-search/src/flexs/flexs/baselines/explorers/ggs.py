@@ -545,6 +545,9 @@ class GWG(flexs.Explorer):
 
         """
         self.sampler.cost = 0
+        from flexs.musearch_baseline import begin_score_budget, finish_score_budget
+
+        begin_score_budget(self, landscape)
 
         # Metadata about run that will be used for logging purposes
         metadata = {
@@ -558,11 +561,13 @@ class GWG(flexs.Explorer):
         }
 
         # Initial sequences and their scores
+        with self.score_ledger.marking_purpose("search_measurement"):
+            start_score = landscape.get_fitness([self.starting_sequence])
         sequences_data = pd.DataFrame(
             {
                 "sequence": self.starting_sequence,
                 "model_score": np.nan,
-                "true_score": landscape.get_fitness([self.starting_sequence]),
+                "true_score": start_score,
                 "round": 0,
                 "model_cost": self.sampler.cost,
                 "measurement_cost": 1,
@@ -581,7 +586,8 @@ class GWG(flexs.Explorer):
             )
 
             seqs, preds = self.propose_sequences(sequences_data)
-            true_score = landscape.get_fitness(seqs)
+            with self.score_ledger.marking_return_rescore():
+                true_score = landscape.get_fitness(seqs)
 
             if len(seqs) > self.sequences_batch_size:
                 warnings.warn(
@@ -604,6 +610,7 @@ class GWG(flexs.Explorer):
             # duplicate sequences_data
             sequences_data = sequences_data.drop_duplicates(subset=['sequence', 'round'])
 
+        finish_score_budget(self)
         return sequences_data, metadata
 
 

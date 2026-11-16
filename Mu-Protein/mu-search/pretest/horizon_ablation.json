@@ -1,0 +1,49 @@
+{
+  "stage": "horizon-ablation-design",
+  "launch_allowed": false,
+  "candidate_scores_per_search": 4998,
+  "seeds": [0, 1, 2],
+  "same_checkpoint": true,
+  "h5_reused_from": "pretest/runs/musearch_gt",
+  "h5_rerun": false,
+  "new_searches": 9,
+  "musearch": {
+    "mixture_mode": "marginal",
+    "exclude_measured": false,
+    "score_threshold": "-inf",
+    "update_frequency": 3,
+    "episodes_per_update": 1666,
+    "rollouts": 3,
+    "batch_size": 512,
+    "n_epochs": 10,
+    "learning_rate": 0.0003,
+    "clip_range": 0.2,
+    "ent_coef": 0.0,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "net_arch": [256, 256, 256],
+    "parameters_that_move_with_horizon": ["horizon", "n_steps", "total_timesteps"],
+    "horizons": {
+      "5": {"n_steps": 8330, "total_timesteps": 24990, "status": "finished, do not rerun"},
+      "7": {"n_steps": 11662, "total_timesteps": 34986, "status": "not started"},
+      "10": {"n_steps": 16660, "total_timesteps": 49980, "status": "not started"}
+    }
+  },
+  "adalead_cache": {
+    "status": "not started",
+    "mu": 1,
+    "recomb_rate": 0,
+    "threshold": 0.05,
+    "rho": 0,
+    "eval_batch_size": 20,
+    "sequences_batch_size": 100,
+    "oracle_budget": "4998 cache misses",
+    "hits_consume_oracle": false,
+    "uncached_result_dir": "pretest/runs/adalead_gt"
+  },
+  "output_dirs": {
+    "musearch_h7": "pretest/runs/horizon/musearch_h7/seed{0,1,2}",
+    "musearch_h10": "pretest/runs/horizon/musearch_h10/seed{0,1,2}",
+    "adalead_cache": "pretest/runs/horizon/adalead_cache/seed{0,1,2}"
+  }
+}

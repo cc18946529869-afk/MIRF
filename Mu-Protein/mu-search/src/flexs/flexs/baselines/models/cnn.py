@@ -79,6 +79,9 @@ class CNN(keras_model.KerasModel):
             # Get predictions from the model
             predictions = self.model(one_hots, training=False)
             predictions = tf.squeeze(predictions, axis=1)
+            from flexs.musearch_baseline import note_forward
+
+            note_forward(self, sequences, kind="gradient")
         
         # Compute gradients
         gradients = tape.gradient(predictions, one_hots)

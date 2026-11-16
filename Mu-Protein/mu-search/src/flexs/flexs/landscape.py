@@ -42,4 +42,8 @@ class Landscape(abc.ABC):
 
         """
         self.cost += len(sequences)
-        return self._fitness_function(sequences)
+        scores = self._fitness_function(sequences)
+        from flexs.musearch_baseline import note_forward
+
+        note_forward(self, sequences)
+        return scores

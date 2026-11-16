@@ -12,6 +12,12 @@ import pandas as pd
 import tqdm
 
 import flexs
+from flexs.musearch_baseline import (
+    ScoreCountingModel,
+    ScoreLedger,
+    begin_score_budget,
+    finish_score_budget,
+)
 
 
 class Explorer(abc.ABC):
@@ -50,7 +56,16 @@ class Explorer(abc.ABC):
             log_file: .csv filepath to write output.
 
         """
-        self.model = model
+        self.score_ledger = ScoreLedger()
+        self.score_ledger.metadata.update(
+            {
+                "explorer": name,
+                "rounds": rounds,
+                "sequences_batch_size": sequences_batch_size,
+                "model_queries_per_batch": model_queries_per_batch,
+            }
+        )
+        self.model = ScoreCountingModel(model, self.score_ledger, "reward_model")
         self.name = name
 
         self.rounds = rounds
@@ -125,6 +140,7 @@ class Explorer(abc.ABC):
 
         """
         self.model.cost = 0
+        begin_score_budget(self, landscape)
 
         # Metadata about run that will be used for logging purposes
         metadata = {
@@ -138,11 +154,14 @@ class Explorer(abc.ABC):
         }
 
         # Initial sequences and their scores
+        initial_sequences = [self.starting_sequence]
+        with self.score_ledger.marking_purpose("search_measurement"):
+            initial_scores = landscape.get_fitness(initial_sequences)
         sequences_data = pd.DataFrame(
             {
                 "sequence": self.starting_sequence,
                 "model_score": np.nan,
-                "true_score": landscape.get_fitness([self.starting_sequence]),
+                "true_score": initial_scores,
                 "round": 0,
                 "model_cost": self.model.cost,
                 "measurement_cost": 1,
@@ -163,7 +182,8 @@ class Explorer(abc.ABC):
             print(f"Training time of model: {round_end_time - round_start_time}")
 
             seqs, preds = self.propose_sequences(sequences_data)
-            true_score = landscape.get_fitness(seqs)
+            with self.score_ledger.marking_return_rescore():
+                true_score = landscape.get_fitness(seqs)
 
             print(f"seqs: {seqs}")
             if len(seqs) > self.sequences_batch_size:
@@ -191,5 +211,7 @@ class Explorer(abc.ABC):
                 )
             )
             self._log(sequences_data, metadata, r, verbose, round_start_time)
+
+        finish_score_budget(self)
 
         return sequences_data, metadata

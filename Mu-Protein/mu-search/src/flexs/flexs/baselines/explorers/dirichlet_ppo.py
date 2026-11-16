@@ -1,9 +1,12 @@
+import os
+
 import numpy as np
 from stable_baselines3.ppo.ppo import PPO
 # from . import register_algorithm
 from .environments.env import LandscapeEnv
 import flexs
 from flexs import baselines
+from flexs.musearch_baseline import candidate_round_report, floor_rollout_schedule
 
 
 # @register_algorithm("dirichlet_ppo")
@@ -12,6 +15,10 @@ class MuSearch(flexs.Explorer):
     def __init__(self, args, oracle_model, alphabet, starting_sequence, sequences_batch_size, model_queries_per_batch, rounds, log_file=None, update_frequency=3):
         model = oracle_model
         name = "MuSearch"
+        self.mixture_mode = getattr(args, "mixture_mode", "marginal")
+        self.exclude_measured = bool(getattr(args, "exclude_measured", False))
+        if self.mixture_mode not in ("marginal", "legacy"):
+            raise ValueError("mixture_mode must be 'marginal' or 'legacy'")
         super().__init__(
             model,
             name,
@@ -21,13 +28,19 @@ class MuSearch(flexs.Explorer):
             starting_sequence,
             log_file,
         )
-        self.oracle_model = oracle_model
+        self.oracle_model = self.model
         self.alphabet = alphabet
         self.starting_sequence = starting_sequence
         self.score_threshold = args.score_threshold
-        self.num_trajs_per_update = model_queries_per_batch // update_frequency
-        self.total_timesteps = model_queries_per_batch * args.horizon
+        self.score_ledger.metadata["mixture_mode"] = self.mixture_mode
+        self.score_ledger.metadata["exclude_measured"] = self.exclude_measured
+        schedule = floor_rollout_schedule(
+            model_queries_per_batch, args.horizon, update_frequency
+        )
+        self.num_trajs_per_update = schedule["episodes_per_update"]
+        self.total_timesteps = schedule["total_timesteps"]
         self.horizon = args.horizon
+        self.score_ledger.metadata["ppo_schedule"] = schedule
 
     def propose_sequences(self, input_sequences):
         print("-----------------MuSearch-----------------")
@@ -42,7 +55,17 @@ class MuSearch(flexs.Explorer):
         env = env_fn()
         example_env = env_fn()
         n_steps= self.horizon * self.num_trajs_per_update
-        rl_agent = PPO(["MlpPolicy", "MlpPolicy"], env, batch_size=512, verbose=1, n_steps=n_steps, for_protein=True, score_threshold=self.score_threshold, tensorboard_log="./logs",
+        tb_dir = os.environ.get("MUSEARCH_TB_DIR")
+        if not tb_dir and self.log_file:
+            tb_dir = os.path.join(os.path.dirname(os.path.abspath(self.log_file)), "tensorboard")
+        if not tb_dir:
+            tb_dir = "./logs"
+        print(
+            "ppo_schedule episodes_per_update={0} n_steps={1} total_timesteps={2}".format(
+                self.num_trajs_per_update, n_steps, self.total_timesteps
+            )
+        )
+        rl_agent = PPO(["MlpPolicy", "MlpPolicy"], env, batch_size=512, verbose=1, n_steps=n_steps, for_protein=True, score_threshold=self.score_threshold, tensorboard_log=tb_dir,
         policy_kwargs={
                         'sub_step_observation_spaces1': example_env.observation_space1,
                         'sub_step_observation_spaces2': example_env.observation_space2,
@@ -51,6 +74,10 @@ class MuSearch(flexs.Explorer):
                     })
         print("-----------------MuSearch-----------------")
         print(f"num_envs", rl_agent.env.num_envs)
+        print(f"mixture_mode", self.mixture_mode)
+        print(f"exclude_measured", self.exclude_measured)
+        for policy in (rl_agent.policy, rl_agent.policy2):
+            policy.action_dist.mixture_mode = self.mixture_mode
         exploration_candidate_pool, sampling_candidate_pool = rl_agent.learn(self.total_timesteps)
         print("Total sample sequence num: ", len(exploration_candidate_pool))
 
@@ -66,9 +93,12 @@ class MuSearch(flexs.Explorer):
         print("Unique sequences num during training: ", len(all_explored_sequences))
         print("Unique sequences num after filtering: ", len(filtered_sequences))
         
-        sequences = list(filtered_sequences.keys())
-        scores = list(filtered_sequences.values())
-        ranked_idx = np.argsort(scores)[: -self.sequences_batch_size : -1]
-        sequences = np.array(sequences)[ranked_idx]
-        scores = np.array(scores)[ranked_idx]
-        return sequences, scores
+        sequences, scores, report = candidate_round_report(
+            list(filtered_sequences.keys()),
+            list(filtered_sequences.values()),
+            input_sequences["sequence"].tolist(),
+            self.exclude_measured,
+            self.sequences_batch_size,
+        )
+        self.score_ledger.record_candidate_round(report)
+        return np.array(sequences), np.array(scores)
