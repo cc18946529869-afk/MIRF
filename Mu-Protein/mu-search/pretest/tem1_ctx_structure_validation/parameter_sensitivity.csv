@@ -1,0 +1,22 @@
+comparison,value
+"1BTL cutoff 13, all_nonrigid vs lowest_10, active_to_residue",0.85955571
+"1BTL cutoff 13, all_nonrigid vs lowest_10, dfi",0.98996063
+"1BTL cutoff 13, all_nonrigid vs lowest_20, active_to_residue",0.93278986
+"1BTL cutoff 13, all_nonrigid vs lowest_20, dfi",0.99768789
+"1BTL cutoff 13, all_nonrigid vs lowest_50, active_to_residue",0.96803353
+"1BTL cutoff 13, all_nonrigid vs lowest_50, dfi",0.99647412
+"1BTL all_nonrigid, cutoff 13 vs 10.0, active_to_residue",0.95366877
+"1BTL all_nonrigid, cutoff 13 vs 15.0, active_to_residue",0.96500832
+"1BTL cutoff 13 all_nonrigid, active_to_residue vs residue_to_active",0.99546154
+"1ZG4 cutoff 13, all_nonrigid vs lowest_10, active_to_residue",0.85225525
+"1ZG4 cutoff 13, all_nonrigid vs lowest_10, dfi",0.99015457
+"1ZG4 cutoff 13, all_nonrigid vs lowest_20, active_to_residue",0.92914128
+"1ZG4 cutoff 13, all_nonrigid vs lowest_20, dfi",0.99792009
+"1ZG4 cutoff 13, all_nonrigid vs lowest_50, active_to_residue",0.96950985
+"1ZG4 cutoff 13, all_nonrigid vs lowest_50, dfi",0.9957762
+"1ZG4 all_nonrigid, cutoff 13 vs 10.0, active_to_residue",0.94785584
+"1ZG4 all_nonrigid, cutoff 13 vs 15.0, active_to_residue",0.96941881
+"1ZG4 cutoff 13 all_nonrigid, active_to_residue vs residue_to_active",0.99538238
+"1ZG4 vs 1BTL, cutoff 13 all_nonrigid, active_to_residue",0.9949945
+"1ZG4 vs 1BTL, cutoff 13 lowest_20, active_to_residue",0.99604534
+"1ZG4 vs 1BTL C-alpha RMSD after superposition, angstrom",0.41777031
