@@ -20,6 +20,15 @@ f_{ir}=\log_{10}\left(\frac{\mathrm{freq}_{i,r,\mathrm{treated}}}{\mathrm{freq}_
 
 ## 公开数据
 
-正文说每个药物有 `mut_fit` 计数矩阵，行是突变，列是三个生物学重复。PMC 全文里能读到的 Supplement 1 是图注，不是这张计数表。bioRxiv v2 的 supplementary-material 页面没有给出 csv、xlsx 或 zip。NCBI SRA 用 “Gaszek AND TEM-1 AND beta-lactamase” 返回 0 条；BioProject 用 “Gaszek TEM-1 saturation” 没有命中 Gaszek。GEO 检索没有把 Gaszek 识别成记录。GitHub 仓库 `msadikyildiz/Gaszek_Yildiz_Meng_2025` 的说明指向 2025 年的另一项研究，不作为这份 2026 年饱和突变计数表。
+正文说每个药物有 `mut_fit` 计数矩阵，行是突变，列是三个生物学重复。PMC 全文里能读到的 Supplement 1 是图注，不是这张计数表。bioRxiv v2 的 supplementary-material 页面没有给出 csv、xlsx 或 zip。NCBI SRA 用 “Gaszek AND TEM-1 AND beta-lactamase” 返回 0 条；BioProject 用 “Gaszek TEM-1 saturation” 没有命中 Gaszek。GEO 检索没有把 Gaszek 识别成记录。这次没有找到作者公开的逐突变计数、测序 accession，也没有在已读全文里找到单独的数据可用性段落。图注不能用来重建全位点矩阵。因此不生成 `ctx_single_mutant_labels.csv`。2026 年预印本里的 `mut_fit` 计数矩阵尚未取得。
 
-这次没有找到作者公开的逐突变计数、测序 accession，也没有在已读全文里找到单独的数据可用性段落。图注不能用来重建全位点矩阵。因此不生成 `ctx_single_mutant_labels.csv`。
+## 已排除的数据源
+
+基因型数量不能代替实验对象和筛选药物。下面四项都不能当作全位点头孢噻肟单突变标签。关联分析仍然不做，\(B_i\) 仍然不定义，μSearch 的位点策略仍然不改。
+
+| 数据源 | 已核对的内容 | 处置 |
+| --- | --- | --- |
+| `msadikyildiz/Gaszek_Yildiz_Meng_2025` | README 写明这是另一篇工作：13 个抗性相关位点的组合文库，约 55,000 个基因型，筛选药物是氨苄青霉素和氨曲南 | 已核查，排除 |
+| `BLAT_ECOLX_Stiffler_2015` | ProteinGym 元数据的选择实验是 `Growth (10-2500 ug/mL ampicillin)`，共 4996 条 | 氨苄青霉素数据，不能替代 |
+| `CFX_test_from_pan.tsv` | 16 个基因型加 WT。突变只出现在 40、102、180、236，并且包含这些位点的组合突变 | 只有四个位点，不能做全位点富集 |
+| Gaszek 等人 2026-02-28 预印本 | 实验设计符合头孢噻肟 0.25 μg/mL 的单突变筛选，但 `mut_fit` 没有公开 | 尚未获得可用的计数矩阵 |
