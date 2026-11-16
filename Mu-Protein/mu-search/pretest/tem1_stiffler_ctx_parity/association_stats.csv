@@ -1,0 +1,10 @@
+test,estimate,ci95_low,ci95_high,permutation_p,bh_q_primary
+reference dci_functional_to_i vs positive fraction,0.0071623481,-0.11659396,0.12425496,0.90521896,0.90521896
+reference dci_i_to_functional vs positive fraction,0.017384504,-0.10261711,0.13894433,0.77504499,0.90521896
+reference dfi vs positive fraction,0.043397658,-0.077492985,0.16384561,0.49310138,0.90521896
+contact count vs positive fraction,-0.06456215,-0.182321,0.050347168,0.28374325,
+minimum functional distance vs positive fraction,0.044551742,-0.07419708,0.16342455,0.48070386,
+MSA identity vs positive fraction,0.1254303,0.010910992,0.24446859,0.041591682,
+previous uniform-spring dci_functional_to_i vs positive fraction,0.0021056207,-0.11330552,0.11997575,0.9740052,
+"top-third reference DCI and middle-third reference DFI, mean fraction minus complement",-0.03342868,,,0.63907219,
+quadratic coefficient of reference DFI,4279.4211,,,0.47170566,

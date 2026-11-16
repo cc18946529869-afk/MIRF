@@ -1,0 +1,13 @@
+{
+  "call_rows_skipped": 19,
+  "positive_substitutions": 2771,
+  "sites_with_positive_call": 252,
+  "sites_without_positive_call": 11,
+  "msa_sequences": 209644,
+  "singular_values_removed": 6,
+  "parity_forward": 0.9450041294728259,
+  "parity_reverse": 0.9491942910368011,
+  "parity_dfi": 0.976054334891011,
+  "reference_direction_spearman": 0.7776318462833426,
+  "selected_sites": 23
+}
