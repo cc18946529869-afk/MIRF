@@ -1,3 +1,4 @@
+import time
 import warnings
 from typing import Any, Dict, Optional, Type, TypeVar, Union
 
@@ -156,6 +157,11 @@ class PPO(OnPolicyAlgorithm):
                 )
         self.batch_size = batch_size
         self.n_epochs = n_epochs
+        self.optimizer_steps = 0
+        self.optimizer_steps_2 = 0
+        self.minibatch_counts = []
+        self.minibatch_sizes = []
+        self.ppo_train_seconds = 0.0
         self.clip_range = clip_range
         self.clip_range_vf = clip_range_vf
         self.normalize_advantage = normalize_advantage
@@ -179,6 +185,7 @@ class PPO(OnPolicyAlgorithm):
         """
         Update policy using the currently gathered rollout buffer.
         """
+        _train_started = time.perf_counter()
         # Switch to train mode (this affects batch norm / dropout)
         self.policy.set_training_mode(True)
         # Update optimizer learning rate
@@ -214,6 +221,7 @@ class PPO(OnPolicyAlgorithm):
                 ratios_2_minus_1 = []
                 approx_kl_divs_2 = []
 
+            epoch_sizes = []
             # Do a complete pass on the rollout buffer
             for rollout_data in self.rollout_buffer.get(self.batch_size):
                 # Note that rollout buffer will use the function 'swap_and_flatten' to convert shape from [n_steps, n_envs, ...] to [n_steps * n_envs, ...].
@@ -377,14 +385,20 @@ class PPO(OnPolicyAlgorithm):
                 loss.backward()
                 th.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
                 self.policy.optimizer.step()
+                self.optimizer_steps += 1
+                epoch_sizes.append(int(actions.shape[0]))
                 if self.for_protein:
                     th.nn.utils.clip_grad_norm_(self.policy2.parameters(), self.max_grad_norm)
                     self.policy2.optimizer.step()
+                    self.optimizer_steps_2 += 1
+            self.minibatch_counts.append(len(epoch_sizes))
+            self.minibatch_sizes.append(epoch_sizes)
 
             if not continue_training:
                 break
 
         self._n_updates += self.n_epochs
+        self.ppo_train_seconds += time.perf_counter() - _train_started
         explained_var = explained_variance(self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
 
         self.logger.record("train/entropy_loss", np.mean(entropy_losses))

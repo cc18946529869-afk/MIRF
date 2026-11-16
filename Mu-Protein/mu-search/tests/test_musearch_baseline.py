@@ -379,7 +379,9 @@ class _CacheModel:
     def __init__(self):
         self.cost = 0
         self.calls = []
-        self.query_trace = [{"sequence": "AAA", "score": 1.25}]
+        self.query_trace = [
+            {"sequence": "AAA", "score": 1.25, "purpose": "search_measurement"}
+        ]
         self._score_ledger = baseline.ScoreLedger()
         self.name = "CacheModel"
 
@@ -409,6 +411,49 @@ def test_exact_cache_does_not_rescore_a_known_sequence():
     assert model._score_ledger.total_by_channel()["other_landscape"] == 0
     assert model._score_ledger.cache_hits["other_landscape"] == 4
     assert cache.stats()["muformer_forwards"] == model.cost
+    assert [row["outcome"] for row in cache.request_rows] == [
+        "hit", "miss", "hit", "hit", "miss", "hit"
+    ]
+
+
+def test_cache_does_not_inherit_initialization():
+    model = _CacheModel()
+    model.query_trace = [
+        {"sequence": "ESBL_A", "score": 9.0, "purpose": "initialization"},
+        {"sequence": "WT", "score": 1.0, "purpose": "initialization"},
+        {"sequence": "WT", "score": 1.5, "purpose": "search_measurement"},
+    ]
+
+    def get_fitness(sequences):
+        sequences = list(sequences)
+        model.calls.append(sequences)
+        model.cost += len(sequences)
+        baseline.note_forward(model, sequences)
+        return [4.0 for _ in sequences]
+
+    model.get_fitness = get_fitness
+    cache = baseline.ExactScoreCache(model)
+    esbl = cache.get_fitness(["ESBL_A"])
+    assert list(esbl) == [4.0]
+    assert model.calls == [["ESBL_A"]]
+    wild_type = cache.get_fitness(["WT"])
+    assert list(wild_type) == [1.5]
+    assert model.calls == [["ESBL_A"]]
+    before = model._score_ledger.total_by_channel()["other_landscape"]
+    first = cache.get_fitness(["C"])
+    assert list(first) == [4.0]
+    after_miss = model._score_ledger.total_by_channel()["other_landscape"]
+    assert after_miss == before + 1
+    second = cache.get_fitness(["C"])
+    assert list(second) == [4.0]
+    assert model._score_ledger.total_by_channel()["other_landscape"] == after_miss
+    assert model.cost == 2
+    assert [row["outcome"] for row in cache.request_rows] == [
+        "miss", "hit", "miss", "hit"
+    ]
+    assert [row["sequence"] for row in cache.request_rows] == [
+        "ESBL_A", "WT", "C", "C"
+    ]
 
 
 def _run_all():

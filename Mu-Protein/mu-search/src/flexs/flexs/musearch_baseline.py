@@ -483,6 +483,7 @@ class ExactScoreCache:
         self.requests = 0
         self.hits = 0
         self.misses = 0
+        self.request_rows = []
         self.ledger = None
         self.name = getattr(model, "name", "ExactScoreCache")
 
@@ -508,11 +509,19 @@ class ExactScoreCache:
             self._scores[key] = float(score)
 
     def _absorb_existing_scores(self):
+        """Reuse a score only when the search has already been shown that sequence.
+
+        Initialization, including the ESBL sequences scored while the
+        landscape is constructed, is not candidate information. The round-0
+        measurement of the starting sequence is.
+        """
         if self._absorbed:
             return
         self._absorbed = True
         owner = _scoring_owner(self._model)
         for item in getattr(owner, "query_trace", None) or []:
+            if item.get("purpose") != "search_measurement":
+                continue
             self._remember(item["sequence"], item["score"])
 
     def _publish(self):
@@ -544,8 +553,17 @@ class ExactScoreCache:
         for sequence in items:
             if sequence in seen_missing and sequence not in forwarded:
                 forwarded.add(sequence)
-                continue
-            hit_sequences.append(sequence)
+                outcome = "miss"
+            else:
+                hit_sequences.append(sequence)
+                outcome = "hit"
+            self.request_rows.append(
+                {
+                    "request_index": len(self.request_rows) + 1,
+                    "sequence": sequence,
+                    "outcome": outcome,
+                }
+            )
         self.hits += len(hit_sequences)
         self.misses += len(missing)
         if hit_sequences:
@@ -619,6 +637,42 @@ def exact_terminal_schedule(queries, horizon, update_frequency):
         "requested_episodes_per_update": target,
         "requested_update_frequency": update_frequency,
     }
+
+
+def write_cache_requests(rows, path):
+    """Write one row per cache request. A hit is not an oracle forward."""
+    fieldnames = ["request_index", "sequence", "outcome"]
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
+
+
+def write_action_trace(rows, path):
+    """Write edit operations. This does not reject repeated or empty edits."""
+    fieldnames = [
+        "trajectory",
+        "step",
+        "site",
+        "site_index",
+        "old_aa",
+        "new_aa",
+        "no_op",
+        "revisited",
+        "final_hamming",
+    ]
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
 
 
 def clip_to_remaining(items, spent, limit):

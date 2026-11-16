@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 import flexs
-from flexs.musearch_baseline import clip_to_remaining
+from flexs.musearch_baseline import clip_to_remaining, select_top_indices
 from flexs.utils import sequence_utils as s_utils
 import warnings
 
@@ -185,6 +185,6 @@ class Adalead(flexs.Explorer):
         # We propose the top `self.sequences_batch_size` new sequences we have generated
         new_seqs = np.array(list(sequences.keys()))
         preds = np.array(list(sequences.values()))
-        sorted_order = np.argsort(preds)[: -self.sequences_batch_size : -1]
+        sorted_order = select_top_indices(preds, self.sequences_batch_size)
 
         return new_seqs[sorted_order], preds[sorted_order]

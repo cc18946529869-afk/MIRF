@@ -1,9 +1,11 @@
 """Execute the real learn loop at H=7 and H=10. Does not load MuFormer.
 
-The full budgets use the real learn() break and a collect that only advances
-the step counter. A short run for each horizon uses the real LandscapeEnv,
-real collect_rollouts, and real train, and checks that fitness is requested
-once per completed episode.
+The full budgets use the real learn() break. ``execute_full_collect`` replaces
+``agent.train`` with a no-op, so it checks 4998 terminal scores and does not
+run ``optimizer.step``. Optimizer-step counts are checked by
+``test_ppo_update_counts.py``. A short run for each horizon uses the real
+LandscapeEnv, real collect_rollouts, and real train, and checks that fitness
+is requested once per completed episode.
 """
 
 import os
@@ -84,7 +86,10 @@ def execute_learn_loop(horizon):
 
 
 def execute_full_collect(horizon):
-    """Real collect_rollouts and the real learn loop. train does not score."""
+    """Real collect_rollouts and the real learn loop.
+
+    train is replaced by a no-op. This does not verify PPO optimization.
+    """
     torch.manual_seed(0)
     np.random.seed(0)
     model = CountingModel()

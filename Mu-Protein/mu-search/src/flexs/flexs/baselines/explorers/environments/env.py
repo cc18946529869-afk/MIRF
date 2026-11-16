@@ -34,16 +34,50 @@ class LandscapeEnv(Env):
         self.observation_space2 = MultiDiscrete(observation_space2_list)
         self.action_space1 = MultiDiscrete(action_space1_list)
         self.action_space2 = MultiDiscrete(action_space2_list)
+        self.action_trace = []
+        self._sites_this_episode = set()
+        self._trajectory = 0
+        self._episode_open = False
+        self._episode_row = 0
 
         self.reset()
    
     def step(self, action):
-        loc = action[0]
-        mutate_to = action[1]
+        loc = int(action[0])
+        mutate_to = int(action[1])
+        if not self._episode_open:
+            self._trajectory += 1
+            self._episode_row = len(self.action_trace)
+            self._episode_open = True
+            self._sites_this_episode = set()
+        old_aa = self.cur_seq[loc]
+        new_aa = self.alphabet[mutate_to]
+        revisited = loc in self._sites_this_episode
+        self._sites_this_episode.add(loc)
         self.cur_mutations += 1
-        self.cur_seq = self.cur_seq[:loc] + self.alphabet[mutate_to] + self.cur_seq[loc+1:]
+        self.cur_seq = self.cur_seq[:loc] + new_aa + self.cur_seq[loc + 1:]
+        self.action_trace.append(
+            {
+                "trajectory": self._trajectory,
+                "step": self.cur_mutations,
+                "site": loc + 1,
+                "site_index": loc,
+                "old_aa": old_aa,
+                "new_aa": new_aa,
+                "no_op": int(old_aa == new_aa),
+                "revisited": int(revisited),
+                "final_hamming": "",
+            }
+        )
 
         done = self.cur_mutations == self.horizon
+        if done:
+            hamming = sum(
+                left != right for left, right in zip(self.starting_seq, self.cur_seq)
+            )
+            for row in self.action_trace[self._episode_row:]:
+                row["final_hamming"] = hamming
+            self._episode_open = False
         # print(f"wild type: {self.starting_seq}")
         # print(f"wild type fitness: {self.model.get_fitness([self.starting_seq])}")
         # print(f"self.cur_seq: {self.cur_seq}, fitness: {self.model.get_fitness([self.cur_seq])}, mutations: {self.cur_mutations}, done: {done}")
@@ -62,6 +96,8 @@ class LandscapeEnv(Env):
     def reset(self):
         self.cur_mutations = 0
         self.cur_seq = self.starting_seq
+        self._sites_this_episode = set()
+        self._episode_open = False
         return self.obs
     
     def change_starting_sequence(self, new_starting_seq):

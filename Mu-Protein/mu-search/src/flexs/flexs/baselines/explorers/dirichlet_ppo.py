@@ -6,7 +6,11 @@ from stable_baselines3.ppo.ppo import PPO
 from .environments.env import LandscapeEnv
 import flexs
 from flexs import baselines
-from flexs.musearch_baseline import candidate_round_report, floor_rollout_schedule
+from flexs.musearch_baseline import (
+    candidate_round_report,
+    floor_rollout_schedule,
+    write_action_trace,
+)
 
 
 # @register_algorithm("dirichlet_ppo")
@@ -79,6 +83,8 @@ class MuSearch(flexs.Explorer):
         for policy in (rl_agent.policy, rl_agent.policy2):
             policy.action_dist.mixture_mode = self.mixture_mode
         exploration_candidate_pool, sampling_candidate_pool = rl_agent.learn(self.total_timesteps)
+        self._record_ppo_compute(rl_agent)
+        self._write_training_trace(rl_agent)
         print("Total sample sequence num: ", len(exploration_candidate_pool))
 
         all_explored_sequences = {}
@@ -102,3 +108,28 @@ class MuSearch(flexs.Explorer):
         )
         self.score_ledger.record_candidate_round(report)
         return np.array(sequences), np.array(scores)
+
+    def _record_ppo_compute(self, rl_agent):
+        """Keep optimizer steps apart from the epoch counter ``_n_updates``."""
+        self.score_ledger.metadata["ppo_compute"] = {
+            "optimizer_steps_site": int(rl_agent.optimizer_steps),
+            "optimizer_steps_amino": int(rl_agent.optimizer_steps_2),
+            "n_updates": int(rl_agent._n_updates),
+            "n_epochs": int(rl_agent.n_epochs),
+            "batch_size": int(rl_agent.batch_size),
+            "minibatch_counts": [int(count) for count in rl_agent.minibatch_counts],
+            "minibatch_sizes": [
+                [int(size) for size in epoch] for epoch in rl_agent.minibatch_sizes
+            ],
+            "train_seconds": float(rl_agent.ppo_train_seconds),
+            "num_timesteps": int(rl_agent.num_timesteps),
+        }
+
+    def _write_training_trace(self, rl_agent):
+        if not self.log_file:
+            return
+        env = rl_agent.env.envs[0]
+        while hasattr(env, "env") and not hasattr(env, "action_trace"):
+            env = env.env
+        base, _ext = os.path.splitext(self.log_file)
+        write_action_trace(env.action_trace, base + ".action_trace.csv")

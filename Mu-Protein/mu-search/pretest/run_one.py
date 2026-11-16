@@ -255,6 +255,14 @@ def main(argv):
                 return 2
     search_started = time.perf_counter()
     explorer.run(landscape)
+    cache = explorer.model._model
+    if type(cache).__name__ == "ExactScoreCache":
+        from flexs.musearch_baseline import write_cache_requests
+
+        write_cache_requests(
+            cache.request_rows,
+            args.output_dir / (stem + ".cache_requests.csv"),
+        )
     search_seconds = time.perf_counter() - search_started
     timing = {
         "search_seconds": search_seconds,

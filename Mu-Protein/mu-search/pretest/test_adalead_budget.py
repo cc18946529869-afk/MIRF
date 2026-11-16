@@ -64,7 +64,9 @@ def propose_cached(limit):
     from flexs.musearch_baseline import ExactScoreCache
 
     inner = CountingModel()
-    inner.query_trace = [{"sequence": "A" * 12, "score": -0.1}]
+    inner.query_trace = [
+        {"sequence": "A" * 12, "score": -0.1, "purpose": "search_measurement"}
+    ]
     cache = ExactScoreCache(inner)
     explorer = Adalead(
         cache,
