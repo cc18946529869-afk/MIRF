@@ -1,0 +1,12 @@
+dimension,original_paper,current_pretest,what_this_row_does_not_mix
+muformer_count,6 models trained with different random seeds,1 checkpoint muformer-l-BLAT_ECOLX_Ranganathan2015_CFX.pt,training seeds are not search seeds
+search_runs,6 independent searches,3 search seeds on the same checkpoint,search seeds are not extra models
+scoring_budget,about 1 million sequences across the six runs,4998 terminal scores per run,the budget is not the model count
+horizon,predetermined horizon; TEM-1 target described as 2-3 substitutions; released baseline.py sets 5,5,the paper target and the code default are separate cells
+reward,terminal muFormer score S(x); equation writes A_t = S(x) - v,terminal score only; PPO default gamma 0.99 and lambda 0.95,the equation and the code default are not the same advantage
+candidate_threshold,each model's own ESBL predicted-score median,negative infinity in baseline.py and run_one.py,computing the median at initialization is not using it as a threshold
+ensemble_rerank,six models rescore and sum relative ranks,none,post-search aggregation is not a search-time disagreement penalty
+wet_lab,200 variants one round; 47 of 200 above WT growth,none,model correlation is not growth
+fitness_supervision,about 5000 cefotaxime single mutants from Stiffler 2015,local Stiffler split is 4996 singles but is not named by the checkpoint config,UR50 pretraining is not this label set
+mic_panel,16 Weinreich variants including 11 high-order; body rho 0.94 and caption rho 0.92,16 local rows match that genotype and MIC table; this checkpoint Spearman is 0.8157,this Spearman is not a reproduction of 0.94 or 0.92
+dirichlet_update,update ratio uses the Dirichlet mixture,sampling uses Dirichlet; update uses the marginal 0.75 pi + 0.25/K,the local marginal baseline is not the paper update

@@ -1,0 +1,17 @@
+mutation,order,mic,weinreich_mic,prediction,mic_rank,prediction_rank,purpose
+WT,0,0.088,0.088,-0.072684437,14.5,13,validation_inference
+G236S,1,1.4,1.4,-0.054383069,9,5,validation_inference
+M180T,1,0.063,0.063,-0.075342298,16,15,validation_inference
+M180T;G236S,2,32,32,-0.056639582,6,7,validation_inference
+E102K,1,0.13,0.13,-0.065191329,13,9,validation_inference
+E102K;G236S,2,360,360,-0.046872705,4,1,validation_inference
+E102K;M180T,2,0.18,0.18,-0.069057018,12,11,validation_inference
+E102K;M180T;G236S,3,360,360,-0.050327331,4,3,validation_inference
+A40G,1,0.088,0.088,-0.073725611,14.5,14,validation_inference
+A40G;G236S,2,23,23,-0.055192798,7,6,validation_inference
+A40G;M180T,2,1.4,1.4,-0.076282144,9,16,validation_inference
+A40G;M180T;G236S,3,360,360,-0.057270527,4,8,validation_inference
+A40G;E102K,2,1.4,1.4,-0.066353798,9,10,validation_inference
+A40G;E102K;G236S,3,2100,2100,-0.047756225,2,2,validation_inference
+A40G;E102K;M180T,3,0.8,0.8,-0.070090473,11,12,validation_inference
+A40G;E102K;M180T;G236S,4,2900,2900,-0.051017255,1,4,validation_inference
