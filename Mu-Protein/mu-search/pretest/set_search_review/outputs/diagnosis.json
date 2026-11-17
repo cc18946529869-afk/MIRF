@@ -1,0 +1,144 @@
+{
+  "contact_edges": 1093,
+  "fold_seed": 20261117,
+  "lambdas": [
+    10.0,
+    100.0
+  ],
+  "rewire_seed": 20261117,
+  "rewired_edges": 1093,
+  "seeds": [
+    {
+      "hamming": {
+        "0": 0,
+        "1": 1,
+        "2": 11,
+        "3": 140,
+        "4": 1201,
+        "5": 3645
+      },
+      "purpose_counts": {
+        "initialization": 105,
+        "return_rescore": 100,
+        "reward": 4998,
+        "search_measurement": 1
+      },
+      "reward_n": 4998,
+      "score_max": 0.07553330063819885,
+      "score_median": -0.08186668157577515,
+      "score_min": -0.37545356154441833,
+      "seed": 0,
+      "support": {
+        "aa_pairs": {
+          "max": 2,
+          "n_ge_2": 66,
+          "n_ge_5": 0,
+          "unique": 44021
+        },
+        "site_pairs": {
+          "max": 8,
+          "n_ge_2": 11960,
+          "n_ge_5": 328,
+          "unique": 26350
+        },
+        "substitutions": {
+          "max": 16,
+          "n_ge_2": 4945,
+          "n_ge_5": 2307,
+          "unique": 5344
+        }
+      },
+      "unique_sequences": 4998
+    },
+    {
+      "hamming": {
+        "0": 0,
+        "1": 0,
+        "2": 11,
+        "3": 125,
+        "4": 1107,
+        "5": 3755
+      },
+      "purpose_counts": {
+        "initialization": 105,
+        "return_rescore": 100,
+        "reward": 4998,
+        "search_measurement": 1
+      },
+      "reward_n": 4998,
+      "score_max": 0.08513122797012329,
+      "score_median": -0.08128573000431061,
+      "score_min": -0.4120732843875885,
+      "seed": 1,
+      "support": {
+        "aa_pairs": {
+          "max": 2,
+          "n_ge_2": 63,
+          "n_ge_5": 0,
+          "unique": 44515
+        },
+        "site_pairs": {
+          "max": 8,
+          "n_ge_2": 12102,
+          "n_ge_5": 296,
+          "unique": 26577
+        },
+        "substitutions": {
+          "max": 17,
+          "n_ge_2": 4971,
+          "n_ge_5": 2362,
+          "unique": 5336
+        }
+      },
+      "unique_sequences": 4998
+    },
+    {
+      "hamming": {
+        "0": 0,
+        "1": 3,
+        "2": 9,
+        "3": 132,
+        "4": 1161,
+        "5": 3693
+      },
+      "purpose_counts": {
+        "initialization": 105,
+        "return_rescore": 100,
+        "reward": 4998,
+        "search_measurement": 1
+      },
+      "reward_n": 4998,
+      "score_max": 0.08525191247463226,
+      "score_median": -0.08218660950660706,
+      "score_min": -0.3563978970050812,
+      "seed": 2,
+      "support": {
+        "aa_pairs": {
+          "max": 2,
+          "n_ge_2": 76,
+          "n_ge_5": 0,
+          "unique": 44225
+        },
+        "site_pairs": {
+          "max": 8,
+          "n_ge_2": 11948,
+          "n_ge_5": 305,
+          "unique": 26490
+        },
+        "substitutions": {
+          "max": 14,
+          "n_ge_2": 4953,
+          "n_ge_5": 2301,
+          "unique": 5357
+        }
+      },
+      "unique_sequences": 4998
+    }
+  ],
+  "sequences_shared_by_three_seeds": 0,
+  "thresholds": {
+    "contact_site_pair": 2,
+    "substitution": 5,
+    "unrestricted_site_pair": 5
+  }
+}
