@@ -1,0 +1,104 @@
+{
+  "length": 263,
+  "contact_rule": "selected atoms closer than 8 angstroms",
+  "atom_rule": "glycine CA, every other residue CB",
+  "score": "average-product corrected Frobenius norm of the 20 amino-acid states",
+  "excluded_reference_positions": [
+    82,
+    182
+  ],
+  "main": {
+    "separation_at_least_6": {
+      "pairs": 32650,
+      "contacts": 579,
+      "contact_rate": 0.01773353751914242,
+      "precision_at_l": 0.6387832699619772,
+      "precision_at_l_half": 0.7022900763358778,
+      "precision_at_l_fifth": 0.8076923076923077,
+      "average_precision": 0.45059097458203845
+    },
+    "separation_at_least_12": {
+      "pairs": 31147,
+      "contacts": 504,
+      "contact_rate": 0.016181333675795422,
+      "precision_at_l": 0.6501901140684411,
+      "precision_at_l_half": 0.7099236641221374,
+      "precision_at_l_fifth": 0.7884615384615384,
+      "average_precision": 0.484871638267954
+    },
+    "separation_6_to_11": {
+      "pairs": 1503,
+      "contacts": 75,
+      "contact_rate": 0.0499001996007984,
+      "precision_at_l": 0.18250950570342206,
+      "precision_at_l_half": 0.2748091603053435,
+      "precision_at_l_fifth": 0.40384615384615385,
+      "average_precision": 0.33381937550723
+    },
+    "separation_12_to_23": {
+      "pairs": 2898,
+      "contacts": 143,
+      "contact_rate": 0.04934437543133195,
+      "precision_at_l": 0.4144486692015209,
+      "precision_at_l_half": 0.648854961832061,
+      "precision_at_l_fifth": 0.7692307692307693,
+      "average_precision": 0.6265229500777783
+    },
+    "separation_24_and_above": {
+      "pairs": 28249,
+      "contacts": 361,
+      "contact_rate": 0.012779213423484016,
+      "precision_at_l": 0.5779467680608364,
+      "precision_at_l_half": 0.6564885496183206,
+      "precision_at_l_fifth": 0.7307692307692307,
+      "average_precision": 0.44559196394288586
+    }
+  },
+  "sensitivity_with_mismatched_coordinates": {
+    "separation_at_least_6": {
+      "pairs": 33153,
+      "contacts": 588,
+      "contact_rate": 0.017735951497602025,
+      "precision_at_l": 0.6463878326996197,
+      "precision_at_l_half": 0.7251908396946565,
+      "precision_at_l_fifth": 0.8076923076923077,
+      "average_precision": 0.4599585612710044
+    },
+    "separation_at_least_12": {
+      "pairs": 31626,
+      "contacts": 511,
+      "contact_rate": 0.01615759185480301,
+      "precision_at_l": 0.6577946768060836,
+      "precision_at_l_half": 0.7175572519083969,
+      "precision_at_l_fifth": 0.7884615384615384,
+      "average_precision": 0.492313433542874
+    },
+    "separation_6_to_11": {
+      "pairs": 1527,
+      "contacts": 77,
+      "contact_rate": 0.0504256712508186,
+      "precision_at_l": 0.18631178707224336,
+      "precision_at_l_half": 0.2824427480916031,
+      "precision_at_l_fifth": 0.4423076923076923,
+      "average_precision": 0.3534708396415586
+    },
+    "separation_12_to_23": {
+      "pairs": 2946,
+      "contacts": 143,
+      "contact_rate": 0.048540393754243044,
+      "precision_at_l": 0.4144486692015209,
+      "precision_at_l_half": 0.6412213740458015,
+      "precision_at_l_fifth": 0.7692307692307693,
+      "average_precision": 0.6252621978716596
+    },
+    "separation_24_and_above": {
+      "pairs": 28680,
+      "contacts": 368,
+      "contact_rate": 0.012831241283124128,
+      "precision_at_l": 0.5931558935361216,
+      "precision_at_l_half": 0.6717557251908397,
+      "precision_at_l_fifth": 0.7692307692307693,
+      "average_precision": 0.45678869493364294
+    }
+  }
+}
