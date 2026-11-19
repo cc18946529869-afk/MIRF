@@ -55,6 +55,57 @@ def geometry(domain_map: Path, pdb_path: Path) -> dict[str, np.ndarray]:
     }
 
 
+def component_state(
+    sequence: np.ndarray,
+    fields: np.ndarray,
+    couplings: np.ndarray,
+    background: np.ndarray,
+    masks: dict[str, np.ndarray],
+    state: int,
+    old: np.ndarray | None = None,
+) -> dict[str, np.ndarray]:
+    """Split one target state at every site into the seven sealed components."""
+    index = np.arange(sequence.shape[0])
+    if old is None:
+        old = couplings[index, :, sequence, :]
+    delta = couplings[index, :, int(state), :] - old
+    mean = np.einsum("ijb,jb->ij", delta, background)
+    context = delta[index[:, None], index[None, :], sequence[None, :]] - mean
+    np.fill_diagonal(mean, 0.0)
+    np.fill_diagonal(context, 0.0)
+    delta_h = fields[:, int(state)] - fields[index, sequence]
+    r_mean = -(delta_h + mean.sum(axis=1))
+    r_source = -(context * masks["source"]).sum(axis=1)
+    r_other = -(context * masks["other"]).sum(axis=1)
+    r_contact = -(context * masks["weight"] * masks["other_known"]).sum(axis=1)
+    r_remote = -(context * (1.0 - masks["weight"]) * masks["other_known"]).sum(axis=1)
+    r_unknown = -(context * masks["other_unknown"]).sum(axis=1)
+    return {
+        "r_mean": r_mean,
+        "delta_e": r_mean + r_source + r_other,
+        "r_source": r_source,
+        "r_other": r_other,
+        "r_contact": r_contact,
+        "r_remote": r_remote,
+        "r_unknown": r_unknown,
+    }
+
+
+def require_saved_parameters(fields: np.ndarray, couplings: np.ndarray, length: int | None = None) -> None:
+    """Reject a missing, misshapen, or non-finite field or coupling array."""
+    if fields.ndim != 2 or couplings.ndim != 4:
+        raise ValueError("fields and couplings have the wrong rank")
+    site_count, state_count = fields.shape
+    if couplings.shape != (site_count, site_count, state_count, state_count):
+        raise ValueError("couplings do not have one block per site pair and state")
+    if state_count != STATES:
+        raise ValueError("fields and couplings must use 21 states")
+    if length is not None and site_count != length:
+        raise ValueError("parameter arrays do not cover the mature sites")
+    if not np.isfinite(fields).all() or not np.isfinite(couplings).all():
+        raise ValueError("fields or couplings contain a non-finite value")
+
+
 def audit_parameters(
     sequence: np.ndarray,
     fields: np.ndarray,
@@ -67,6 +118,7 @@ def audit_parameters(
     fields = np.asarray(fields, dtype=np.float64)
     couplings = np.asarray(couplings, dtype=np.float64)
     background = np.asarray(background, dtype=np.float64)
+    require_saved_parameters(fields, couplings, length=int(sequence.shape[0]))
     if background.shape != (sequence.shape[0], STATES):
         raise ValueError("background q must have one row per site and 21 states")
     if not np.isfinite(background).all() or np.any(background < 0):
@@ -80,18 +132,13 @@ def audit_parameters(
         "normalized_geometry": 0.0,
     }
     for state in range(STATES):
-        delta = couplings[index, :, state, :] - old
-        mean = np.einsum("ijb,jb->ij", delta, background)
-        context = delta[index[:, None], index[None, :], sequence[None, :]] - mean
-        np.fill_diagonal(mean, 0.0)
-        np.fill_diagonal(context, 0.0)
-        delta_h = fields[:, state] - fields[index, sequence]
-        r_mean = -(delta_h + mean.sum(axis=1))
-        r_source = -(context * masks["source"]).sum(axis=1)
-        r_other = -(context * masks["other"]).sum(axis=1)
-        r_contact = -(context * masks["weight"] * masks["other_known"]).sum(axis=1)
-        r_remote = -(context * (1.0 - masks["weight"]) * masks["other_known"]).sum(axis=1)
-        r_unknown = -(context * masks["other_unknown"]).sum(axis=1)
+        parts = component_state(sequence, fields, couplings, background, masks, state, old)
+        r_mean = parts["r_mean"]
+        r_source = parts["r_source"]
+        r_other = parts["r_other"]
+        r_contact = parts["r_contact"]
+        r_remote = parts["r_remote"]
+        r_unknown = parts["r_unknown"]
         geometry_sum = r_contact + r_remote + r_unknown
         for site in range(sequence.shape[0]):
             delta_e = potts_energy.mutation_energy(sequence, site, state, fields, couplings)
@@ -162,6 +209,7 @@ def run(root: Path) -> dict:
         "states": STATES,
         "comparisons": 100 * LENGTH * STATES,
         "passed": passed,
+        "parameters_finite": True,
         "maxima": maxima,
         "rows": rows,
     }

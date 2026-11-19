@@ -5,6 +5,7 @@
   "states": 21,
   "comparisons": 552300,
   "passed": true,
+  "parameters_finite": true,
   "maxima": {
     "raw_energy": 5.329070518200751e-15,
     "raw_geometry": 2.220446049250313e-15,

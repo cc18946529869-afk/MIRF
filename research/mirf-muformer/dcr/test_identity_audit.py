@@ -55,6 +55,19 @@ class IdentityAuditTests(unittest.TestCase):
         self.assertLessEqual(summary["normalized_geometry"], identity_audit.ACCEPTANCE)
         self.assertLess(summary["q_abs"], 1e-12)
 
+    def test_nonfinite_couplings_raise_before_the_residual(self) -> None:
+        fields = np.zeros((2, identity_audit.STATES))
+        couplings = np.zeros((2, 2, identity_audit.STATES, identity_audit.STATES))
+        couplings[0, 1, 1, 1] = np.nan
+        with self.assertRaises(ValueError):
+            identity_audit.require_saved_parameters(fields, couplings, length=2)
+
+    def test_a_truncated_coupling_block_raises(self) -> None:
+        fields = np.zeros((2, identity_audit.STATES))
+        couplings = np.zeros((2, 2, identity_audit.STATES, identity_audit.STATES - 1))
+        with self.assertRaises(ValueError):
+            identity_audit.require_saved_parameters(fields, couplings, length=2)
+
 
 if __name__ == "__main__":
     unittest.main()

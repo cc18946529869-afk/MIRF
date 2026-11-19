@@ -1,0 +1,49 @@
+{
+  "rows": 4996,
+  "observed_rows": 4996,
+  "masked_rows": 0,
+  "splits": {
+    "train": 3497,
+    "valid": 500,
+    "test": 999
+  },
+  "split_sha256": {
+    "train": "615e47bd09ca1a413e77449dbf286036d227d588cfc12034feff70c7a9ffbe67",
+    "valid": "803af89ec564da0f84b857e3c6efbb96a9718e4db45d7ab853294b87f7406fc6",
+    "test": "66e8ce3eec1e603e435ff54111bc95804b64104a4f5da90fb1cf45a569f9854d"
+  },
+  "feature_names": [
+    "r_mean",
+    "delta_e",
+    "std_r_mean",
+    "std_delta_e",
+    "r_source",
+    "std_r_source",
+    "r_other",
+    "r_contact",
+    "r_remote",
+    "r_unknown",
+    "std_r_other",
+    "std_r_contact",
+    "std_r_remote",
+    "std_r_unknown"
+  ],
+  "score_not_used_as_feature": true,
+  "bootstrap_replicates": 100,
+  "std_divisor": 99,
+  "acceptance": 1e-12,
+  "full_fit": {
+    "raw_energy": 3.552713678800501e-15,
+    "raw_geometry": 1.7763568394002505e-15,
+    "normalized_energy": 5.03678701585229e-16,
+    "normalized_geometry": 5.978895067211626e-16,
+    "q_abs": 6.661338147750939e-16
+  },
+  "bootstrap_max_normalized_energy": 1.4988010832439613e-15,
+  "bootstrap_max_normalized_geometry": 8.310287760773442e-16,
+  "reloaded_max_normalized_energy": 0.0,
+  "reloaded_max_normalized_geometry": 5.978895067211626e-16,
+  "n1000_train_rows_found_in_train_split": 1000,
+  "table_sha256": "9ca0108a47677fa27716442a2bfb8b5256ac101459049ba808c11a3d0b7bea33",
+  "j_std_not_used": true
+}

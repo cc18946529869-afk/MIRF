@@ -1,6 +1,6 @@
 # 草稿：结构验证补齐与 14 维提取器
 
-14 维的顺序、公式和掩码沿用已经封口的定义。2026-11-19 把样本身份改成由完整序列推导，并把 \(10^{-12}\) 写成数值验收界；这个界也记在 `记录.md`。提取代码没有写。正式特征表没有计算。
+14 维的顺序、公式和掩码沿用已经封口的定义。2026-11-19 把样本身份改成由完整序列推导，并把 \(10^{-12}\) 写成数值验收界；这个界也记在 `记录.md`。提取代码在 `dcr/potts_features.py`。
 
 ## 结构验证
 
@@ -18,7 +18,7 @@
 
 ## 14 维提取器
 
-将来的模块只计划两个文件：`dcr/potts_features.py` 和 `dcr/test_potts_features.py`。本轮不创建它们。
+提取模块是 `dcr/potts_features.py`，测试是 `dcr/test_potts_features.py`。
 
 均值侧读 `dcr/bootstrap/reference/h_hat.npy` 和 `j_star.npy`。运行时核对 `reference/manifest.json` 里的 `gauge_sha256`：`h_hat.npy` 为 `59f3bc61ed99a6448c75119af9c54cf7995f094047ead32784d2da2c8de3cbec`，`j_star.npy` 为 `eaedeba815dfea038a1847d92febb0c7bd6109cefe008e4ad5fba0a7aa5c472d`。对不上就停止。这是 `full_fit/` 在 `c0f950b` 上的规范组装，`refit` 为假。不从位点文件重拟合，也不重做另一套规范。
 
@@ -109,8 +109,8 @@ R_{\mathrm{unknown}}=-\sum u_{ij}
 
 ## 2026-11-19 恒等式审计
 
-`dcr/identity_audit.py` 对正式重复 1–100 调用 `potts_energy.mutation_energy`。逐次最大值在 `bootstrap_identity_audit.json`。这一步没有生成 4996 行特征表。
+`dcr/identity_audit.py` 对正式重复 1–100 调用 `potts_energy.mutation_energy`，并在进入残差之前拒绝非有限或形状不完整的 \(h\)、\(J^\star\)。逐次最大值在 `bootstrap_identity_audit.json`。4996 行特征表在 `dcr/features/blat_ecolx_stiffler_2015_v0.1.tsv`。
 
 ## 尚未做
 
-系统发育零假设和 MI 对照没有设计，也没有运行。14 维提取代码没有写。OOF、残差网络和 μFormer 都没有动。正式训练仍然是 NO-GO。
+系统发育零假设和 MI 对照没有设计，也没有运行。OOF、残差网络和 μFormer 都没有动。正式训练仍然是 NO-GO。
