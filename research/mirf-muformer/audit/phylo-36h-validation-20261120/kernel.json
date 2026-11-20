@@ -1,0 +1,24 @@
+{
+  "profiles": 4,
+  "states": 21,
+  "matrix_entries_checked": 10584,
+  "maximum_matrix_error": 1.1102230246251565e-16,
+  "maximum_stochastic_stationary_reversibility_error": 2.220446049250313e-16,
+  "maximum_semigroup_error": 2.220446049250313e-16,
+  "maximum_endpoint_mismatch_error": 5.898059818321144e-17,
+  "stationary_expected_jumps_per_refresh_unit": [
+    0.937950937950938,
+    0.8196786351914302,
+    0.0,
+    0.039200000000000124
+  ],
+  "quartet_numeric_log_likelihood": -708.1769747520514,
+  "quartet_high_precision_log_likelihood": -708.1769747520514,
+  "fixed_tree_vs_dense_pruning_error": 0.0,
+  "quartet_topology_challenge_log_likelihoods": [
+    -146.07950938808634,
+    -345.0370918755221,
+    -345.0370918755221
+  ],
+  "quartet_best_split": "01|23"
+}

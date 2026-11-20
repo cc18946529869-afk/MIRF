@@ -1,0 +1,34 @@
+{
+  "leaves": 10000,
+  "sites": 263,
+  "scope": "artificial fixed topology, five effective lengths",
+  "values": [
+    {
+      "effective_length": 0.03,
+      "log_likelihood": -14891607.436667923,
+      "seconds": 0.8320555040845647
+    },
+    {
+      "effective_length": 0.08,
+      "log_likelihood": -12604241.28796376,
+      "seconds": 0.8346250629983842
+    },
+    {
+      "effective_length": 0.16,
+      "log_likelihood": -11134507.880617807,
+      "seconds": 0.8175985019188374
+    },
+    {
+      "effective_length": 0.32,
+      "log_likelihood": -9913811.968299508,
+      "seconds": 0.8227248849580064
+    },
+    {
+      "effective_length": 0.64,
+      "log_likelihood": -9124499.038723623,
+      "seconds": 0.8119322420097888
+    }
+  ],
+  "seconds": 4.118959104060195,
+  "max_rss_kib": 1396568
+}

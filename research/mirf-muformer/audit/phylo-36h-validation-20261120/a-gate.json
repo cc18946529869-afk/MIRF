@@ -1,0 +1,121 @@
+{
+  "rows": 209644,
+  "sites": 263,
+  "official_weight_total": 47899.73496814515,
+  "sha256": {
+    "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+    "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+  },
+  "build_command": [
+    "gcc",
+    "-O3",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-mavx2",
+    "-mpopcnt",
+    "-fopenmp",
+    "-shared",
+    "-fPIC",
+    "/data/cc233_data/work_dir/MIRF-phylo-36h-validation-20261120/research/mirf-muformer/dcr/perf/cluster_gate.c",
+    "-o",
+    "/data/cc233_data/work_dir/MIRF-phylo-36h-validation-20261120/.validation-work/package/private/cluster_gate.so"
+  ],
+  "library_sha256": "17ffd9d44ea8fc69ad1361b8ca7a1882a732200a5cc7fd2bfabedfd90e26065f",
+  "threads": 36,
+  "graph_seconds": 10.07657252496574,
+  "main_degree_vector_matches_reference": true,
+  "granularities": {
+    "211": {
+      "edges": 14790839,
+      "cluster_assignments_sha256": "692d369cade756f1b0ed3f9908a0e87a63d03184897c58e04ac4a4e3aab44f9c",
+      "components": 44117,
+      "singleton_components": 28146,
+      "maximum_rows": 3398,
+      "maximum_row_share": 0.016208429528152487,
+      "largest_weight_share": 0.0009877565691381008,
+      "effective_weight_components": 29187.51413229801,
+      "heaviest_component_rows": 1173,
+      "heaviest_component_chain_fraction": 0.9859972225103419,
+      "non_singleton_chain_quantiles": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.9875997906396704
+      ],
+      "eligible": false,
+      "failed_gates": [
+        "heaviest_component_chain_fraction_above_0.50"
+      ],
+      "planned": [
+        {
+          "id": "A211-001",
+          "role": "pilot_and_screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A211-002",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A211-003",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A211-004",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        }
+      ]
+    },
+    "237": {
+      "edges": 6806315,
+      "cluster_assignments_sha256": "eea8e02554dfda7698207b55bf8ee9928f7eb1629e068df9fdaa3c962b7f8e0b",
+      "components": 72673,
+      "singleton_components": 50353,
+      "maximum_rows": 2218,
+      "maximum_row_share": 0.010579840109900594,
+      "largest_weight_share": 3.572358861965089e-05,
+      "effective_weight_components": 54796.178570016935,
+      "heaviest_component_rows": 1209,
+      "heaviest_component_chain_fraction": 0.8774038786744133,
+      "non_singleton_chain_quantiles": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.9429056280759155
+      ],
+      "eligible": false,
+      "failed_gates": [
+        "heaviest_component_chain_fraction_above_0.50"
+      ],
+      "planned": [
+        {
+          "id": "A237-001",
+          "role": "pilot_and_screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A237-002",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A237-003",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        },
+        {
+          "id": "A237-004",
+          "role": "screening",
+          "state": "blocked_before_fitting"
+        }
+      ]
+    }
+  }
+}

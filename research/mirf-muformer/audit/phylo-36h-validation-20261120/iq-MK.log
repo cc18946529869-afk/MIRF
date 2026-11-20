@@ -1,0 +1,29 @@
+IQ-TREE version 3.1.4 for Linux x86 64-bit built Sep 10 2026
+Developed by Bui Quang Minh, Thomas Wong, Nhan Ly-Trong, Huaiyan Ren
+Contributed by Lam-Tung Nguyen, Dominik Schrempf, Chris Bielow,
+Olga Chernomor, Michael Woodhams, Diep Thi Hoang, Heiko Schmidt
+
+Host:    yf-Precision-7960-Tower (AVX512, FMA3, 376 GB RAM)
+Command: /data/cc233_data/work_dir/MIRF-phylo-36h-validation-20261120/.validation-work/tool/iqtree-3.1.4-Linux-intel/bin/iqtree3 -s fixture/categories.phy -st MORPH -m MK -fs fixture/profiles.txt -te fixture/toy.tree -blfix -nt 1 --prefix iq-MK
+Seed:    614990 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Fri Nov 20 19:47:18 2026
+Kernel:  AVX+FMA - 1 threads (48 CPU cores detected)
+
+HINT: Use -nt option to specify number of threads because your CPU has 48 cores!
+HINT: -nt AUTO will automatically determine the best number of threads to use.
+
+Reading alignment file fixture/categories.phy ... Phylip format detected
+Alignment most likely contains 21-state morphological data
+Constructing alignment: done in 3.88622e-05 secs using 48.89% CPU
+Alignment has 4 sequences with 42 columns, 28 distinct patterns
+0 parsimony-informative, 42 singleton sites, 0 constant sites
+    Gap/Ambiguity  Composition  p-value
+Analyzing sequences: done in 3.09944e-06 secs using 32.26% CPU
+   1  r0    0.00%    passed     89.39%
+   2  r1    0.00%    passed     89.39%
+   3  r2    0.00%    passed     89.39%
+   4  r3    0.00%    passed     89.39%
+****  TOTAL    0.00%  0 sequences failed composition chi2 test (p-value<5%; df=20)
+
+Reading site-specific state frequency file fixture/profiles.txt ...
+ERROR: Check site 2. Frequencies must be strictly positive and smaller than 1

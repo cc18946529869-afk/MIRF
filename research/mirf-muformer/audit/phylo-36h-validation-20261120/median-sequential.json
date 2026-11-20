@@ -1,0 +1,31 @@
+{
+  "design": "candidate not approved; iid draws from each frozen law",
+  "familywise_alpha": 0.05,
+  "alpha_per_tail": 0.000625,
+  "looks": [
+    {
+      "n_per_arm": 12,
+      "lower_order_1_based": 1,
+      "upper_order_1_based": 12,
+      "one_sided_worst_case_error": 0.000244140625
+    },
+    {
+      "n_per_arm": 24,
+      "lower_order_1_based": 4,
+      "upper_order_1_based": 21,
+      "one_sided_worst_case_error": 0.0001385807991027832
+    },
+    {
+      "n_per_arm": 48,
+      "lower_order_1_based": 13,
+      "upper_order_1_based": 36,
+      "one_sided_worst_case_error": 0.00035863483669729135
+    },
+    {
+      "n_per_arm": 96,
+      "lower_order_1_based": 32,
+      "upper_order_1_based": 65,
+      "one_sided_worst_case_error": 0.0003373592851666694
+    }
+  ]
+}

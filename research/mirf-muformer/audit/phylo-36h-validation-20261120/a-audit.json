@@ -1,0 +1,20 @@
+{
+  "211": {
+    "components_from_archived_labels": 44117,
+    "heaviest_component_rows": 1173,
+    "heaviest_component_weight_share": 0.0009877565691380986,
+    "heaviest_component_pair_count": 687378,
+    "heaviest_component_chain_fraction_brute_force": 0.9859972225103423,
+    "chain_fraction_difference": 3.3306690738754696e-16,
+    "connectivity_rechecked": true
+  },
+  "237": {
+    "components_from_archived_labels": 72673,
+    "heaviest_component_rows": 1209,
+    "heaviest_component_weight_share": 3.5723588619651e-05,
+    "heaviest_component_pair_count": 730236,
+    "heaviest_component_chain_fraction_brute_force": 0.8774038786743965,
+    "chain_fraction_difference": 1.6764367671839864e-14,
+    "connectivity_rechecked": true
+  }
+}
