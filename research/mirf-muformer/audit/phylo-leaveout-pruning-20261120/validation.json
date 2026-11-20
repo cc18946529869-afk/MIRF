@@ -1,0 +1,33 @@
+{
+  "topology_cases": 4,
+  "all_branch_derivatives_compared": 24,
+  "max_site_loglik_error_dense_enumeration": 4.253541963095131e-15,
+  "max_analytic_gradient_error_vs_dense_finite_diff": 3.5418149302302027e-08,
+  "max_gradient_roundoff_1_vs_2_threads": 0.0,
+  "zero_edge_contraction_loglik_error": 7.105427357601002e-15,
+  "impossible_site_gives_minus_infinity": true,
+  "scaled_vs_forced_log_error": 5.4569682106375694e-12,
+  "high_degree_star_leaves": 2000,
+  "high_degree_star_log_domain_sites": 1,
+  "high_degree_star_loglik_error": 1.2823875294998288e-10,
+  "long_finite_edge_saturation_loglik_error": 7.105427357601002e-15,
+  "invalid_topology_rejected": true,
+  "build_command": [
+    "gcc",
+    "-O3",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-fPIC",
+    "-shared",
+    "-fopenmp",
+    "-fno-fast-math",
+    "-ffp-contract=off",
+    "/data/cc233_data/work_dir/MIRF-phylo-leaveout-pruning-20261120/research/mirf-muformer/dcr/perf/f81_pruning.c",
+    "-o",
+    "/data/cc233_data/work_dir/MIRF-phylo-leaveout-pruning-20261120/.work/pruning-final/f81_pruning.so",
+    "-lm"
+  ],
+  "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073"
+}

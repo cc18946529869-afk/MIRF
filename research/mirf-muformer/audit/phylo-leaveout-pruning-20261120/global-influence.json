@@ -1,0 +1,54 @@
+{
+  "scope": "complete component diagnostics, weights from frozen observed data",
+  "rows": 209644,
+  "total_weight": 47899.73496814515,
+  "threads": 4,
+  "granularities": {
+    "211": {
+      "clusters": 44117,
+      "positive_pair_clusters": 15971,
+      "chained_clusters_ratio_above_0.50": 1361,
+      "chained_cluster_weight_share": 0.094580197585248,
+      "chained_clusters_concentration_share": 0.43732197483341906,
+      "low_similarity_mass_share_of_within_cluster_pairs": 0.7098096642014762,
+      "heaviest_cluster_weight_share": 0.0009877565691381008,
+      "heaviest_cluster_concentration_share": 0.02847717876472118,
+      "heaviest_cluster_chain_fraction": 0.9859972225103419,
+      "heaviest_cluster_low_similarity_pair_mass": 1099.7921575037783,
+      "heaviest_cluster_total_pair_mass": 1115.4110096818683,
+      "heaviest_cluster_weight_to_average": 43.57685656066559,
+      "heaviest_diameter_contrast": {
+        "scope": "only the heaviest original component; no fits",
+        "rule": "first compatible group in original row order, all within-group pairs pass",
+        "diameter_bound_mismatches": 52,
+        "subclusters": 130,
+        "largest_subcluster_rows": 223,
+        "largest_subcluster_share_of_parent_mass": 0.02095417033516696
+      }
+    },
+    "237": {
+      "clusters": 72673,
+      "positive_pair_clusters": 22320,
+      "chained_clusters_ratio_above_0.50": 678,
+      "chained_cluster_weight_share": 0.00847308583305272,
+      "chained_clusters_concentration_share": 0.007361840857424558,
+      "low_similarity_mass_share_of_within_cluster_pairs": 0.06588312155376572,
+      "heaviest_cluster_weight_share": 3.572358861965089e-05,
+      "heaviest_cluster_concentration_share": 6.992950134326714e-05,
+      "heaviest_cluster_chain_fraction": 0.8774038786744133,
+      "heaviest_cluster_low_similarity_pair_mass": 1.2831739322315863,
+      "heaviest_cluster_total_pair_mass": 1.4624666740363772,
+      "heaviest_cluster_weight_to_average": 2.596140355755889,
+      "heaviest_diameter_contrast": {
+        "scope": "only the heaviest original component; no fits",
+        "rule": "first compatible group in original row order, all within-group pairs pass",
+        "diameter_bound_mismatches": 26,
+        "subclusters": 70,
+        "largest_subcluster_rows": 225,
+        "largest_subcluster_share_of_parent_mass": 0.13867154239706325
+      }
+    }
+  },
+  "csv_sha256": "4d4036791f0ff8385f54a951933948734fb42380ca8329ef9fb384272e61f73b",
+  "seconds": 231.8208131089341
+}

@@ -1,0 +1,18 @@
+{
+  "leaves": 209644,
+  "edges": 293505,
+  "sites": 263,
+  "max_degree": 5,
+  "threads": 4,
+  "binary": false,
+  "log_domain_sites": 0,
+  "zero_profile_entries_retained": 72,
+  "scope": "observed MSA on a supplied data-independent topological fixture and heterogeneous lengths",
+  "likelihood_wall_seconds": 3.4090505751082674,
+  "likelihood_and_gradient_wall_seconds": 14.291785317938775,
+  "directional_check_wall_seconds": 7.3998653430026025,
+  "directional_absolute_error": 0.4022732079029083,
+  "directional_error_scaled": 1.0870646050157243e-08,
+  "total_wall_seconds": 26.49167887296062,
+  "max_rss_kib": 762596
+}
