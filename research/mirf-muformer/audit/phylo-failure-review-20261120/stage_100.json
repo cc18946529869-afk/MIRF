@@ -1,0 +1,16 @@
+{
+  "stage": 100,
+  "success_count": 100,
+  "minimum": 90,
+  "action": "parameter_unstable",
+  "passed": false,
+  "parameter_stable": false,
+  "r_h": 0.07086786578430383,
+  "r_j": 0.4581354189599478,
+  "d_h": 0.001998673429939617,
+  "d_j": 2.509058489070923e-05,
+  "formal_seed": 2847319051,
+  "code_revision": "c0f950ba1627c1a6cb42f80842f91158545e612b",
+  "alignment_sha256": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+  "neighbor_counts_sha256": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+}
