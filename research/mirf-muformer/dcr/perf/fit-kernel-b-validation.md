@@ -22,3 +22,14 @@ For an authorized caller, `perf.fit_kernel_b.build(new_directory)` writes a new 
 - All 36 existing `test_potts` tests passed with A compiled into a temporary directory. The B wiring test substitutes an interface probe for L-BFGS, so it does not optimize a site.
 
 The interface results apply to these fixtures and this build. The historical research assets and the production run approval remain separate.
+
+## Actual L-BFGS continuation check
+
+The additional `test_real_lbfgs_a_and_b_end_to_end` calls the normal optimizer on A and B, starting from zero and retaining the default stopping settings. B's call rejects any accidental use of A. The final parameter arrays, fresh gradients, objectives, statuses and full recorded trace were identical across A and B in both cases.
+
+| Synthetic shape | Site (zero-based) | Iterations | Evaluations | Strong Wolfe | Fallback | Gradient infinity norm | Trace events |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 31 rows, 8 columns, 3 states | 2 | 27 | 30 | 27 | 0 | 9.153511763143607e-06 | 114 |
+| 31 rows, 263 columns, 21 states | 131 | 22 | 30 | 22 | 0 | 8.74844199640415e-06 | 103 |
+
+All six interface tests passed with the command above. These runs exercised Strong Wolfe and preserved equal fallback counts. They did not encounter an accepted Armijo fallback.

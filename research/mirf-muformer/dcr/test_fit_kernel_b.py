@@ -117,6 +117,31 @@ class BInterfaceTests(unittest.TestCase):
         self.assertEqual(result.status, "interface-check")
         self.assertIs(potts_fit._COMPILED, previous)
 
+
+    def test_real_lbfgs_a_and_b_end_to_end(self):
+        for q, length, site in ((3, 8, 2), (21, 263, 131)):
+            with self.subTest(states=q, columns=length, site=site):
+                msa, weights, _, _ = fixture(q, length, rows=31)
+                total = float(weights.sum())
+                with mock.patch.object(potts_fit, "_LIBRARY", self.a_path), mock.patch.object(potts_fit, "_COMPILED", self.a):
+                    a = potts_fit.fit_site(msa, weights, site, total, q=q)
+                with mock.patch.object(potts_fit, "_compile_library", side_effect=AssertionError("B fell back to A")):
+                    b = potts_fit.fit_site(msa, weights, site, total, q=q, b_kernel=self.bound)
+                g_a = potts_fit.site_terms_c(a.theta, msa, weights, site, total, q=q, library=self.a)[2]
+                g_b = potts_fit.site_terms_c(b.theta, msa, weights, site, total, q=q, library=self.b)[2]
+                self.assertEqual(a.status, "converged")
+                self.assertEqual(a.status, b.status)
+                self.assertGreater(a.n_strong_wolfe, 0)
+                self.assertLessEqual(float(np.max(np.abs(g_b))), potts_fit.OPT_TOL)
+                for name in ("objective", "objective_accumulated", "grad_inf", "iterations", "evaluations",
+                             "n_strong_wolfe", "n_armijo_fallback", "n_curvature_skipped", "trace"):
+                    with self.subTest(field=name):
+                        self.assertEqual(getattr(a, name), getattr(b, name))
+                np.testing.assert_array_equal(a.theta, b.theta)
+                np.testing.assert_array_equal(g_a, g_b)
+                print("Real L-BFGS A/B:", q, length, site, b.iterations, b.evaluations,
+                      b.n_strong_wolfe, b.n_armijo_fallback, b.grad_inf, len(b.trace))
+
     def test_exact_symbol_provider_and_mismatched_identity(self):
         expected = str(self.artifacts / fit_kernel_b.LIBRARY)
         self.assertEqual({self.bound.symbol_paths[name] for name in fit_kernel_b.FIT_SYMBOLS}, {expected})
