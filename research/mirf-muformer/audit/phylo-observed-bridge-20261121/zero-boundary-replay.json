@@ -1,0 +1,878 @@
+{
+  "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+  "sample_size": 1000,
+  "sites": 263,
+  "edges": 1997,
+  "full_weight_total": 47899.73496814515,
+  "alignment_weights_sha256": {
+    "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+    "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+  },
+  "reference_support_nonzero": 5451,
+  "reference_support_zero": 72,
+  "observed_union_support": 21,
+  "observed_site_support_min_median_max": [
+    2,
+    19.0,
+    21
+  ],
+  "indices_sha256": "6c100a98c062f7395776f44dcda33a997b317d10ea1b0f256019b26e0fb74374",
+  "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+  "topology_sha256": "10b8c1aff40ee57e890d367dacd127cbbed0c0a9db18a9bf8dc7bd8779992ada",
+  "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+  "start": "short",
+  "initial_range": [
+    0.06,
+    0.06
+  ],
+  "threads": 4,
+  "optimizer": {
+    "solver": "Projected L-BFGS with feasible Armijo backtracking",
+    "restricted_curvature_to_free_coordinates": true,
+    "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+    "gtol_per_site": 1e-05,
+    "passed": false,
+    "solver_success": false,
+    "status": "hard_limit_on_likelihood_gradient_evaluations",
+    "iterations": 49,
+    "solver_likelihood_gradient_evaluations": 260,
+    "additional_terminal_evaluations": 1,
+    "infeasible_trials": 200,
+    "log_domain_site_replays": 0,
+    "history_resets": 0,
+    "initial_log_likelihood": -730375.9304017165,
+    "terminal_log_likelihood": -502316.0684860012,
+    "terminal_projected_gradient_per_site": 9514.945404262931,
+    "terminal_zero_edges": 290,
+    "search_seconds": 8.085898471996188,
+    "terminal_verification_seconds": 0.03384831198491156,
+    "maxiter": 150,
+    "maxeval": 260
+  },
+  "ledger_check": {
+    "accepted_monotone": true,
+    "max_accepted_likelihood_drop": 0.0,
+    "accepted_finite": true,
+    "zero_edges_from_trace": 290,
+    "last_accepted_likelihood": -502316.0684860012
+  },
+  "independent_terminal": {
+    "independent_root_and_log_domain": true,
+    "terminal_log_domain_sites": 263,
+    "terminal_log_likelihood": -502316.06848600134,
+    "projected_gradient_per_site": 9514.94540426293,
+    "terminal_max_site_log_likelihood_difference": 1.0459189070388675e-11,
+    "terminal_max_per_site_score_difference": 1.5049889513748226e-11,
+    "likelihood_score_agreement": true,
+    "wall_seconds": 0.33535314293112606,
+    "additional_normal_domain_comparison_evaluations": 1
+  },
+  "zero_branch_trial_replay": {
+    "checks": 200,
+    "confirmed_conflicting_trials": 200,
+    "detail": [
+      {
+        "zero_edges": 41,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 29,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 18,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 9,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 11,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 4,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 233,
+        "conflicting_zero_components": 9
+      },
+      {
+        "zero_edges": 156,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 100,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 300,
+        "conflicting_zero_components": 15
+      },
+      {
+        "zero_edges": 215,
+        "conflicting_zero_components": 11
+      },
+      {
+        "zero_edges": 148,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 111,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 310,
+        "conflicting_zero_components": 14
+      },
+      {
+        "zero_edges": 234,
+        "conflicting_zero_components": 11
+      },
+      {
+        "zero_edges": 171,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 133,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 111,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 259,
+        "conflicting_zero_components": 12
+      },
+      {
+        "zero_edges": 190,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 147,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 122,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 107,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 416,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 381,
+        "conflicting_zero_components": 17
+      },
+      {
+        "zero_edges": 337,
+        "conflicting_zero_components": 17
+      },
+      {
+        "zero_edges": 273,
+        "conflicting_zero_components": 14
+      },
+      {
+        "zero_edges": 204,
+        "conflicting_zero_components": 9
+      },
+      {
+        "zero_edges": 154,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 134,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 113,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 105,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 102,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 137,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 118,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 122,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 113,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 472,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 470,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 467,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 460,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 453,
+        "conflicting_zero_components": 21
+      },
+      {
+        "zero_edges": 418,
+        "conflicting_zero_components": 20
+      },
+      {
+        "zero_edges": 374,
+        "conflicting_zero_components": 14
+      },
+      {
+        "zero_edges": 325,
+        "conflicting_zero_components": 12
+      },
+      {
+        "zero_edges": 260,
+        "conflicting_zero_components": 9
+      },
+      {
+        "zero_edges": 197,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 155,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 129,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 342,
+        "conflicting_zero_components": 13
+      },
+      {
+        "zero_edges": 286,
+        "conflicting_zero_components": 10
+      },
+      {
+        "zero_edges": 230,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 180,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 380,
+        "conflicting_zero_components": 13
+      },
+      {
+        "zero_edges": 365,
+        "conflicting_zero_components": 12
+      },
+      {
+        "zero_edges": 340,
+        "conflicting_zero_components": 11
+      },
+      {
+        "zero_edges": 295,
+        "conflicting_zero_components": 8
+      },
+      {
+        "zero_edges": 237,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 198,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 217,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 192,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 186,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 173,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 316,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 308,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 304,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 284,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 315,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 278,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 281,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 261,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 248,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 323,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 284,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 266,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 255,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 246,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 359,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 310,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 282,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 266,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 253,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 247,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 245,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 257,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 241,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 351,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 306,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 276,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 258,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 246,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 423,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 330,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 285,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 794,
+        "conflicting_zero_components": 43
+      },
+      {
+        "zero_edges": 556,
+        "conflicting_zero_components": 18
+      },
+      {
+        "zero_edges": 420,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 342,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 302,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 275,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 591,
+        "conflicting_zero_components": 23
+      },
+      {
+        "zero_edges": 446,
+        "conflicting_zero_components": 9
+      },
+      {
+        "zero_edges": 364,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 307,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 289,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 272,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 266,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 568,
+        "conflicting_zero_components": 20
+      },
+      {
+        "zero_edges": 431,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 357,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 304,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 287,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 273,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 263,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 262,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 262,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 517,
+        "conflicting_zero_components": 15
+      },
+      {
+        "zero_edges": 396,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 326,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 279,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 264,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 252,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 474,
+        "conflicting_zero_components": 14
+      },
+      {
+        "zero_edges": 378,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 315,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 280,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 267,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 255,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 803,
+        "conflicting_zero_components": 48
+      },
+      {
+        "zero_edges": 604,
+        "conflicting_zero_components": 25
+      },
+      {
+        "zero_edges": 463,
+        "conflicting_zero_components": 12
+      },
+      {
+        "zero_edges": 375,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 313,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 280,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 268,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 257,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 253,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 252,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 249,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 360,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 347,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 319,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 292,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 273,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 254,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 249,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 246,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 245,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 251,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 245,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 245,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 327,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 291,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 276,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 256,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 253,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 393,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 348,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 302,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 348,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 308,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 285,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 277,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 273,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 279,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 273,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 268,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 271,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 288,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 343,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 321,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 303,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 289,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 539,
+        "conflicting_zero_components": 18
+      },
+      {
+        "zero_edges": 457,
+        "conflicting_zero_components": 14
+      },
+      {
+        "zero_edges": 398,
+        "conflicting_zero_components": 13
+      },
+      {
+        "zero_edges": 363,
+        "conflicting_zero_components": 10
+      },
+      {
+        "zero_edges": 324,
+        "conflicting_zero_components": 4
+      },
+      {
+        "zero_edges": 308,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 798,
+        "conflicting_zero_components": 51
+      },
+      {
+        "zero_edges": 657,
+        "conflicting_zero_components": 31
+      },
+      {
+        "zero_edges": 532,
+        "conflicting_zero_components": 16
+      },
+      {
+        "zero_edges": 447,
+        "conflicting_zero_components": 11
+      },
+      {
+        "zero_edges": 388,
+        "conflicting_zero_components": 9
+      },
+      {
+        "zero_edges": 357,
+        "conflicting_zero_components": 7
+      },
+      {
+        "zero_edges": 321,
+        "conflicting_zero_components": 3
+      },
+      {
+        "zero_edges": 304,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 295,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 286,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 283,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 280,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 279,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 278,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 277,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 347,
+        "conflicting_zero_components": 6
+      },
+      {
+        "zero_edges": 317,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 300,
+        "conflicting_zero_components": 1
+      },
+      {
+        "zero_edges": 333,
+        "conflicting_zero_components": 5
+      },
+      {
+        "zero_edges": 311,
+        "conflicting_zero_components": 2
+      },
+      {
+        "zero_edges": 301,
+        "conflicting_zero_components": 2
+      }
+    ]
+  },
+  "peak_rss_kib": 127912,
+  "passed_bridge_gate": false
+}

@@ -1,0 +1,450 @@
+{
+  "scope": "observed row subsets on a fixed data-independent topology; frozen optimizer",
+  "bridge_gate_passed": false,
+  "run_logs_sha256": "633aa3d173e13ebcb93be931394667961fc2900e9122ba51d52067b81b6478e9",
+  "trials": {
+    "1000": [
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 1000,
+        "sites": 263,
+        "edges": 1997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          2,
+          19.0,
+          21
+        ],
+        "indices_sha256": "6c100a98c062f7395776f44dcda33a997b317d10ea1b0f256019b26e0fb74374",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "10b8c1aff40ee57e890d367dacd127cbbed0c0a9db18a9bf8dc7bd8779992ada",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "short",
+        "initial_range": [
+          0.06,
+          0.06
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "hard_limit_on_likelihood_gradient_evaluations",
+          "iterations": 49,
+          "solver_likelihood_gradient_evaluations": 260,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 200,
+          "log_domain_site_replays": 0,
+          "history_resets": 0,
+          "initial_log_likelihood": -730375.9304017165,
+          "terminal_log_likelihood": -502316.0684860012,
+          "terminal_projected_gradient_per_site": 9514.945404262931,
+          "terminal_zero_edges": 290,
+          "search_seconds": 7.388452008017339,
+          "terminal_verification_seconds": 0.033386932918801904,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 290,
+          "last_accepted_likelihood": -502316.0684860012
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -502316.06848600134,
+          "projected_gradient_per_site": 9514.94540426293,
+          "terminal_max_site_log_likelihood_difference": 1.0459189070388675e-11,
+          "terminal_max_per_site_score_difference": 1.5049889513748226e-11,
+          "likelihood_score_agreement": true,
+          "wall_seconds": 0.31161984300706536,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 127452,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      },
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 1000,
+        "sites": 263,
+        "edges": 1997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          2,
+          19.0,
+          21
+        ],
+        "indices_sha256": "6c100a98c062f7395776f44dcda33a997b317d10ea1b0f256019b26e0fb74374",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "10b8c1aff40ee57e890d367dacd127cbbed0c0a9db18a9bf8dc7bd8779992ada",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "long",
+        "initial_range": [
+          0.45,
+          0.45
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "hard_limit_on_likelihood_gradient_evaluations",
+          "iterations": 47,
+          "solver_likelihood_gradient_evaluations": 260,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 195,
+          "log_domain_site_replays": 4208,
+          "history_resets": 1,
+          "initial_log_likelihood": -553468.3082712276,
+          "terminal_log_likelihood": -506726.14616983826,
+          "terminal_projected_gradient_per_site": 166533808.92847726,
+          "terminal_zero_edges": 274,
+          "search_seconds": 6.7003031920176,
+          "terminal_verification_seconds": 0.030155018088407815,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 274,
+          "last_accepted_likelihood": -506726.14616983826
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -506726.14616983815,
+          "projected_gradient_per_site": 166533808.9284772,
+          "terminal_max_site_log_likelihood_difference": 1.2732925824820995e-11,
+          "terminal_max_per_site_score_difference": 3.1910015149714826e-07,
+          "likelihood_score_agreement": false,
+          "wall_seconds": 0.3050078640226275,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 127344,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      },
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 1000,
+        "sites": 263,
+        "edges": 1997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          2,
+          19.0,
+          21
+        ],
+        "indices_sha256": "6c100a98c062f7395776f44dcda33a997b317d10ea1b0f256019b26e0fb74374",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "10b8c1aff40ee57e890d367dacd127cbbed0c0a9db18a9bf8dc7bd8779992ada",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "heterogeneous",
+        "initial_range": [
+          0.08,
+          0.34
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "hard_limit_on_likelihood_gradient_evaluations",
+          "iterations": 61,
+          "solver_likelihood_gradient_evaluations": 260,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 180,
+          "log_domain_site_replays": 0,
+          "history_resets": 0,
+          "initial_log_likelihood": -604137.399095514,
+          "terminal_log_likelihood": -503109.7790484606,
+          "terminal_projected_gradient_per_site": 18.725819428479767,
+          "terminal_zero_edges": 310,
+          "search_seconds": 7.392209263984114,
+          "terminal_verification_seconds": 0.030318305012769997,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 310,
+          "last_accepted_likelihood": -503109.7790484606
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -503109.7790484606,
+          "projected_gradient_per_site": 18.72581942847975,
+          "terminal_max_site_log_likelihood_difference": 1.1368683772161603e-11,
+          "terminal_max_per_site_score_difference": 2.07489285575573e-14,
+          "likelihood_score_agreement": true,
+          "wall_seconds": 0.312768290983513,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 127716,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      }
+    ],
+    "10000": [
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 10000,
+        "sites": 263,
+        "edges": 19997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          3,
+          21.0,
+          21
+        ],
+        "indices_sha256": "f6b8641cc208ffc95a4d6e994f35f025ab5f0e7280afb31d7b31a09b75b5b974",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "f3054da4a487b5334dcbb4a6c8b5346fc2318a681e50d6c3c6014bf524b39860",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "short",
+        "initial_range": [
+          0.06,
+          0.06
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "no_finite_armijo_step",
+          "iterations": 21,
+          "solver_likelihood_gradient_evaluations": 230,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 190,
+          "log_domain_site_replays": 11835,
+          "history_resets": 1,
+          "initial_log_likelihood": -7254269.806003679,
+          "terminal_log_likelihood": -5217871.827704999,
+          "terminal_projected_gradient_per_site": 37065553333763.55,
+          "terminal_zero_edges": 1251,
+          "search_seconds": 115.983795725042,
+          "terminal_verification_seconds": 0.3138793669641018,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 1251,
+          "last_accepted_likelihood": -5217871.827704999
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -5217871.827704999,
+          "projected_gradient_per_site": 37065553333763.586,
+          "terminal_max_site_log_likelihood_difference": 3.5652192309498787e-10,
+          "terminal_max_per_site_score_difference": 0.045627376425855515,
+          "likelihood_score_agreement": false,
+          "wall_seconds": 3.160212292103097,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 151044,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      },
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 10000,
+        "sites": 263,
+        "edges": 19997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          3,
+          21.0,
+          21
+        ],
+        "indices_sha256": "f6b8641cc208ffc95a4d6e994f35f025ab5f0e7280afb31d7b31a09b75b5b974",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "f3054da4a487b5334dcbb4a6c8b5346fc2318a681e50d6c3c6014bf524b39860",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "long",
+        "initial_range": [
+          0.45,
+          0.45
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "hard_limit_on_likelihood_gradient_evaluations",
+          "iterations": 25,
+          "solver_likelihood_gradient_evaluations": 260,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 234,
+          "log_domain_site_replays": 526,
+          "history_resets": 0,
+          "initial_log_likelihood": -5511451.678069601,
+          "terminal_log_likelihood": -5163130.857252297,
+          "terminal_projected_gradient_per_site": 74.36361693294286,
+          "terminal_zero_edges": 209,
+          "search_seconds": 55.462816520943306,
+          "terminal_verification_seconds": 0.29467192792799324,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 209,
+          "last_accepted_likelihood": -5163130.857252297
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -5163130.857252298,
+          "projected_gradient_per_site": 74.36361693294285,
+          "terminal_max_site_log_likelihood_difference": 4.838511813431978e-10,
+          "terminal_max_per_site_score_difference": 6.916309519185766e-14,
+          "likelihood_score_agreement": true,
+          "wall_seconds": 3.2427216640207916,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 151440,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      },
+      {
+        "scope": "same archived observational MSA; deterministic row subset on a data-independent fixed topology",
+        "sample_size": 10000,
+        "sites": 263,
+        "edges": 19997,
+        "full_weight_total": 47899.73496814515,
+        "alignment_weights_sha256": {
+          "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+          "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+        },
+        "reference_support_nonzero": 5451,
+        "reference_support_zero": 72,
+        "observed_union_support": 21,
+        "observed_site_support_min_median_max": [
+          3,
+          21.0,
+          21
+        ],
+        "indices_sha256": "f6b8641cc208ffc95a4d6e994f35f025ab5f0e7280afb31d7b31a09b75b5b974",
+        "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+        "topology_sha256": "f3054da4a487b5334dcbb4a6c8b5346fc2318a681e50d6c3c6014bf524b39860",
+        "library_sha256": "077b317ee0befaf433ec24bce86d0957c49ed8190f48cc384931e4c712475073",
+        "start": "heterogeneous",
+        "initial_range": [
+          0.08,
+          0.34
+        ],
+        "threads": 4,
+        "optimizer": {
+          "solver": "Projected L-BFGS with feasible Armijo backtracking",
+          "restricted_curvature_to_free_coordinates": true,
+          "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+          "gtol_per_site": 1e-05,
+          "passed": false,
+          "solver_success": false,
+          "status": "no_finite_armijo_step",
+          "iterations": 22,
+          "solver_likelihood_gradient_evaluations": 223,
+          "additional_terminal_evaluations": 1,
+          "infeasible_trials": 170,
+          "log_domain_site_replays": 7101,
+          "history_resets": 1,
+          "initial_log_likelihood": -6002755.298252381,
+          "terminal_log_likelihood": -5131600.905620664,
+          "terminal_projected_gradient_per_site": 6.020185169899206e+21,
+          "terminal_zero_edges": 1068,
+          "search_seconds": 115.9051573650213,
+          "terminal_verification_seconds": 0.30207528290338814,
+          "maxiter": 150,
+          "maxeval": 260
+        },
+        "ledger_check": {
+          "accepted_monotone": true,
+          "max_accepted_likelihood_drop": 0.0,
+          "accepted_finite": true,
+          "zero_edges_from_trace": 1068,
+          "last_accepted_likelihood": -5131600.905620664
+        },
+        "independent_terminal": {
+          "independent_root_and_log_domain": true,
+          "terminal_log_domain_sites": 263,
+          "terminal_log_likelihood": -5131600.905620663,
+          "projected_gradient_per_site": 6.020185169899198e+21,
+          "terminal_max_site_log_likelihood_difference": 4.18367562815547e-10,
+          "terminal_max_per_site_score_difference": 8165337.064638783,
+          "likelihood_score_agreement": false,
+          "wall_seconds": 3.125777126988396,
+          "additional_normal_domain_comparison_evaluations": 1
+        },
+        "peak_rss_kib": 151172,
+        "passed_bridge_gate": false,
+        "process_exit_code": 0
+      }
+    ]
+  },
+  "diagnostic_replay_identical_except_timings": true
+}

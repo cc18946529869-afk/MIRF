@@ -1,0 +1,64 @@
+{
+  "scope": "recomputed from pair masses and cluster weights; no independent approval or resampling",
+  "threshold_provenance": "retrospective design limits for descriptive screening only",
+  "granularities": {
+    "211": {
+      "components": 44117,
+      "relative_total_mass_variance_under_uniform_component_resampling": 1.1594226265094867e-05,
+      "pair_mass_denominator": 22105.51243989153,
+      "concentration_denominator": 3.42612253810819e-05,
+      "checks": [
+        {
+          "cutoff": 0.4,
+          "flagged": 2272,
+          "chained_weight_share": 0.12213586342489145,
+          "chained_concentration_share": 0.46180219223946,
+          "within_pair_low_share": 0.7098096642014761
+        },
+        {
+          "cutoff": 0.5,
+          "flagged": 1361,
+          "chained_weight_share": 0.094580197585248,
+          "chained_concentration_share": 0.43732197483341895,
+          "within_pair_low_share": 0.7098096642014761
+        },
+        {
+          "cutoff": 0.6,
+          "flagged": 887,
+          "chained_weight_share": 0.07669677911673936,
+          "chained_concentration_share": 0.41750181236908646,
+          "within_pair_low_share": 0.7098096642014761
+        }
+      ]
+    },
+    "237": {
+      "components": 72673,
+      "relative_total_mass_variance_under_uniform_component_resampling": 4.489179191292405e-06,
+      "pair_mass_denominator": 3736.924399873381,
+      "concentration_denominator": 1.8249447791735486e-05,
+      "checks": [
+        {
+          "cutoff": 0.4,
+          "flagged": 1161,
+          "chained_weight_share": 0.014082953267918242,
+          "chained_concentration_share": 0.011970497440355022,
+          "within_pair_low_share": 0.06588312155376573
+        },
+        {
+          "cutoff": 0.5,
+          "flagged": 678,
+          "chained_weight_share": 0.00847308583305272,
+          "chained_concentration_share": 0.00736184085742456,
+          "within_pair_low_share": 0.06588312155376573
+        },
+        {
+          "cutoff": 0.6,
+          "flagged": 316,
+          "chained_weight_share": 0.004048276609379954,
+          "chained_concentration_share": 0.0036242516958091458,
+          "within_pair_low_share": 0.06588312155376573
+        }
+      ]
+    }
+  }
+}
