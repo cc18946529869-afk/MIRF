@@ -1,0 +1,24 @@
+{
+  "case": "A211-weight-max-deletion",
+  "fit_kernel": "official A, one thread per worker",
+  "workers": 40,
+  "library_sha256": "c530b33998faa690767d792a66399e48c125c089c3a69ea8440d0a58ba2164e9",
+  "no_resampling": true,
+  "removed_rows": 1173,
+  "retained_rows": 208471,
+  "removed_reference_weight": 47.313277874759265,
+  "relative_removed_weight": 0.0009877565691380986,
+  "weight_total": 47852.42169027039,
+  "original_weight_total": 47899.73496814515,
+  "initialization": "verified_full_data_parameter",
+  "gradient_tolerance": 1e-05,
+  "lambda_h": 0.01,
+  "lambda_j_prime": 0.005,
+  "max_iter": 500,
+  "max_fun_evals": 1000,
+  "alignment_and_weights_sha256": {
+    "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+    "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+  },
+  "component_assignment_sha256": "692d369cade756f1b0ed3f9908a0e87a63d03184897c58e04ac4a4e3aab44f9c"
+}

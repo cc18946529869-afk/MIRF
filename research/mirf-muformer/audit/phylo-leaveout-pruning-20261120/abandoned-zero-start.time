@@ -1,0 +1,24 @@
+Command terminated by signal 15
+	Command being timed: "timeout --signal=TERM --kill-after=30s 18h python3 -m perf.cluster_leaveout --source /data/cc233_data/work_dir/MIRF/research/mirf-muformer --clusters /data/cc233_data/work_dir/MIRF-phylo-36h-validation-20261120/.validation-work/package/private/clusters_211.npy --gate /data/cc233_data/work_dir/MIRF-phylo-leaveout-pruning-20261120/research/mirf-muformer/audit/phylo-36h-validation-20261120/a-gate.json --certificate perf/saved-top263-results.json --output /data/cc233_data/work_dir/MIRF-phylo-leaveout-pruning-20261120/.work/leaveout --workers 40"
+	User time (seconds): 0.14
+	System time (seconds): 0.09
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 8:23.71
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 151996
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 15826
+	Voluntary context switches: 333
+	Involuntary context switches: 7
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 16
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

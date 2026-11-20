@@ -1,0 +1,33 @@
+{
+  "sites_passed": 263,
+  "relative_h_displacement": 0.0,
+  "relative_j_displacement": 2.255155340684257e-16,
+  "relative_j_displacement_by_distance": {
+    "1_5": 2.309489779527533e-16,
+    "6_11": 2.252736862391454e-16,
+    "12_23": 2.236603986466582e-16,
+    "24_262": 2.241011054149525e-16
+  },
+  "ranking": {
+    "separation_at_least_6": {
+      "overlap_with_reference": 263,
+      "contact_hits": 168
+    },
+    "separation_at_least_12": {
+      "overlap_with_reference": 263,
+      "contact_hits": 171
+    },
+    "separation_6_to_11": {
+      "overlap_with_reference": 263,
+      "contact_hits": 48
+    },
+    "separation_12_to_23": {
+      "overlap_with_reference": 263,
+      "contact_hits": 109
+    },
+    "separation_24_and_above": {
+      "overlap_with_reference": 263,
+      "contact_hits": 152
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "case": "A211-weight-max-deletion",
+  "fit_kernel": "official A, one thread per worker",
+  "workers": 40,
+  "library_sha256": "c530b33998faa690767d792a66399e48c125c089c3a69ea8440d0a58ba2164e9",
+  "no_resampling": true,
+  "removed_rows": 1173,
+  "retained_rows": 208471,
+  "removed_reference_weight": 47.313277874759265,
+  "relative_removed_weight": 0.0009877565691380986,
+  "weight_total": 47852.42169027039,
+  "original_weight_total": 47899.73496814515,
+  "initialization": "verified_full_data_parameter",
+  "gradient_tolerance": 1e-05,
+  "lambda_h": 0.01,
+  "lambda_j_prime": 0.005,
+  "max_iter": 500,
+  "max_fun_evals": 1000,
+  "alignment_and_weights_sha256": {
+    "mature_codes.npy": "e7aef6bc98f9cb55fa1ea08a336ce2b9540202a626aff24044c296f420c287d0",
+    "neighbor_counts.tsv": "7f8a17dc9bff6053b4258140a84348babe0c5686c0e6b41cd10ba5b7450e6d22"
+  },
+  "component_assignment_sha256": "692d369cade756f1b0ed3f9908a0e87a63d03184897c58e04ac4a4e3aab44f9c",
+  "sites_planned": 263,
+  "sites_passed": 263,
+  "max_terminal_gradient_inf": 9.997726259092232e-06,
+  "summed_site_seconds": 309048.6148347475,
+  "relative_h_displacement": 0.0009408692204725068,
+  "relative_j_displacement": 0.010462343139396514,
+  "historical_r_j_estimable_from_one_deletion": false,
+  "ranking_scope": "nominal binary64 ranking for deleted fit; full-data reference previously interval-certified",
+  "ranking": {
+    "separation_at_least_6": {
+      "reference_hits": 168,
+      "top_k": 263,
+      "overlap_with_reference": 262,
+      "contact_hits": 167,
+      "leaveout_precision_at_l": 0.6349809885931559
+    },
+    "separation_at_least_12": {
+      "reference_hits": 171,
+      "top_k": 263,
+      "overlap_with_reference": 262,
+      "contact_hits": 171,
+      "leaveout_precision_at_l": 0.6501901140684411
+    },
+    "separation_6_to_11": {
+      "reference_hits": 48,
+      "top_k": 263,
+      "overlap_with_reference": 262,
+      "contact_hits": 48,
+      "leaveout_precision_at_l": 0.18250950570342206
+    },
+    "separation_12_to_23": {
+      "reference_hits": 109,
+      "top_k": 263,
+      "overlap_with_reference": 262,
+      "contact_hits": 109,
+      "leaveout_precision_at_l": 0.4144486692015209
+    },
+    "separation_24_and_above": {
+      "reference_hits": 152,
+      "top_k": 263,
+      "overlap_with_reference": 262,
+      "contact_hits": 152,
+      "leaveout_precision_at_l": 0.5779467680608364
+    }
+  },
+  "reference_sha256": {
+    "h_hat.npy": "59f3bc61ed99a6448c75119af9c54cf7995f094047ead32784d2da2c8de3cbec",
+    "j_star.npy": "eaedeba815dfea038a1847d92febb0c7bd6109cefe008e4ad5fba0a7aa5c472d"
+  },
+  "wall_seconds": 7846.484345056
+}
