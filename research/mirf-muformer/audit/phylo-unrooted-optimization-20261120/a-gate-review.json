@@ -1,0 +1,85 @@
+{
+  "scope": "retrospective candidate thresholds for independent design review, no permission to run",
+  "candidate_limits": {
+    "chained_weight_share": 0.05,
+    "chained_concentration_share": 0.1,
+    "within_pair_low_share": 0.15
+  },
+  "archive_sha256": "4d4036791f0ff8385f54a951933948734fb42380ca8329ef9fb384272e61f73b",
+  "granularities": {
+    "211": {
+      "clusters": 44117,
+      "legacy_global_structure_checks_pass": true,
+      "matches_candidate_global_rule": false,
+      "cutoff_sensitivity": [
+        {
+          "chain_cutoff": 0.4,
+          "chained_components": 2272,
+          "chained_weight_share": 0.12213586342489145,
+          "chained_concentration_share": 0.46180219223946006,
+          "within_pair_low_share": 0.7098096642014761,
+          "criteria_above_candidate_limit": [
+            "chained_weight_share",
+            "chained_concentration_share",
+            "within_pair_low_share"
+          ]
+        },
+        {
+          "chain_cutoff": 0.5,
+          "chained_components": 1361,
+          "chained_weight_share": 0.094580197585248,
+          "chained_concentration_share": 0.43732197483341906,
+          "within_pair_low_share": 0.7098096642014761,
+          "criteria_above_candidate_limit": [
+            "chained_weight_share",
+            "chained_concentration_share",
+            "within_pair_low_share"
+          ]
+        },
+        {
+          "chain_cutoff": 0.6,
+          "chained_components": 887,
+          "chained_weight_share": 0.07669677911673936,
+          "chained_concentration_share": 0.4175018123690865,
+          "within_pair_low_share": 0.7098096642014761,
+          "criteria_above_candidate_limit": [
+            "chained_weight_share",
+            "chained_concentration_share",
+            "within_pair_low_share"
+          ]
+        }
+      ]
+    },
+    "237": {
+      "clusters": 72673,
+      "legacy_global_structure_checks_pass": true,
+      "matches_candidate_global_rule": true,
+      "cutoff_sensitivity": [
+        {
+          "chain_cutoff": 0.4,
+          "chained_components": 1161,
+          "chained_weight_share": 0.014082953267918242,
+          "chained_concentration_share": 0.01197049744035502,
+          "within_pair_low_share": 0.06588312155376573,
+          "criteria_above_candidate_limit": []
+        },
+        {
+          "chain_cutoff": 0.5,
+          "chained_components": 678,
+          "chained_weight_share": 0.00847308583305272,
+          "chained_concentration_share": 0.007361840857424558,
+          "within_pair_low_share": 0.06588312155376573,
+          "criteria_above_candidate_limit": []
+        },
+        {
+          "chain_cutoff": 0.6,
+          "chained_components": 316,
+          "chained_weight_share": 0.004048276609379954,
+          "chained_concentration_share": 0.003624251695809145,
+          "within_pair_low_share": 0.06588312155376573,
+          "criteria_above_candidate_limit": []
+        }
+      ]
+    }
+  }
+}
