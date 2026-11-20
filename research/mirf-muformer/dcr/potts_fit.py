@@ -17,9 +17,14 @@ import os
 import subprocess
 import time
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from perf.fit_kernel_b import BoundBKernel
 
 Q = 21
 LAMBDA_H = 0.01
@@ -296,6 +301,8 @@ def site_terms_c(
     lambda_h: float = LAMBDA_H,
     lambda_j_prime: float = LAMBDA_J_PRIME,
     q: int = Q,
+    *,
+    library: ctypes.CDLL | None = None,
 ) -> tuple[float, float, np.ndarray]:
     """Evaluate the same objective as ``site_terms_numpy`` through the C kernel."""
     alignment = _as_alignment(msa, q)
@@ -308,7 +315,8 @@ def site_terms_c(
     gradient = np.zeros(parameter_count(length, q), dtype=np.float64)
     nll = ctypes.c_double()
     penalty = ctypes.c_double()
-    library = _compile_library()
+    if library is None:
+        library = _compile_library()
     code = library.site_objective(
         alignment.ctypes.data_as(ctypes.POINTER(ctypes.c_int8)),
         row_weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -324,6 +332,8 @@ def site_terms_c(
         ctypes.byref(penalty),
         gradient.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
     )
+    if code == -2:
+        raise RuntimeError("B objective requires one OpenMP thread and the frozen floating-point mode")
     if code != 0:
         raise RuntimeError("the conditional objective could not be evaluated")
     return float(nll.value), float(penalty.value), gradient
@@ -441,7 +451,15 @@ def penalty_delta(
     return float(weight_total) * (float(lambda_h) * field_change + float(lambda_j_prime) * coupling_change)
 
 
-def _direction_cache(theta: np.ndarray, direction: np.ndarray, msa: np.ndarray, site: int, q: int) -> tuple[np.ndarray, np.ndarray]:
+def _direction_cache(
+    theta: np.ndarray,
+    direction: np.ndarray,
+    msa: np.ndarray,
+    site: int,
+    q: int,
+    *,
+    library: ctypes.CDLL | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
     alignment = _as_alignment(msa, q)
     n_rows, length = alignment.shape
     vector = np.ascontiguousarray(theta, dtype=np.float64)
@@ -450,7 +468,8 @@ def _direction_cache(theta: np.ndarray, direction: np.ndarray, msa: np.ndarray, 
     unpack_parameters(step, length, q)
     probability = np.zeros((n_rows, q), dtype=np.float64)
     velocity = np.zeros((n_rows, q), dtype=np.float64)
-    library = _compile_library()
+    if library is None:
+        library = _compile_library()
     code = library.site_direction_cache(
         alignment.ctypes.data_as(ctypes.POINTER(ctypes.c_int8)),
         vector.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -467,14 +486,23 @@ def _direction_cache(theta: np.ndarray, direction: np.ndarray, msa: np.ndarray, 
     return probability, velocity
 
 
-def _delta_nll(probability: np.ndarray, velocity: np.ndarray, observed: np.ndarray, weights: np.ndarray, alpha: float) -> float:
+def _delta_nll(
+    probability: np.ndarray,
+    velocity: np.ndarray,
+    observed: np.ndarray,
+    weights: np.ndarray,
+    alpha: float,
+    *,
+    library: ctypes.CDLL | None = None,
+) -> float:
     n_rows, q = probability.shape
     observed_codes = np.ascontiguousarray(observed, dtype=np.int8)
     row_weights = np.ascontiguousarray(weights, dtype=np.float64)
     probabilities = np.ascontiguousarray(probability, dtype=np.float64)
     velocities = np.ascontiguousarray(velocity, dtype=np.float64)
     delta = ctypes.c_double()
-    library = _compile_library()
+    if library is None:
+        library = _compile_library()
     code = library.site_delta_nll(
         probabilities.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
         velocities.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -498,6 +526,8 @@ def make_direct_delta(
     lambda_h: float = LAMBDA_H,
     lambda_j_prime: float = LAMBDA_J_PRIME,
     q: int = Q,
+    *,
+    library: ctypes.CDLL | None = None,
 ):
     """Return ΔF(α) from probabilities at the base point and the closed-form penalty.
 
@@ -509,6 +539,8 @@ def make_direct_delta(
     observed = np.ascontiguousarray(alignment[:, int(site)])
     row_weights = _as_weights(weights, alignment.shape[0])
     cache: dict[str, np.ndarray] = {}
+    evaluate_cache = _direction_cache if library is None else partial(_direction_cache, library=library)
+    evaluate_delta = _delta_nll if library is None else partial(_delta_nll, library=library)
 
     def delta(position: np.ndarray, direction: np.ndarray, alpha: float) -> float:
         cached_position = cache.get("position")
@@ -519,12 +551,12 @@ def make_direct_delta(
             or not np.array_equal(position, cached_position)
             or not np.array_equal(direction, cached_direction)
         ):
-            probability, velocity = _direction_cache(position, direction, alignment, int(site), q)
+            probability, velocity = evaluate_cache(position, direction, alignment, int(site), q)
             cache["position"] = np.array(position, dtype=np.float64, copy=True)
             cache["direction"] = np.array(direction, dtype=np.float64, copy=True)
             cache["probability"] = probability
             cache["velocity"] = velocity
-        data_change = _delta_nll(cache["probability"], cache["velocity"], observed, row_weights, float(alpha))
+        data_change = evaluate_delta(cache["probability"], cache["velocity"], observed, row_weights, float(alpha))
         regularizer = penalty_delta(
             position,
             direction,
@@ -1117,8 +1149,9 @@ def fit_site(
     corrections: int = CORRECTIONS,
     max_iter: int = MAX_ITER,
     max_fun_evals: int = MAX_FUN_EVALS,
+    b_kernel: BoundBKernel | None = None,
 ) -> FitResult:
-    """Fit one site from the zero vector. ``weight_total`` scales only the penalty."""
+    """Fit one site from the zero vector using A or an explicitly bound B. ``weight_total`` scales only the penalty."""
     alignment = _as_alignment(msa, q)
     length = alignment.shape[1]
     if not 0 <= int(site) < length:
@@ -1127,7 +1160,14 @@ def fit_site(
     if not np.isfinite(weight_total):
         raise ValueError("weight_total must be finite")
     theta0 = np.zeros(parameter_count(length, q), dtype=np.float64)
-    delta_fn = make_direct_delta(
+    evaluate_site = site_terms
+    build_delta = make_direct_delta
+    if b_kernel is not None:
+        library = b_kernel.library_for_worker()
+        evaluate_site = partial(site_terms_c, library=library)
+        build_delta = partial(make_direct_delta, library=library)
+
+    delta_fn = build_delta(
         alignment,
         row_weights,
         int(site),
@@ -1138,7 +1178,7 @@ def fit_site(
     )
 
     def objective(theta: np.ndarray):
-        nll, penalty, gradient = site_terms(
+        nll, penalty, gradient = evaluate_site(
             theta,
             alignment,
             row_weights,
@@ -1160,7 +1200,7 @@ def fit_site(
         max_fun_evals=max_fun_evals,
         delta_fn=delta_fn,
     )
-    nll, penalty, _gradient = site_terms(
+    nll, penalty, _gradient = evaluate_site(
         solved.x,
         alignment,
         row_weights,

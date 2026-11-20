@@ -36,6 +36,25 @@ static void add_unpacked(const double *src, double *dst, int K, int q) {
     }
 }
 
+#ifdef MIRF_B_FIT_SINGLE_THREAD
+#include <fenv.h>
+#include <float.h>
+
+static _Thread_local int fit_team_size;
+
+int site_objective_team_size(void) {
+    return fit_team_size;
+}
+
+int site_fit_fp_ready(void) {
+    volatile double smallest_normal = DBL_MIN;
+    volatile double smallest_subnormal = DBL_TRUE_MIN;
+    return fegetround() == FE_TONEAREST
+        && smallest_normal * 0.5 > 0.0
+        && smallest_subnormal + smallest_subnormal > 0.0;
+}
+#endif
+
 int site_objective(
     const int8_t *msa,
     const double *weights,
@@ -64,8 +83,21 @@ int site_objective(
     double nll = 0.0;
     int failed = 0;
 
+#ifdef MIRF_B_FIT_SINGLE_THREAD
+    fit_team_size = 0;
+    if (!site_fit_fp_ready()) {
+        free(Jt);
+        return -2;
+    }
+#endif
 #pragma omp parallel reduction(+ : nll)
     {
+#ifdef MIRF_B_FIT_SINGLE_THREAD
+        const int team_size = omp_get_num_threads();
+        if (omp_get_thread_num() == 0) {
+            fit_team_size = team_size;
+        }
+#endif
         double *gh = (double *)calloc((size_t)q, sizeof(double));
         double *gJt = (double *)calloc((size_t)j_size, sizeof(double));
         double *logits = (double *)malloc(sizeof(double) * (size_t)q);
@@ -76,6 +108,11 @@ int site_objective(
         }
 #pragma omp for schedule(static)
         for (int row = 0; row < B; row++) {
+#ifdef MIRF_B_FIT_SINGLE_THREAD
+            if (team_size != 1) {
+                continue;
+            }
+#endif
             if (failed) {
                 continue;
             }
@@ -147,6 +184,11 @@ int site_objective(
         free(expa);
     }
     free(Jt);
+#ifdef MIRF_B_FIT_SINGLE_THREAD
+    if (fit_team_size != 1) {
+        return -2;
+    }
+#endif
     if (failed) {
         return -1;
     }
