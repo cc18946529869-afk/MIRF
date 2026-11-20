@@ -1,0 +1,137 @@
+{
+  "scope": "Saved real point estimate; full global APC prior to published group mask; no optimizer or refit",
+  "references_sha256": {
+    "directional.npy": "332ee13d667e8bae9f7f42976f0764a0ff8c95e4fbead843d73f8f8d1e27d367",
+    "j_star.npy": "eaedeba815dfea038a1847d92febb0c7bd6109cefe008e4ad5fba0a7aa5c472d",
+    "fields.npy": "574a234e5b4eb66ac17330b9364b4eab5aa9b00f33175597523209dc046d78de"
+  },
+  "source_site_bounds_sha256": {
+    "saved-sites-pilot-results.json": "34711df84a3e2e2d22696c9a7a7e64906eb2aee1df22290af08f9978e12c079e",
+    "saved-sites-remaining-results.json": "4e65b7698aee943403cd9da395383ce7a0902ee1667a5c47ee10c6f25044521a"
+  },
+  "published_summary_sha256": "5a67a9f004066f08c09c99b4885f70a71c1d6c787c7ee3ca946da8a1fa8d1670",
+  "valid_parameter_radii": 263,
+  "total_sites": 263,
+  "workers": 16,
+  "max_xi_raw_upper": "1.799820298770064774100768008056640625E-16",
+  "apc_enclosure_status": "positive",
+  "certified_groups": 5,
+  "groups_total": 5,
+  "groups": {
+    "separation_at_least_6": {
+      "candidate_pairs": 32650,
+      "top_k": 263,
+      "numeric_hits": 168,
+      "numeric_precision": 0.6387832699619772,
+      "numeric_boundary_gap": 0.00023309927724662893,
+      "interval_boundary_slack_lower": "0.000230967793093229895905150035779893418629",
+      "certified_numeric_top_set": true,
+      "definite_in": 263,
+      "definite_out": 32387,
+      "indeterminate_candidates": 0,
+      "uncertified_numeric_top_members": 0,
+      "precision_hit_count_interval": [
+        168,
+        168
+      ],
+      "precision_interval": [
+        0.6387832699619772,
+        0.6387832699619772
+      ],
+      "reason": "strict_top_set_separation"
+    },
+    "separation_at_least_12": {
+      "candidate_pairs": 31147,
+      "top_k": 263,
+      "numeric_hits": 171,
+      "numeric_precision": 0.6501901140684411,
+      "numeric_boundary_gap": 0.0002241434289605715,
+      "interval_boundary_slack_lower": "0.000221926653500654395605410813537310400541",
+      "certified_numeric_top_set": true,
+      "definite_in": 263,
+      "definite_out": 30884,
+      "indeterminate_candidates": 0,
+      "uncertified_numeric_top_members": 0,
+      "precision_hit_count_interval": [
+        171,
+        171
+      ],
+      "precision_interval": [
+        0.6501901140684411,
+        0.6501901140684411
+      ],
+      "reason": "strict_top_set_separation"
+    },
+    "separation_6_to_11": {
+      "candidate_pairs": 1503,
+      "top_k": 263,
+      "numeric_hits": 48,
+      "numeric_precision": 0.18250950570342206,
+      "numeric_boundary_gap": 4.3727653140201994e-05,
+      "interval_boundary_slack_lower": "0.000041279839772907954628721167745966338461",
+      "certified_numeric_top_set": true,
+      "definite_in": 263,
+      "definite_out": 1240,
+      "indeterminate_candidates": 0,
+      "uncertified_numeric_top_members": 0,
+      "precision_hit_count_interval": [
+        48,
+        48
+      ],
+      "precision_interval": [
+        0.18250950570342206,
+        0.18250950570342206
+      ],
+      "reason": "strict_top_set_separation"
+    },
+    "separation_12_to_23": {
+      "candidate_pairs": 2898,
+      "top_k": 263,
+      "numeric_hits": 109,
+      "numeric_precision": 0.4144486692015209,
+      "numeric_boundary_gap": 0.00017953494109221313,
+      "interval_boundary_slack_lower": "0.000177128552286042562057193440272285696861",
+      "certified_numeric_top_set": true,
+      "definite_in": 263,
+      "definite_out": 2635,
+      "indeterminate_candidates": 0,
+      "uncertified_numeric_top_members": 0,
+      "precision_hit_count_interval": [
+        109,
+        109
+      ],
+      "precision_interval": [
+        0.4144486692015209,
+        0.4144486692015209
+      ],
+      "reason": "strict_top_set_separation"
+    },
+    "separation_24_and_above": {
+      "candidate_pairs": 28249,
+      "top_k": 263,
+      "numeric_hits": 152,
+      "numeric_precision": 0.5779467680608364,
+      "numeric_boundary_gap": 0.0001424783729662149,
+      "interval_boundary_slack_lower": "0.000139970271540099876645415540155471882467",
+      "certified_numeric_top_set": true,
+      "definite_in": 263,
+      "definite_out": 27986,
+      "indeterminate_candidates": 0,
+      "uncertified_numeric_top_members": 0,
+      "precision_hit_count_interval": [
+        152,
+        152
+      ],
+      "precision_interval": [
+        0.5779467680608364,
+        0.5779467680608364
+      ],
+      "reason": "strict_top_set_separation"
+    }
+  },
+  "seconds": {
+    "raw_reference": 9.267815095023252,
+    "apc_and_group_bounds": 0.37257231399416924
+  },
+  "parent_peak_rss_mib": 772.82421875
+}

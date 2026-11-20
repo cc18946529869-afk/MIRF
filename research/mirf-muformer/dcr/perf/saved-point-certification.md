@@ -23,3 +23,21 @@ python3 -m perf.certify_saved_sites --source "$SAVED" --sites "$sites" \
 python3 -m perf.certify_saved_ranking --source "$SAVED" --workers 16 \
   --site-bounds /tmp/mirf-site-pilot.json /tmp/mirf-site-remaining.json --output /tmp/mirf-ranked.json
 ```
+
+## Measured result, 2026-11-20
+
+[Three-site pilot](saved-sites-pilot-results.json) · [Remaining 260 site bounds](saved-sites-remaining-results.json) · [Global APC and published-group certificates](saved-top263-results.json)
+
+All **263/263** sites yielded finite parameter radii. The range of \(\eta\) upper bounds was \(3.2811\times10^{-9}\) to \(5.6827\times10^{-9}\) (median \(3.8081\times10^{-9}\)). The parameter radii ranged from \(6.8389\times10^{-8}\) to \(4.6401\times10^{-7}\) (median \(2.8736\times10^{-7}\)). The maximum raw-score \(\xi\) upper bound was \(1.7999\times10^{-16}\). APC itself was evaluated by directed interval arithmetic rather than assigned that raw-score error bound.
+
+| Published group | Numeric boundary gap | Interval slack lower bound (display rounded down) | Guaranteed in Top-263 | Uncertain candidates | Certified contact hits |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| At least 6 | 2.3310e-4 | 2.3096e-4 | 263 | 0 | 168 |
+| At least 12 | 2.2414e-4 | 2.2192e-4 | 263 | 0 | 171 |
+| 6–11 | 4.3728e-5 | 4.1279e-5 | 263 | 0 | 48 |
+| 12–23 | 1.7953e-4 | 1.7712e-4 | 263 | 0 | 109 |
+| At least 24 | 1.4248e-4 | 1.3997e-4 | 263 | 0 | 152 |
+
+**All five published Top-263 sets were strictly certified** for this saved point estimate relative to the exact optimizer of its unchanged objective. Each group reproduced the published numeric score, and all five Precision@L intervals collapsed to the corresponding integer contact count divided by 263. The smallest margin was in the 6–11 group. The conclusion concerns set membership, not the ordering within a selected set. It does not estimate coverage for future simulated alignments.
+
+The 260-site run took 1,204.83 seconds with 22 workers, including the isolated build. Worker time per site was 82.26–127.04 seconds (median 100.38 seconds) with a highest process RSS of 600.80 MiB. The three-site pilot separately took 78.45 seconds. The global stage measured 9.27 seconds for directed raw-score enclosures with 16 workers, then 0.37 seconds for interval APC and group certification. Those last two timings exclude source loading and initial artifact validation. No real parameter optimization, formal simulation, or statistical protocol change was performed.
