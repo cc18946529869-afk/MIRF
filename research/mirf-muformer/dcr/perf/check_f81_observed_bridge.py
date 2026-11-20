@@ -14,6 +14,7 @@ import potts_fit
 from .check_f81_pruning import artificial_topology
 from .f81_optimize import optimize_projected
 from .f81_unrooted import UnrootedPruning, UnrootedTopology
+from .f81_zero_boundary import ZeroBoundary
 
 
 STARTS = ("short", "long", "heterogeneous")
@@ -133,10 +134,45 @@ def audit_trace(events, result):
     }
 
 
+def terminal_coordinate_probe(engine, guard, lengths, independent):
+    """Check an improving feasible coordinate move without changing the endpoint."""
+    derivative = -independent.length_gradient / len(independent.site_log_likelihood)
+    residual = lengths - np.clip(lengths - derivative, 0, None)
+    coordinate = int(np.argmax(np.abs(residual)))
+    if residual[coordinate] == 0:
+        return {"exact_stationarity_in_probe": True}
+    direction = np.zeros_like(lengths)
+    direction[coordinate] = -np.sign(residual[coordinate])
+    limit = guard.first_conflict(lengths, direction)
+    start = float(lengths[coordinate])
+    proposed = max(1e-12, min(1e-3, max(start, 1e-6)/4))
+    if direction[coordinate] < 0:
+        proposed = min(proposed, start/4)
+    if np.isfinite(limit):
+        proposed = min(proposed, 0.5*limit)
+    checks = []
+    for attempt in range(8):
+        step = proposed * 2.**(-attempt)
+        trial = np.maximum(0, lengths + step*direction)
+        if np.array_equal(trial, lengths) or not guard.feasible(trial):
+            continue
+        value = engine.evaluate(trial, gradient=False, threads=1, log_domain=True).log_likelihood
+        if np.isfinite(value):
+            gain = value - independent.log_likelihood
+            checks.append({"step":step, "log_likelihood_gain":gain})
+            if gain > 16*np.spacing(abs(independent.log_likelihood)):
+                break
+    return {"edge_length_before_probe":start, "local_derivative_per_site":float(derivative[coordinate]),
+            "direction_sign": int(direction[coordinate]), "checks":checks}
+
+
 def run(args):
     boundary_checks = [] if args.audit_boundary else None
     engine, repeat, facts = load_case(args.prep, args.gate, args.rows, args.library, boundary_checks)
     lengths = start_lengths(args.start, facts["edges"])
+    guard = ZeroBoundary(engine, args.boundary_library) if args.boundary_library else None
+    if guard is not None:
+        facts["boundary_library_sha256"] = digest(args.boundary_library)
     events = []
     with args.trace.open("x", encoding="utf-8") as log:
         def emit(record):
@@ -145,7 +181,7 @@ def run(args):
             log.flush()
         try:
             endpoint, fit = optimize_projected(engine, lengths, restrict_history=True, threads=args.threads,
-                                               gtol=GTOL, maxiter=150, maxeval=260, emit=emit)
+                                               gtol=GTOL, maxiter=150, maxeval=260, emit=emit, zero_boundary=guard)
         except FloatingPointError as error:
             return {**facts, "start": args.start, "passed_bridge_gate": False, "status": "arithmetic_exception",
                     "exception": str(error), "evaluations_recorded_before_exception": len(
@@ -177,6 +213,9 @@ def run(args):
     }
     return {**facts, "start": args.start, "initial_range": [float(lengths.min()), float(lengths.max())],
             "threads": args.threads, "optimizer": fit, "ledger_check": ledger, "independent_terminal": cert,
+            **({"terminal_probe": terminal_coordinate_probe(repeat, ZeroBoundary(repeat, args.boundary_library),
+                                                           endpoint, logcheck)}
+               if args.probe_terminal else {}),
             "zero_branch_trial_replay": (None if boundary_checks is None else
                 {"checks": len(boundary_checks),
                  "confirmed_conflicting_trials": sum(r["conflicting_zero_components"] > 0 for r in boundary_checks),
@@ -196,7 +235,11 @@ def main():
     parser.add_argument("--start", required=True, choices=STARTS)
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--audit-boundary", action="store_true")
+    parser.add_argument("--boundary-library", type=Path)
+    parser.add_argument("--probe-terminal", action="store_true")
     args = parser.parse_args()
+    if args.probe_terminal and not args.boundary_library:
+        parser.error("--probe-terminal requires --boundary-library")
     print(json.dumps(run(args), indent=2, allow_nan=False))
 
 

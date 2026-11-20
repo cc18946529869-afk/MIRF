@@ -1,0 +1,100 @@
+{
+  "replayed_without_changing_search": true,
+  "coordinate_checks": [
+    [
+      "1,000",
+      "\u5f02\u8d28\u521d\u503c",
+      0.36078054236713797,
+      {
+        "edge_length_before_probe": 0.0016924330024906317,
+        "local_derivative_per_site": -3.7248385721885175,
+        "direction_sign": 1,
+        "checks": [
+          {
+            "step": 0.00042310825062265794,
+            "log_likelihood_gain": 0.36078054236713797
+          }
+        ]
+      }
+    ],
+    [
+      "10,000",
+      "\u77ed\u521d\u503c",
+      47.01940044667572,
+      {
+        "edge_length_before_probe": 0.0,
+        "local_derivative_per_site": -4.003056713465454e+24,
+        "direction_sign": 1,
+        "checks": [
+          {
+            "step": 2.5e-07,
+            "log_likelihood_gain": 47.01940044667572
+          }
+        ]
+      }
+    ]
+  ],
+  "compatible_zero_boundary": {
+    "fit": {
+      "solver": "Projected L-BFGS with feasible Armijo backtracking",
+      "restricted_curvature_to_free_coordinates": true,
+      "criterion": "infinity norm of projected mean negative log-likelihood gradient",
+      "gtol_per_site": 1e-05,
+      "passed": true,
+      "solver_success": true,
+      "status": "projected_gradient_converged",
+      "iterations": 1,
+      "solver_likelihood_gradient_evaluations": 2,
+      "additional_terminal_evaluations": 1,
+      "infeasible_trials": 0,
+      "log_domain_site_replays": 0,
+      "history_resets": 0,
+      "initial_log_likelihood": -4.691727176816767,
+      "terminal_log_likelihood": -3.295836866004329,
+      "terminal_projected_gradient_per_site": 0.0,
+      "terminal_zero_edges": 4,
+      "search_seconds": 0.000351079972460866,
+      "terminal_verification_seconds": 6.541504990309477e-05,
+      "maxiter": 150,
+      "maxeval": 260,
+      "zero_boundary": {
+        "line_searches": 1,
+        "ray_limits": 1,
+        "capped_searches": 0,
+        "prechecks": 2,
+        "precheck_rejections": 0,
+        "infeasible_full_step_probes": 0,
+        "infeasible_likelihood_calls_avoided": 0,
+        "nonfinite_length_trials": 0,
+        "precheck_seconds": 4.390499088913202e-05,
+        "ray_limit_seconds": 2.314604353159666e-05
+      }
+    },
+    "exact_zeros": 4,
+    "trial_ledger": [
+      {
+        "event": "evaluation",
+        "call": 1,
+        "finite": true,
+        "log_likelihood": -4.691727176816767,
+        "projected_gradient_per_site": 0.18,
+        "zero_edges": 0,
+        "seconds": 0.00012827501632273197
+      },
+      {
+        "event": "evaluation",
+        "call": 2,
+        "finite": true,
+        "log_likelihood": -3.295836866004329,
+        "projected_gradient_per_site": 0.0,
+        "zero_edges": 4,
+        "seconds": 8.392997551709414e-05
+      },
+      {
+        "event": "accepted",
+        "iteration": 1,
+        "calls": 2
+      }
+    ]
+  }
+}

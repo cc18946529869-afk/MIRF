@@ -106,7 +106,7 @@ def optimize(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260, gtol
 
 
 def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260,
-                       gtol=1e-5, restrict_history=False):
+                       gtol=1e-5, restrict_history=False, zero_boundary=None):
     """Projected L-BFGS with Armijo backtracking on the actual feasible trial."""
     if not isinstance(engine, UnrootedPruning):
         raise TypeError("Optimization requires unrooted edge coordinates")
@@ -139,18 +139,61 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
               "zero_edges": int(np.count_nonzero(lengths == 0)), "seconds": seconds})
         return -item.log_likelihood / n_sites, derivative
 
+    stats = {
+        "line_searches": 0, "ray_limits": 0, "capped_searches": 0, "prechecks": 0,
+        "precheck_rejections": 0, "infeasible_full_step_probes": 0,
+        "infeasible_likelihood_calls_avoided": 0, "nonfinite_length_trials": 0,
+        "precheck_seconds": 0.0, "ray_limit_seconds": 0.0,
+    }
+
+    def check(trial):
+        before = perf_counter()
+        feasible = zero_boundary.feasible(trial)
+        stats["prechecks"] += 1
+        stats["precheck_rejections"] += not feasible
+        stats["precheck_seconds"] += perf_counter() - before
+        return feasible
+
     def search(direction):
         step = 1.0
+        if zero_boundary is not None:
+            stats["line_searches"] += 1
+            before = perf_counter()
+            limit = zero_boundary.first_conflict(point, direction)
+            step = zero_boundary.bounded_step(limit)
+            stats["ray_limits"] += 1
+            stats["ray_limit_seconds"] += perf_counter() - before
+            if step < 1:
+                stats["capped_searches"] += 1
+                full_step = np.maximum(0, point + direction)
+                if (np.isfinite(full_step).all() and np.dot(derivative, full_step-point) < 0
+                        and not check(full_step)):
+                    stats["infeasible_full_step_probes"] += 1
+                    stats["infeasible_likelihood_calls_avoided"] += 1
+                emit({"event": "zero_boundary_cap", "first_conflict": limit, "initial_step": step})
         for _ in range(24):
             trial = np.maximum(0, point + step * direction)
+            if zero_boundary is not None and not np.isfinite(trial).all():
+                stats["nonfinite_length_trials"] += 1
+                step *= 0.5
+                continue
             displacement = trial - point
             decrease = float(np.dot(derivative, displacement))
             if decrease < 0:
+                if zero_boundary is not None and not check(trial):
+                    stats["infeasible_likelihood_calls_avoided"] += 1
+                    step *= 0.5
+                    continue
                 result = objective(trial)
                 if result is not None and result[0] <= value + 1e-4 * decrease:
                     return trial, displacement, result
             step *= 0.5
         return None
+
+    if zero_boundary is not None and zero_boundary.topology is not engine.topology:
+        raise ValueError("The feasibility guard must use the optimizer's edge coordinates")
+    if zero_boundary is not None and not check(point):
+        raise ValueError("Initial point has conflicting observations on zero edges")
 
     started = perf_counter()
     initial_result = objective(point)
@@ -232,4 +275,5 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
         "terminal_zero_edges": int(np.count_nonzero(point == 0)),
         "search_seconds": search_seconds, "terminal_verification_seconds": verification_seconds,
         "maxiter": maxiter, "maxeval": maxeval,
+        **({"zero_boundary": stats} if zero_boundary is not None else {}),
     }
