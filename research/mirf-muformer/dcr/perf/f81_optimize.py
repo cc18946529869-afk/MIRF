@@ -105,9 +105,36 @@ def optimize(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260, gtol
     return candidate, result
 
 
+ARMIJO_C1 = 1e-4
+
+
+def projected_scale_step(point, direction, gradient, value, step):
+    """Cap the initial predicted decrease at 1% of the current objective."""
+    if not value > 0:
+        return step
+    target = 0.01 * value
+    adjustments = 0
+    while step > 0:
+        with np.errstate(over="ignore", invalid="ignore"):
+            displacement = np.maximum(0, point + step * direction) - point
+            predicted = -ARMIJO_C1 * float(gradient @ displacement)
+        if np.isfinite(predicted):
+            if predicted <= target:
+                return step
+            ratio = min(0.95 if adjustments < 8 else 0.5, target / predicted)
+        else:
+            # Bring an out-of-range displacement or inner product into range
+            # before computing a binary64 prediction from the actual trial.
+            ratio = 2.0 ** -16
+        step = min(step * ratio, math.nextafter(step, 0.0))
+        adjustments += 1
+    return step
+
+
 def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260,
                        gtol=1e-5, restrict_history=False, zero_boundary=None,
-                       search_diagnostics=False, terminal_diagnostic=None):
+                       search_diagnostics=False, terminal_diagnostic=None,
+                       scale_initial_step=False):
     """Projected L-BFGS with Armijo backtracking on the actual feasible trial."""
     if not isinstance(engine, UnrootedPruning):
         raise TypeError("Optimization requires unrooted edge coordinates")
@@ -178,6 +205,11 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                 emit({"event": "zero_boundary_cap", "first_conflict": limit, "initial_step": step})
 
         search_number += 1
+        if scale_initial_step:
+            initial_step = step
+            step = projected_scale_step(point, direction, derivative, value, step)
+            emit({"event": "projected_scale", "search": search_number,
+                  "unscaled_step": initial_step, "scaled_step": step})
         if terminal_diagnostic is not None:
             last_directions.append((method, step, direction.copy()))
         if search_diagnostics:
@@ -209,10 +241,16 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                         emit({**diagnostic, "outcome": "boundary_conflict"})
                     step *= 0.5
                     continue
+                armijo = value + ARMIJO_C1 * decrease
+                if scale_initial_step and armijo < 0:
+                    if diagnostic is not None:
+                        emit({**diagnostic, "outcome": "armijo_below_objective_bound",
+                              "armijo_rhs": armijo})
+                    step *= 0.5
+                    continue
                 if diagnostic is not None and calls >= maxeval:
                     emit({**diagnostic, "outcome": "evaluation_limit"})
                 result = objective(trial)
-                armijo = value + 1e-4 * decrease
                 if diagnostic is not None:
                     if result is None:
                         emit({**diagnostic, "outcome": "zero_likelihood"})
