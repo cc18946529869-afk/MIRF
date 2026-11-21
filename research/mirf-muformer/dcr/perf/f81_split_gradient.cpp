@@ -18,7 +18,7 @@ template <unsigned Bits>
 int split_score(const uint8_t *observations, const double *profiles, int sites,
                 int leaves, int nodes, const int32_t *order, const int32_t *parents,
                 const double *lengths, int left, int right, double split_length,
-                char *result) {
+                char *result, char *site_terms = nullptr) {
     using Float = boost::multiprecision::number<
         boost::multiprecision::cpp_bin_float<Bits, boost::multiprecision::digit_base_2>,
         boost::multiprecision::et_off>;
@@ -34,8 +34,8 @@ int split_score(const uint8_t *observations, const double *profiles, int sites,
     const Float split_stay = exp(-Float(split_length));
     const Float split_redraw = -expm1(-Float(split_length));
 
-// Postorder multiplies incoming subtree messages into their parent, independently
-// for the two connected components defined by removing the selected edge.
+    // Postorder multiplies incoming subtree messages into their parent,
+    // independently for the two components defined by the selected edge.
     #pragma omp parallel
     {
         std::vector<Partial> partial(nodes);
@@ -76,7 +76,19 @@ int split_score(const uint8_t *observations, const double *profiles, int sites,
                 invalid[site] = 1;
             } else {
                 scores[site] = split_stay * (same - independent) / mass;
-                if (!isfinite(scores[site])) invalid[site] = 1;
+                if (!isfinite(scores[site])) {
+                    invalid[site] = 1;
+                } else if (site_terms) {
+                    const Float diagonal = scores[site] * (scores[site] - 1);
+                    const std::array<Float, 5> terms{same, independent, mass, scores[site], diagonal};
+                    for (size_t field = 0; field < terms.size(); ++field) {
+                        std::ostringstream out;
+                        out << std::setprecision(std::numeric_limits<Float>::max_digits10) << terms[field];
+                        char *slot = site_terms + result_capacity * (terms.size() * site + field);
+                        const int written = std::snprintf(slot, result_capacity, "%s", out.str().c_str());
+                        if (written < 0 || written >= result_capacity || !isfinite(terms[field])) invalid[site] = 1;
+                    }
+                }
             }
         }
     }
@@ -102,6 +114,27 @@ extern "C" int f81_split_gradient(const uint8_t *observations, const double *pro
         if (bits == 256) {
             return split_score<256>(observations, profiles, sites, leaves, nodes, order,
                                     parents, lengths, left, right, split_length, result);
+        }
+    } catch (...) {
+        return 3;
+    }
+    return 4;
+}
+
+// Same layout as f81_split_gradient. Output has 5 fixed-width entries per site.
+extern "C" int f81_split_site_terms(const uint8_t *observations, const double *profiles,
+                                  int sites, int leaves, int nodes, const int32_t *order,
+                                  const int32_t *parents, const double *lengths, int left,
+                                  int right, double split_length, int bits, char *result,
+                                  char *site_terms) {
+    try {
+        if (bits == 192) {
+            return split_score<192>(observations, profiles, sites, leaves, nodes, order,
+                                    parents, lengths, left, right, split_length, result, site_terms);
+        }
+        if (bits == 256) {
+            return split_score<256>(observations, profiles, sites, leaves, nodes, order,
+                                    parents, lengths, left, right, split_length, result, site_terms);
         }
     } catch (...) {
         return 3;

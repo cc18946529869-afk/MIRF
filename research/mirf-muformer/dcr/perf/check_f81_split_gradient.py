@@ -40,6 +40,11 @@ class Reference:
                                 ctypes.c_double, integer, ctypes.c_char_p]
         self.native.restype = integer
 
+        self.native_site_terms = getattr(native, "f81_split_site_terms", None)
+        if self.native_site_terms is not None:
+            self.native_site_terms.argtypes = [*self.native.argtypes, pointer]
+            self.native_site_terms.restype = integer
+
     def split(self, edge):
         left, right = self.pairs[edge]
         nodes = len(self.neighbors)
@@ -58,16 +63,37 @@ class Reference:
         return left, right, order, parents, lengths
 
     def score(self, edge, bits):
+        average, _ = self.evaluate(edge, bits, include_sites=False)
+        return average
+
+    def site_terms(self, edge, bits):
+        """Return A, B, mass, negative-log score and diagonal by site."""
+        return self.evaluate(edge, bits, include_sites=True)
+
+    def evaluate(self, edge, bits, *, include_sites):
         left, right, order, parents, lengths = self.split(edge)
         states, profiles = self.pruning.states, self.pruning.profiles
         sites, leaves = states.shape
-        encoded = ctypes.create_string_buffer(128)
-        status = self.native(states.ctypes.data, profiles.ctypes.data, sites, leaves, len(order),
-                             order.ctypes.data, parents.ctypes.data, lengths.ctypes.data,
-                             int(left), int(right), float(self.lengths[edge]), bits, encoded)
+        width = 128
+        encoded = ctypes.create_string_buffer(width)
+        args = (states.ctypes.data, profiles.ctypes.data, sites, leaves, len(order),
+                order.ctypes.data, parents.ctypes.data, lengths.ctypes.data,
+                int(left), int(right), float(self.lengths[edge]), bits, encoded)
+        terms = None
+        if include_sites:
+            if self.native_site_terms is None:
+                raise ValueError("Build the reference library with the site-term entry point")
+            buffer = ctypes.create_string_buffer(width * sites * 5)
+            status = self.native_site_terms(*args, ctypes.addressof(buffer))
+        else:
+            status = self.native(*args)
         if status != 0:
             raise ArithmeticError(f"Independent {bits}-bit split computation failed: {status}")
-        return Decimal(encoded.value.decode("ascii"))
+        if include_sites:
+            slots = np.frombuffer(buffer, dtype=f"S{width}").reshape(sites, 5)
+            terms = [tuple(Decimal(x.decode("ascii")) for x in row) for row in slots]
+        return Decimal(encoded.value.decode("ascii")), terms
+
 
 
 def check(library, native_reference):
