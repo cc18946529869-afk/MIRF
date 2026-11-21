@@ -10,6 +10,7 @@ from scipy.optimize import minimize
 from potts_fit import _two_loop
 
 from .f81_unrooted import UnrootedPruning
+from .f81_zero_boundary import FRACTION_TO_CONFLICT
 
 
 class EvaluationLimit(Exception):
@@ -131,10 +132,33 @@ def projected_scale_step(point, direction, gradient, value, step):
     return step
 
 
+def expansion_steps(anchor, conflict):
+    """Probe separated scales without assuming a connected Armijo interval."""
+    bound = (min(FRACTION_TO_CONFLICT * conflict, math.nextafter(conflict, 0.0))
+             if math.isfinite(conflict) else math.inf)
+    previous = anchor
+    for exponent in (2, 7, 13, 20, 26):
+        step = min(math.ldexp(anchor, exponent), bound)
+        if step > previous:
+            yield step
+            previous = step
+
+
+def normalized_negative_gradient(free_gradient):
+    """Limit each free component to unit magnitude, preserving its sign."""
+    return -free_gradient / np.maximum(1., np.abs(free_gradient))
+
+
+def stale_direction(stale_pairs, gamma, descent_cosine):
+    return (stale_pairs >= 8 and gamma is not None and gamma <= 1e-20
+            and descent_cosine is not None and descent_cosine <= 1e-8)
+
+
 def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260,
                        gtol=1e-5, restrict_history=False, zero_boundary=None,
                        search_diagnostics=False, terminal_diagnostic=None,
-                       scale_initial_step=False):
+                       scale_initial_step=False, expand_steps=False, recover_history=False,
+                       normalized_only=False, iteration_diagnostics=False):
     """Projected L-BFGS with Armijo backtracking on the actual feasible trial."""
     if not isinstance(engine, UnrootedPruning):
         raise TypeError("Optimization requires unrooted edge coordinates")
@@ -146,6 +170,8 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
         raise ValueError("Invalid initial effective lengths")
     n_sites = len(engine.pruning.states)
     calls = iterations = impossible = log_replays = resets = 0
+    stale_pairs = accepted_pairs = recovery_resets = 0
+    expansion_trials = expansion_evaluations = expansion_selections = 0
 
     def objective(lengths):
         nonlocal calls, impossible, log_replays
@@ -185,9 +211,57 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
     search_number = 0
     last_directions = []
 
+    def trial_at(direction, step, attempt, phase):
+        diagnostic = {"event": "line_trial", "search": search_number, "attempt": attempt,
+                      "step": step, "current_value": value} if search_diagnostics else None
+        if diagnostic is not None and expand_steps:
+            diagnostic["phase"] = phase
+
+        def finish(outcome, **fields):
+            if diagnostic is not None:
+                emit({**diagnostic, **fields, "outcome": outcome})
+
+        trial = np.maximum(0, point + step * direction)
+        if zero_boundary is not None and not np.isfinite(trial).all():
+            stats["nonfinite_length_trials"] += 1
+            finish("nonfinite_lengths")
+            return None
+        displacement = trial - point
+        decrease = float(np.dot(derivative, displacement))
+        if diagnostic is not None:
+            diagnostic.update(projected_directional_derivative=decrease,
+                              displacement_inf=float(np.max(np.abs(displacement))),
+                              moved_edges=int(np.count_nonzero(displacement)))
+        if not decrease < 0:
+            finish("no_movement" if not np.any(displacement) else "not_descent_after_projection")
+            return None
+        if zero_boundary is not None and not check(trial):
+            stats["infeasible_likelihood_calls_avoided"] += 1
+            finish("boundary_conflict")
+            return None
+        armijo = value + ARMIJO_C1 * decrease
+        if scale_initial_step and armijo < 0:
+            finish("armijo_below_objective_bound", armijo_rhs=armijo)
+            return None
+        if calls >= maxeval:
+            finish("evaluation_limit")
+        result = objective(trial)
+        if result is None:
+            finish("zero_likelihood")
+            return None
+        passed = result[0] <= armijo
+        if passed:
+            outcome = "armijo_candidate" if expand_steps else "accepted"
+        else:
+            outcome = "armijo_rejected"
+        finish(outcome, trial_value=result[0], armijo_rhs=armijo, armijo_gap=result[0] - armijo)
+        if passed:
+            return trial, displacement, result, calls
+        return None
+
     def search(direction, method):
-        nonlocal search_number
-        step = 1.0
+        nonlocal search_number, expansion_trials, expansion_evaluations, expansion_selections
+        step, limit = 1.0, math.inf
         if zero_boundary is not None:
             stats["line_searches"] += 1
             before = perf_counter()
@@ -219,51 +293,28 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                   "direction_inf": float(np.max(np.abs(direction))),
                   "directional_derivative": float(np.dot(derivative, direction))})
         for attempt in range(1, 25):
-            diagnostic = {"event": "line_trial", "search": search_number, "attempt": attempt,
-                          "step": step, "current_value": value} if search_diagnostics else None
-            trial = np.maximum(0, point + step * direction)
-            if zero_boundary is not None and not np.isfinite(trial).all():
-                stats["nonfinite_length_trials"] += 1
-                if diagnostic is not None:
-                    emit({**diagnostic, "outcome": "nonfinite_lengths"})
+            answer = trial_at(direction, step, attempt, "backtrack")
+            if answer is None:
                 step *= 0.5
                 continue
-            displacement = trial - point
-            decrease = float(np.dot(derivative, displacement))
-            if diagnostic is not None:
-                diagnostic.update(projected_directional_derivative=decrease,
-                                  displacement_inf=float(np.max(np.abs(displacement))),
-                                  moved_edges=int(np.count_nonzero(displacement)))
-            if decrease < 0:
-                if zero_boundary is not None and not check(trial):
-                    stats["infeasible_likelihood_calls_avoided"] += 1
-                    if diagnostic is not None:
-                        emit({**diagnostic, "outcome": "boundary_conflict"})
-                    step *= 0.5
-                    continue
-                armijo = value + ARMIJO_C1 * decrease
-                if scale_initial_step and armijo < 0:
-                    if diagnostic is not None:
-                        emit({**diagnostic, "outcome": "armijo_below_objective_bound",
-                              "armijo_rhs": armijo})
-                    step *= 0.5
-                    continue
-                if diagnostic is not None and calls >= maxeval:
-                    emit({**diagnostic, "outcome": "evaluation_limit"})
-                result = objective(trial)
-                if diagnostic is not None:
-                    if result is None:
-                        emit({**diagnostic, "outcome": "zero_likelihood"})
-                    else:
-                        emit({**diagnostic, "trial_value": result[0], "armijo_rhs": armijo,
-                              "armijo_gap": result[0] - armijo,
-                              "outcome": "accepted" if result[0] <= armijo else "armijo_rejected"})
-                if result is not None and result[0] <= armijo:
-                    return trial, displacement, result
-            elif diagnostic is not None:
-                emit({**diagnostic, "outcome": "no_movement" if not np.any(displacement)
-                      else "not_descent_after_projection"})
-            step *= 0.5
+            if (not expand_steps or attempt != 1 or iterations % 8
+                    or np.max(np.abs(answer[1])) > 1e-5):
+                return answer
+
+            # Spend at most five of the same search's 24 trial slots. Keep a
+            # passing incumbent if the global evaluation limit arrives here.
+            best = answer
+            for probe, larger in enumerate(expansion_steps(step, limit), start=2):
+                if calls >= maxeval:
+                    break
+                expansion_trials += 1
+                before = calls
+                candidate = trial_at(direction, larger, probe, "expansion")
+                expansion_evaluations += calls - before
+                if candidate is not None and candidate[2][0] < best[2][0]:
+                    best = candidate
+            expansion_selections += best[3] != answer[3]
+            return best
         return None
 
     if zero_boundary is not None and zero_boundary.topology is not engine.topology:
@@ -286,7 +337,10 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                 break
             active = (point == 0) & (derivative >= 0)
             free_gradient = np.where(active, 0., derivative)
-            if restrict_history and active.any():
+            used_changes, used_curvatures = changes, curvature_history
+            if normalized_only:
+                direction = normalized_negative_gradient(free_gradient)
+            elif restrict_history and active.any():
                 free = ~active
                 d_steps, d_changes, d_curvatures = [], [], []
                 for step, change in zip(steps, changes):
@@ -298,25 +352,52 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                         d_curvatures.append(sc)
                 direction = np.zeros_like(point)
                 direction[free] = _two_loop(derivative[free], d_steps, d_changes, d_curvatures)
+                used_changes, used_curvatures = d_changes, d_curvatures
             else:
                 direction = _two_loop(free_gradient, steps, changes, curvature_history)
             direction[(point == 0) & (direction < 0)] = 0
+            method = "normalized_gradient" if normalized_only else "lbfgs"
+            if recover_history or iteration_diagnostics:
+                gamma = (used_curvatures[-1] / float(used_changes[-1] @ used_changes[-1])
+                         if used_curvatures else None)
+                product = float(np.linalg.norm(free_gradient) * np.linalg.norm(direction))
+                cosine = float(free_gradient @ direction) / product if product else None
+                if iteration_diagnostics:
+                    emit({"event": "direction_state", "iteration": iterations, "method": method,
+                          "gamma": gamma, "stale_pairs": stale_pairs, "free_gradient_cosine": cosine,
+                          "active_constraints": int(np.count_nonzero(active))})
+                if recover_history and stale_direction(stale_pairs, gamma, None if cosine is None else -cosine):
+                    steps.clear()
+                    changes.clear()
+                    curvature_history.clear()
+                    resets += 1
+                    recovery_resets += 1
+                    emit({"event": "history_recovery", "iteration": iterations,
+                          "gamma": gamma, "stale_pairs": stale_pairs, "free_gradient_cosine": cosine})
+                    stale_pairs = 0
+                    direction = normalized_negative_gradient(free_gradient)
+                    method = "normalized_gradient_after_stale_history"
             last_directions.clear()
-            answer = search(direction, "lbfgs")
+            answer = search(direction, method)
             if answer is None and steps:
                 steps.clear()
                 changes.clear()
                 curvature_history.clear()
                 resets += 1
-                answer = search(-free_gradient, "projected_gradient_after_reset")
+                stale_pairs = 0
+                fallback = normalized_negative_gradient(free_gradient) if recover_history else -free_gradient
+                method = "normalized_gradient_after_failed_search" if recover_history else "projected_gradient_after_reset"
+                answer = search(fallback, method)
             if answer is None:
                 status = "no_finite_armijo_step"
                 break
-            trial, displacement, (new_value, new_derivative) = answer
+            trial, displacement, (new_value, new_derivative), selected_call = answer
             change = new_derivative - derivative
             curvature = float(np.dot(displacement, change))
             bound = 1e-10 * np.linalg.norm(displacement) * np.linalg.norm(change)
-            if curvature > bound:
+            if not normalized_only and curvature > bound:
+                accepted_pairs += 1
+                stale_pairs = 0
                 if len(steps) == 10:
                     steps.pop(0)
                     changes.pop(0)
@@ -324,9 +405,11 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                 steps.append(displacement)
                 changes.append(change)
                 curvature_history.append(curvature)
+            else:
+                stale_pairs += 1
             point, value, derivative = trial, new_value, new_derivative
             iterations += 1
-            emit({"event": "accepted", "iteration": iterations, "calls": calls})
+            emit({"event": "accepted", "iteration": iterations, "calls": selected_call})
         if projected_norm(point, derivative) <= gtol:
             status = "projected_gradient_converged"
     except EvaluationLimit:
@@ -349,6 +432,9 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
         "status": status, "iterations": iterations, "solver_likelihood_gradient_evaluations": calls,
         "additional_terminal_evaluations": 1, "infeasible_trials": impossible,
         "log_domain_site_replays": log_replays, "history_resets": resets,
+        "curvature_pairs_kept": accepted_pairs, "stale_history_resets": recovery_resets,
+        "expansion_trials": expansion_trials, "expansion_evaluations": expansion_evaluations,
+        "expansion_selections": expansion_selections,
         "initial_log_likelihood": first, "terminal_log_likelihood": terminal.log_likelihood,
         "terminal_projected_gradient_per_site": norm,
         "terminal_zero_edges": int(np.count_nonzero(point == 0)),
