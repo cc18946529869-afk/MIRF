@@ -77,6 +77,42 @@ def _init_weights(model_tmp):
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
 
+class BestEpochWeights(object):
+    """Remember the best in-memory weights.
+
+    ``best_epoch`` changes only when ``is_best`` is true. A later evaluation
+    that returns no epoch must not clear it.
+    """
+
+    def __init__(self):
+        self.best_model_state = None
+        self.best_optimizer_state_dict = None
+        self.best_epoch = None
+        self.best_val_results = None
+
+    def note(self, is_best, model_state, optimizer_state, epoch, val_results):
+        if is_best:
+            self.best_model_state = model_state
+            self.best_optimizer_state_dict = optimizer_state
+            self.best_epoch = epoch
+            self.best_val_results = val_results
+        return self.best_epoch
+
+
+def restore_best_model_state(model, best_model_state):
+    """Load the saved best ``state_dict`` into this same model instance.
+
+    The dictionary is the one taken from ``model.module`` during training.
+    This does not call ``torch.load`` and does not build another model.
+    """
+    if best_model_state is None:
+        raise RuntimeError("best_model_state is missing, so the best epoch cannot be restored")
+    if not hasattr(model, "module"):
+        raise RuntimeError("the trained model has no module attribute to receive the best weights")
+    model.module.load_state_dict(best_model_state)
+    return model
+
+
 class Trainer(object):
     def __init__(self,
             output_dir=None,
@@ -400,6 +436,7 @@ class Trainer(object):
 
     def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path):  
         
+        self.best_epochs = []
         for model_idx, (model, optimizer) in enumerate(zip(self.models, self.optimizers), start=1):
 
             (train_loader, train_df), (valid_loader, valid_df) = self._prepare_dataloaders()  
@@ -417,7 +454,7 @@ class Trainer(object):
             stopper = self._init_early_stopping(patience, eval_freq, best_score)  
             scheduler = self._init_scheduler(optimizer, epochs, steps_per_epoch, warmup_epochs) 
 
-            best_model_state, best_optimizer_state_dict, best_epoch, best_val_results = None, None, None, None 
+            record = BestEpochWeights()
 
             for epoch in range(start_epoch, epochs + 1):
                 time_start = time.time()
@@ -425,18 +462,18 @@ class Trainer(object):
                 train_loss = self._train_epoch(model_idx, model, optimizer, scheduler, train_loader, epoch)  
 
                 if epoch % eval_freq == 0 or epoch == epochs:  
-                    is_best, model_state, optimizer_state_dict, best_epoch, val_results = self._evaluate_and_save_best(  
+                    is_best, model_state, optimizer_state_dict, _returned_epoch, val_results = self._evaluate_and_save_best(  
                         model, optimizer, valid_loader, stopper, epoch, valid_df)
-                    if is_best:
-                        best_model_state = model_state
-                        best_optimizer_state_dict = optimizer_state_dict
-                        best_val_results = val_results
+                    record.note(is_best, model_state, optimizer_state_dict, epoch, val_results)
 
                     self._log_epoch_progress(train_loss, val_results, epoch, epochs, stopper, time.time() - time_start)  
 
                 if stopper.early_stop or epoch == epochs:  
-                    self._handle_early_stop(epoch, model_idx, best_model_state, best_optimizer_state_dict, best_epoch, best_val_results, stopper, save_checkpoint)  
-                    break  
+                    self._handle_early_stop(epoch, model_idx, record.best_model_state, record.best_optimizer_state_dict, record.best_epoch, record.best_val_results, stopper, save_checkpoint)  
+                    break
+
+            restore_best_model_state(model, record.best_model_state)
+            self.best_epochs.append(record.best_epoch)
 
         self._finalize_training()  
 
