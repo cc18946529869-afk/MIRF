@@ -93,20 +93,32 @@ def precision_audit(point, edge, split, tangent, scan):
     }
 
 
+def max_gradient_disagreement(first, second):
+    differences = np.abs(first-second)
+    edge = int(differences.argmax())
+    a, b = float(first[edge]), float(second[edge])
+    return {"edge": edge, "ordinary": a, "rerooted_log": b,
+            "absolute_difference": float(differences[edge]),
+            "symmetric_relative_difference": str(relative_error(physical(a), physical(b))),
+            "ulp_distance": abs(ordered_binary64(a)-ordered_binary64(b))}
+
+
 def scan_vectors(engine, auditor, point):
     normal = engine.evaluate(point, threads=4)
     logged = auditor.evaluate(point, threads=4, log_domain=True)
     n = len(normal.site_log_likelihood)
     first = -normal.length_gradient / n
     second = -logged.length_gradient / n
+    discrepancy = max_gradient_disagreement(first, second)
     return {
         "vectors": (first, second),
         "total_log_likelihood": normal.log_likelihood,
         "rerooted_log_likelihood": logged.log_likelihood,
         "projected_gradient_inf": projected_norm(point, first),
         "rerooted_projected_gradient_inf": projected_norm(point, second),
-        "cross_path_gradient_abs": float(np.abs(first-second).max()),
-        "cross_path_gradient_passed": bool(np.abs(first-second).max() <= 1e-8),
+        "cross_path_gradient_abs": discrepancy["absolute_difference"],
+        "cross_path_gradient_passed": discrepancy["absolute_difference"] <= 1e-8,
+        "max_gradient_disagreement": discrepancy,
     }
 
 
