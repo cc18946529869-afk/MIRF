@@ -295,7 +295,13 @@ static int log_downward(const double *pi, int32_t n, int32_t leaves, const int32
 
 /* Inputs are validated by the caller: internal parent ids exceed child ids,
  * leaves correspond to rows, and edge slots are indexed by child id. */
-void f81_sites(const uint8_t *states, const double *profiles, int32_t nsites,
+enum { GRADIENT_BLOCK_SIZE = 16 };
+
+int f81_gradient_block_size(void) {
+    return GRADIENT_BLOCK_SIZE;
+}
+
+void f81_sites_fixed_blocks(const uint8_t *states, const double *profiles, int32_t nsites,
                int32_t n, int32_t leaves, const int32_t *offsets,
                const int32_t *children, const double *stay, const double *redraw,
                const double *length, const double *log_redraw, int32_t force_log,
@@ -304,7 +310,6 @@ void f81_sites(const uint8_t *states, const double *profiles, int32_t nsites,
     size_t bytes = (size_t)n * Q * sizeof(double);
     #pragma omp parallel num_threads(threads)
     {
-        int tid = omp_get_thread_num();
         double *inside = malloc(bytes);
         double *messages = malloc(bytes);
         double *outside = need_gradient ? malloc(bytes) : NULL;
@@ -313,39 +318,43 @@ void f81_sites(const uint8_t *states, const double *profiles, int32_t nsites,
         double *contribution = need_gradient ? malloc(gradient_bytes ? gradient_bytes : 1) : NULL;
         int allocated = inside && messages && (!need_gradient || (outside && prefix && contribution));
         #pragma omp for schedule(static)
-        for (int32_t site = 0; site < nsites; ++site) {
-            if (!allocated) {
-                statuses[site] = NO_MEMORY;
-                continue;
-            }
-            const double *pi = profiles + (size_t)site * Q;
-            const uint8_t *state = states + (size_t)site * leaves;
-            int status = RANGE_ERROR;
-            if (!force_log) {
-                status = upward(state, pi, n, leaves, offsets, children, stay, redraw,
-                                inside, messages, site_loglik + site);
-                if (status == OK && need_gradient) {
-                    memset(contribution, 0, gradient_bytes);
-                    status = downward(pi, n, leaves, offsets, children, stay, redraw,
-                                      inside, messages, outside, prefix, contribution);
+        for (int32_t block = 0; block < (nsites - 1) / GRADIENT_BLOCK_SIZE + 1; ++block) {
+            int32_t begin = block * GRADIENT_BLOCK_SIZE;
+            int32_t end = nsites - begin < GRADIENT_BLOCK_SIZE ? nsites : begin + GRADIENT_BLOCK_SIZE;
+            for (int32_t site = begin; site < end; ++site) {
+                if (!allocated) {
+                    statuses[site] = NO_MEMORY;
+                    continue;
                 }
-            }
-            if (status == RANGE_ERROR) {
-                double log_pi[Q];
-                for (int a = 0; a < Q; ++a) log_pi[a] = pi[a] > 0 ? log(pi[a]) : -INFINITY;
-                status = log_upward(state, log_pi, n, leaves, offsets, children, length, log_redraw,
+                const double *pi = profiles + (size_t)site * Q;
+                const uint8_t *state = states + (size_t)site * leaves;
+                int status = RANGE_ERROR;
+                if (!force_log) {
+                    status = upward(state, pi, n, leaves, offsets, children, stay, redraw,
                                     inside, messages, site_loglik + site);
-                if (status == OK && need_gradient) {
-                    status = log_downward(log_pi, n, leaves, offsets, children, length, log_redraw,
+                    if (status == OK && need_gradient) {
+                        memset(contribution, 0, gradient_bytes);
+                        status = downward(pi, n, leaves, offsets, children, stay, redraw,
                                           inside, messages, outside, prefix, contribution);
+                    }
                 }
-                log_used[site] = 1;
+                if (status == RANGE_ERROR) {
+                    double log_pi[Q];
+                    for (int a = 0; a < Q; ++a) log_pi[a] = pi[a] > 0 ? log(pi[a]) : -INFINITY;
+                    status = log_upward(state, log_pi, n, leaves, offsets, children, length, log_redraw,
+                                        inside, messages, site_loglik + site);
+                    if (status == OK && need_gradient) {
+                        status = log_downward(log_pi, n, leaves, offsets, children, length, log_redraw,
+                                              inside, messages, outside, prefix, contribution);
+                    }
+                    log_used[site] = 1;
+                }
+                if (status == OK && need_gradient) {
+                    double *total = gradient + (size_t)block * (n - 1);
+                    for (int32_t edge = 0; edge < n - 1; ++edge) total[edge] += contribution[edge];
+                }
+                statuses[site] = status;
             }
-            if (status == OK && need_gradient) {
-                double *total = gradient + (size_t)tid * (n - 1);
-                for (int32_t edge = 0; edge < n - 1; ++edge) total[edge] += contribution[edge];
-            }
-            statuses[site] = status;
         }
         free(contribution);
         free(prefix);

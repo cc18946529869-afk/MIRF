@@ -75,7 +75,13 @@ class Pruning:
         self.topology = topology
         self.states = np.ascontiguousarray(states.T, dtype=np.uint8)
         self.profiles = np.ascontiguousarray(law)
-        self._native = ctypes.CDLL(str(library.resolve())).f81_sites
+        native = ctypes.CDLL(str(library.resolve()))
+        self._native = native.f81_sites_fixed_blocks
+        native.f81_gradient_block_size.argtypes = []
+        native.f81_gradient_block_size.restype = ctypes.c_int
+        self.gradient_block_size = native.f81_gradient_block_size()
+        if self.gradient_block_size <= 0:
+            raise ValueError("Invalid native gradient block size")
         self._native.argtypes = ([ctypes.c_void_p] * 2 + [ctypes.c_int32] * 3 + [ctypes.c_void_p] * 6
                                 + [ctypes.c_int32] * 4 + [ctypes.c_void_p] * 4)
         self._native.restype = None
@@ -93,7 +99,8 @@ class Pruning:
             log_redraw = np.log(redraw)
         use_log = log_domain or np.any(stay < np.finfo(float).tiny)
         nsites = len(self.states)
-        by_thread = np.zeros((threads, len(lengths))) if gradient else None
+        block_count = (nsites + self.gradient_block_size - 1) // self.gradient_block_size
+        by_block = np.zeros((block_count, len(lengths))) if gradient else None
         status = np.zeros(nsites, dtype=np.int32)
         loglik = np.full(nsites, -np.inf, dtype=np.float64)
         log_used = np.zeros(nsites, dtype=np.uint8)
@@ -101,7 +108,7 @@ class Pruning:
                      tree.leaves, tree.offsets.ctypes.data, tree.children.ctypes.data,
                      stay.ctypes.data, redraw.ctypes.data, lengths.ctypes.data, log_redraw.ctypes.data,
                      int(use_log), tree.max_degree, threads, int(gradient),
-                     None if by_thread is None else by_thread.ctypes.data,
+                     None if by_block is None else by_block.ctypes.data,
                      loglik.ctypes.data, status.ctypes.data, log_used.ctypes.data)
         if np.any(status == 3):
             raise MemoryError("Native partial likelihood workspace allocation failed")
@@ -111,7 +118,13 @@ class Pruning:
         if np.any(status == 1):
             loglik[status == 1] = -np.inf
             return Evaluation(-math.inf, loglik, None, int(log_used.sum()))
-        result = by_thread.sum(axis=0) if gradient else None
+        result = None
+        if by_block is not None:
+            # Independent of team size and scheduling, including when the
+            # process is limited to fewer threads than the requested number.
+            result = np.zeros(len(lengths))
+            for partial in by_block:
+                result += partial
         if result is not None and not np.isfinite(result).all():
             raise FloatingPointError("Nonfinite total gradient")
         return Evaluation(math.fsum(loglik), loglik, result, int(log_used.sum()))

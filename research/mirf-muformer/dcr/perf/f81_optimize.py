@@ -106,7 +106,8 @@ def optimize(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260, gtol
 
 
 def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval=260,
-                       gtol=1e-5, restrict_history=False, zero_boundary=None):
+                       gtol=1e-5, restrict_history=False, zero_boundary=None,
+                       search_diagnostics=False, terminal_diagnostic=None):
     """Projected L-BFGS with Armijo backtracking on the actual feasible trial."""
     if not isinstance(engine, UnrootedPruning):
         raise TypeError("Optimization requires unrooted edge coordinates")
@@ -154,7 +155,11 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
         stats["precheck_seconds"] += perf_counter() - before
         return feasible
 
-    def search(direction):
+    search_number = 0
+    last_directions = []
+
+    def search(direction, method):
+        nonlocal search_number
         step = 1.0
         if zero_boundary is not None:
             stats["line_searches"] += 1
@@ -171,22 +176,55 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
                     stats["infeasible_full_step_probes"] += 1
                     stats["infeasible_likelihood_calls_avoided"] += 1
                 emit({"event": "zero_boundary_cap", "first_conflict": limit, "initial_step": step})
-        for _ in range(24):
+
+        search_number += 1
+        if terminal_diagnostic is not None:
+            last_directions.append((method, step, direction.copy()))
+        if search_diagnostics:
+            emit({"event": "line_search", "search": search_number, "method": method,
+                  "iteration": iterations, "start_step": step, "history": len(steps),
+                  "direction_l2": float(np.linalg.norm(direction)),
+                  "direction_inf": float(np.max(np.abs(direction))),
+                  "directional_derivative": float(np.dot(derivative, direction))})
+        for attempt in range(1, 25):
+            diagnostic = {"event": "line_trial", "search": search_number, "attempt": attempt,
+                          "step": step, "current_value": value} if search_diagnostics else None
             trial = np.maximum(0, point + step * direction)
             if zero_boundary is not None and not np.isfinite(trial).all():
                 stats["nonfinite_length_trials"] += 1
+                if diagnostic is not None:
+                    emit({**diagnostic, "outcome": "nonfinite_lengths"})
                 step *= 0.5
                 continue
             displacement = trial - point
             decrease = float(np.dot(derivative, displacement))
+            if diagnostic is not None:
+                diagnostic.update(projected_directional_derivative=decrease,
+                                  displacement_inf=float(np.max(np.abs(displacement))),
+                                  moved_edges=int(np.count_nonzero(displacement)))
             if decrease < 0:
                 if zero_boundary is not None and not check(trial):
                     stats["infeasible_likelihood_calls_avoided"] += 1
+                    if diagnostic is not None:
+                        emit({**diagnostic, "outcome": "boundary_conflict"})
                     step *= 0.5
                     continue
+                if diagnostic is not None and calls >= maxeval:
+                    emit({**diagnostic, "outcome": "evaluation_limit"})
                 result = objective(trial)
-                if result is not None and result[0] <= value + 1e-4 * decrease:
+                armijo = value + 1e-4 * decrease
+                if diagnostic is not None:
+                    if result is None:
+                        emit({**diagnostic, "outcome": "zero_likelihood"})
+                    else:
+                        emit({**diagnostic, "trial_value": result[0], "armijo_rhs": armijo,
+                              "armijo_gap": result[0] - armijo,
+                              "outcome": "accepted" if result[0] <= armijo else "armijo_rejected"})
+                if result is not None and result[0] <= armijo:
                     return trial, displacement, result
+            elif diagnostic is not None:
+                emit({**diagnostic, "outcome": "no_movement" if not np.any(displacement)
+                      else "not_descent_after_projection"})
             step *= 0.5
         return None
 
@@ -225,13 +263,14 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
             else:
                 direction = _two_loop(free_gradient, steps, changes, curvature_history)
             direction[(point == 0) & (direction < 0)] = 0
-            answer = search(direction)
+            last_directions.clear()
+            answer = search(direction, "lbfgs")
             if answer is None and steps:
                 steps.clear()
                 changes.clear()
                 curvature_history.clear()
                 resets += 1
-                answer = search(-free_gradient)
+                answer = search(-free_gradient, "projected_gradient_after_reset")
             if answer is None:
                 status = "no_finite_armijo_step"
                 break
@@ -258,6 +297,8 @@ def optimize_projected(engine, initial, *, emit, threads=4, maxiter=150, maxeval
     before = perf_counter()
     terminal = engine.evaluate(point, threads=threads)
     verification_seconds = perf_counter() - before
+    if terminal_diagnostic is not None and status != "projected_gradient_converged":
+        terminal_diagnostic(point, derivative, terminal, last_directions, status)
     if terminal.length_gradient is None:
         raise RuntimeError("Accepted terminal is infeasible")
     norm = projected_norm(point, -terminal.length_gradient / n_sites)
