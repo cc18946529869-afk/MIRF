@@ -84,7 +84,7 @@ def main():
         "case": args.case,
         "method": result["method"],
         "lbfgs_history": "discarded; no Stage 2.7 secant pair was loaded",
-        "start_role": "stage27_final",
+        "start_role": "stage27_final" if start_sha == TERMINAL_LENGTHS_SHA else "caller_checkpoint",
         "start_lengths_sha256": start_sha,
         "backup_role": "stage27_best_projection_not_used",
         "backup_lengths_sha256": backup_sha,

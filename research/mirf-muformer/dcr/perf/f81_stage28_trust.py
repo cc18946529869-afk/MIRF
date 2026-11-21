@@ -14,8 +14,10 @@ This solver therefore does four things the previous one does not:
   with that tail, and it leaves every other edge fixed;
 - the search direction is the verified diagonal step, clipped separately on
   each edge, not a secant step and not one global rescaling;
-- one Hessian-vector product chooses the length of that clipped direction,
-  which is how the adjacent cross derivative shortens the stiff step;
+- one Hessian-vector product then sets a separate length on each edge. A
+  single length is fixed by the weakly coupled majority. On a path whose
+  cross curvature equals its diagonal, that length is several times the
+  joint Newton step, and the shared gradient on the path changes sign.
 - a trial is accepted when it stays feasible and satisfies the original
   Armijo condition. The infinity-norm projection is recorded for the
   convergence test. It is not a per-step acceptance gate: one edge can
@@ -116,7 +118,7 @@ def _cap_tau(delta, direction, cap):
 
 
 def capped_diagonal_step(gradient, diagonal, product, index, cap):
-    """Clip each diagonal step to that edge's own length cap, then rescale once.
+    """Clip each diagonal step, then shorten each edge by the joint curvature.
 
     A single truncated-Newton direction in all free coordinates is not usable
     here. A few edges have a diagonal step far larger than their length cap.
@@ -126,10 +128,14 @@ def capped_diagonal_step(gradient, diagonal, product, index, cap):
     nonpositive stored diagonal are left fixed: moving them is the negative
     curvature the undamped Newton step would follow.
 
-    One Hessian-vector product then chooses the common length of this clipped
-    direction. For the measured adjacent pair, that product is about twice the
-    diagonal quadratic term, so the length comes out near one half. That is
-    the stiff combination. The near-null combination is not a search direction.
+    One Hessian-vector product of this clipped direction supplies ``(Hd)_i``.
+    Edge ``i`` then takes the fraction ``min(1, max(0, -g_i / (Hd)_i))`` of
+    its clipped step. Where the cross curvature equals the diagonal, as on
+    the measured paths, ``(Hd)_i`` is about ``n`` times ``H_ii d_i`` and the
+    fraction is about ``1/n``. A single fraction cannot do that: the Rayleigh
+    quotient of a large free set stays near one, so every edge, including the
+    path, keeps most of its diagonal step. An edge whose own curvature along
+    the joint direction is not positive stays fixed for this iteration.
     """
     slope_gradient = gradient[index]
     curvature = diagonal[index]
@@ -138,6 +144,7 @@ def capped_diagonal_step(gradient, diagonal, product, index, cap):
     raw[curvature <= 0] = 0.
     direction = np.clip(raw, -cap, cap)
     info = {"hit": "clipped_diagonal", "model_alpha": 0., "rayleigh": None,
+            "global_alpha": None,
             "clipped_edges": int(np.count_nonzero(np.abs(raw) > cap)),
             "frozen_nonpositive_diagonal": int(np.count_nonzero(curvature <= 0))}
     if not np.isfinite(direction).all() or float(slope_gradient @ direction) >= 0.:
@@ -151,14 +158,25 @@ def capped_diagonal_step(gradient, diagonal, product, index, cap):
     metric = float(direction @ (np.maximum(curvature, 1e-3) * direction))
     info["rayleigh"] = directional / metric if metric > 0 else None
     if directional > 0.:
-        alpha = min(1., max(0., -slope / directional))
-        info["hit"] = "hessian_length"
+        info["global_alpha"] = min(1., max(0., -slope / directional))
     else:
-        alpha = 1.
-        info["hit"] = "nonpositive_curvature_along_step"
-    info["model_alpha"] = alpha
-    info["model_slope"] = slope * alpha
-    return alpha * direction, info
+        info["global_alpha"] = 1.
+    component = direction * product_direction
+    scales = np.zeros(index.size)
+    usable = component > 0.
+    scales[usable] = np.clip(
+        -(slope_gradient[usable] * direction[usable]) / component[usable], 0., 1.)
+    step = scales * direction
+    moved = direction != 0.
+    if not np.isfinite(step).all() or not np.any(moved) or float(slope_gradient @ step) >= 0.:
+        info["hit"] = "not_descent"
+        return np.zeros(index.size), info
+    info["hit"] = "coordinate_hessian_length"
+    info["model_alpha"] = float(np.median(scales[moved]))
+    info["coordinate_alpha_min"] = float(scales[moved].min())
+    info["coordinate_alpha_max"] = float(scales[moved].max())
+    info["model_slope"] = float(slope_gradient @ step)
+    return step, info
 
 
 def verify_products(lengths, gradient, diagonal, adjacency, gradient_at):
@@ -378,7 +396,7 @@ def _finish(point, current, gradient, stopped, accepted, counts, best_projection
     feasible = bool(guard.feasible(point))
     return point, {
         "status": stopped,
-        "method": "per-edge capped diagonal step, with one Hessian-vector product choosing the step length",
+        "method": "per-edge capped diagonal step; one Hessian-vector product sets a separate length on each edge",
         "lbfgs_history": "discarded",
         "accepted": accepted,
         "objective": -current.log_likelihood / n,

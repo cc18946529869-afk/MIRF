@@ -1,0 +1,159 @@
+{
+  "question": "Why the mean objective keeps falling while the infinity-norm projected gradient does not.",
+  "trajectory": {
+    "steps_including_start": 209,
+    "unique_peak_edges": 16,
+    "peak_switches": 190,
+    "most_frequent_peak": 8639,
+    "most_frequent_peak_steps": 36,
+    "edges_ever_in_top50": 276,
+    "median_changed_edges": 193.5,
+    "negative_slope_steps": 208,
+    "step92": {
+      "projection": 0.0021692758256439126,
+      "objective": 18409.51058917322,
+      "peak_edge": 18310,
+      "edges_above_1e-3": 28,
+      "edges_above_1e-4": 561,
+      "median_abs_residual": 2.9487350086121467e-06
+    },
+    "step208": {
+      "projection": 0.02974819717055844,
+      "objective": 18409.498753217034,
+      "peak_edge": 16577,
+      "edges_above_1e-3": 43,
+      "edges_above_1e-4": 650,
+      "median_abs_residual": 2.9806943357968407e-06
+    },
+    "edges_residual_increased_92_to_208": 179,
+    "edges_residual_decreased_92_to_208": 116
+  },
+  "answers": {
+    "same_edges": "The maximum is one of 16 edges. It is not one edge.",
+    "switches": "The peak identity changes on 190 of 208 accepted steps.",
+    "after_92": "The largest increases are a 5-edge path (16577, 18288, 6311, 19144, 13155) from 0.001841 to 0.029748, and short edges with diagonal curvature near 151 from below 5e-4 to about 0.026.",
+    "few_or_all": "The median absolute residual stays near 3e-6 at the start, at step 92, and at step 208. Edges above 1e-3 are 58, 28, and 43. The tail is a few hundred edges, not the whole tree.",
+    "scale_curvature_direction": "The jumps sit on paths of adjacent edges whose cross curvature equals the diagonal. One shared step length follows the Rayleigh quotient of the whole free set."
+  },
+  "hessian_at_continuation_start": {
+    "state": "continuation initial, diagnostic step 62",
+    "free_edges": 1486,
+    "seeds": 647,
+    "global_alpha": 0.709929871632706,
+    "coordinate_alpha_min": 0.0,
+    "coordinate_alpha_median": 0.5264653755756163,
+    "coordinate_alpha_max": 1.0,
+    "chain_8639": [
+      {
+        "edge": 8627,
+        "length": 0.0012251659373786147,
+        "gradient": 0.01431930086620543,
+        "diagonal": 146.7524053382101,
+        "clipped_step": -9.757455650014546e-05,
+        "hessian_times_step": -0.08052238486010167,
+        "curvature_ratio": 5.6233461125284565,
+        "coordinate_alpha": 0.17783006416269906
+      },
+      {
+        "edge": 8639,
+        "length": 0.00041344308302928407,
+        "gradient": 0.01166499555657904,
+        "diagonal": 147.7743659565823,
+        "clipped_step": -7.89378826366025e-05,
+        "hessian_times_step": -0.08065865047005191,
+        "curvature_ratio": 6.9145890436761075,
+        "coordinate_alpha": 0.14462175462395302
+      },
+      {
+        "edge": 14313,
+        "length": 0.0010515114361786153,
+        "gradient": 0.014650678674702664,
+        "diagonal": 146.63861734868027,
+        "clipped_step": -9.991009830559152e-05,
+        "hessian_times_step": -0.08053435325471905,
+        "curvature_ratio": 5.496970825916602,
+        "coordinate_alpha": 0.18191837498669153
+      },
+      {
+        "edge": 14319,
+        "length": 0.0017216797403870627,
+        "gradient": 0.015082499447569028,
+        "diagonal": 146.46407681034268,
+        "clipped_step": -0.00010297746571058143,
+        "hessian_times_step": -0.08060561239754163,
+        "curvature_ratio": 5.344313963196167,
+        "coordinate_alpha": 0.18711475539920375
+      },
+      {
+        "edge": 17156,
+        "length": 2.967397784938671e-06,
+        "gradient": 0.015640959198479173,
+        "diagonal": 146.2512224353044,
+        "clipped_step": -7.418494462346678e-07,
+        "hessian_times_step": -0.08056046659347603,
+        "curvature_ratio": 742.517495745572,
+        "coordinate_alpha": 0.19415179504118976
+      },
+      {
+        "edge": 17159,
+        "length": 0.0003573461824933546,
+        "gradient": 0.015642528418488677,
+        "diagonal": 146.27195646119554,
+        "clipped_step": -8.933654562333865e-05,
+        "hessian_times_step": -0.08066080872554464,
+        "curvature_ratio": 6.17265985952739,
+        "coordinate_alpha": 0.19392972455450735
+      },
+      {
+        "edge": 18578,
+        "length": 0.00033495903087705733,
+        "gradient": 0.01652152952576049,
+        "diagonal": 145.9289686510793,
+        "clipped_step": -8.373975771926433e-05,
+        "hessian_times_step": -0.0806376253740561,
+        "curvature_ratio": 6.59879318170188,
+        "coordinate_alpha": 0.20488611177625324
+      },
+      {
+        "edge": 18579,
+        "length": 8.981666287910177e-07,
+        "gradient": 0.015841227585122075,
+        "diagonal": 146.19561866552087,
+        "clipped_step": -2.2454165719775443e-07,
+        "hessian_times_step": -0.08065695357767703,
+        "curvature_ratio": 2457.030421026623,
+        "coordinate_alpha": 0.1964025032245498
+      }
+    ]
+  },
+  "hessian_at_step92_path_only": {
+    "edges": [
+      16577,
+      18288,
+      6311,
+      19144,
+      13155
+    ],
+    "topology": "19144-18288-16577-13155-6311",
+    "gradient": -0.00184089818227847,
+    "diagonal": 3.5577050883858865,
+    "gradient_spread": 1.0798653637955624e-16,
+    "column_16577_cross_on_the_path": "equal to the diagonal, 3.5577050884",
+    "joint_diagonal_direction_curvature_ratio": 5.0,
+    "coordinate_alpha": 0.2,
+    "logged_global_alpha_of_that_iteration": 0.2268825179256913,
+    "logged_free_edges": 122,
+    "logged_rayleigh": 4.6684105706550385
+  },
+  "first_accepted_step": {
+    "logged_global_alpha": 0.709929871632706,
+    "logged_rayleigh": 1.4823020280552137,
+    "logged_free_edges": 1486,
+    "reconstruction_matches_logged_global_alpha": true,
+    "projection_before": 0.002465552721970801,
+    "projection_after": 0.05037390591017211,
+    "peak_after": 8639,
+    "chain_coordinate_alpha_median": 0.19052223997685555
+  },
+  "change": "Replace the single model length with a per-edge fraction -g_i/(Hd)_i clipped to [0, 1], using the same Hessian-vector product. Do not reject a step because the infinity norm rose."
+}

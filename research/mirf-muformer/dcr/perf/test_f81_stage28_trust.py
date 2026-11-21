@@ -102,6 +102,29 @@ class TrustTests(unittest.TestCase):
         self.assertLess(result["objective"], 1.)
         self.assertGreater(result["projection"], 0.01)
 
+    def test_a_coupled_path_takes_one_fifth_while_an_uncoupled_edge_keeps_its_step(self):
+        # Five edges share one curvature, as measured on the Stage 2.8 path
+        # whose cross derivative equals the diagonal. A sixth edge is independent.
+        # One common length would follow the sixth edge and move the path about
+        # five times too far. Each edge must use its own fraction of the clipped step.
+        block = 3.5 * np.ones((5, 5))
+        hessian = np.zeros((6, 6))
+        hessian[:5, :5] = block
+        hessian[5, 5] = 10.
+        origin = np.full(6, 0.05)
+        gradient = np.array([-0.00184, -0.00184, -0.00184, -0.00184, -0.00184, 0.02])
+        engine = Quadratic(hessian, origin, gradient, 4.)
+        pairs = np.array([[1, 0], [2, 1], [3, 2], [4, 3], [5, 4], [7, 6]])
+        adjacency = incident_edges(pairs)
+        point, result = solve_subspace_trust(
+            engine, engine, Guard(), origin, lambda row: None, adjacency,
+            maxiter=1, maxeval=80, wall_seconds=30, max_cg=4)
+        self.assertEqual(result["accepted"], 1)
+        path = 0.00184 / (5. * 3.5)
+        np.testing.assert_allclose(point[:5] - origin[:5], np.full(5, path), rtol=1e-6, atol=1e-8)
+        np.testing.assert_allclose(point[5] - origin[5], -0.002, rtol=1e-6, atol=1e-8)
+        self.assertLess(result["projection"], 1e-8)
+
     def test_negative_curvature_does_not_take_the_undamped_step(self):
         hessian = np.array([[-1.]])
         origin = np.array([1.])

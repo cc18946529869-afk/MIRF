@@ -1,0 +1,92 @@
+{
+  "fingerprints_match": true,
+  "objective_budget_ok": true,
+  "objective_calls": 930,
+  "gradient_calls": 702,
+  "diagonal_calls": 229,
+  "hessian_products": 473,
+  "independent_calls": 1,
+  "accepted_steps": 228,
+  "armijo_holds": true,
+  "projection_did_not_increase_on_accepted_steps": false,
+  "checkpoint_hashes_match": true,
+  "checkpoints": {
+    "initial": {
+      "name": "initial",
+      "sha256": "aa4755b81294c3641d2495712b759c2b924be144a75a119e3ed057c4c39106ae",
+      "lengths_sha256": "f4c9e5c0d4cb005453c21d787a01b64dc4f4fb0dfbce1479713f854dd8e998d5",
+      "objective": 18409.51058917322,
+      "projection": 0.0021692758256439126,
+      "iteration": 0,
+      "objective_calls": 1,
+      "edges": 19997,
+      "recomputed_sha256": "aa4755b81294c3641d2495712b759c2b924be144a75a119e3ed057c4c39106ae",
+      "hash_ok": true
+    },
+    "best_projection": {
+      "name": "best_projection",
+      "sha256": "aa4755b81294c3641d2495712b759c2b924be144a75a119e3ed057c4c39106ae",
+      "lengths_sha256": "f4c9e5c0d4cb005453c21d787a01b64dc4f4fb0dfbce1479713f854dd8e998d5",
+      "objective": 18409.51058917322,
+      "projection": 0.0021692758256439126,
+      "iteration": 0,
+      "objective_calls": 1,
+      "edges": 19997,
+      "recomputed_sha256": "aa4755b81294c3641d2495712b759c2b924be144a75a119e3ed057c4c39106ae",
+      "hash_ok": true
+    },
+    "best_objective": {
+      "name": "best_objective",
+      "sha256": "7dae88d9092bc3fa37ef9db874ac8775c765b8213fc58d4caa7f70fc4f47e303",
+      "lengths_sha256": "01e90019e765e37bea0cc2cd76f2b14aa483bc15377c5c3ae36ccf799d14bfb5",
+      "objective": 18409.506767709718,
+      "projection": 0.00499032097661134,
+      "iteration": 228,
+      "objective_calls": 929,
+      "edges": 19997,
+      "recomputed_sha256": "7dae88d9092bc3fa37ef9db874ac8775c765b8213fc58d4caa7f70fc4f47e303",
+      "hash_ok": true
+    },
+    "final": {
+      "name": "final",
+      "sha256": "66bee7550e24207a16dd1bb011477e83790fe48f939a527c4587419f3edcd951",
+      "lengths_sha256": "01e90019e765e37bea0cc2cd76f2b14aa483bc15377c5c3ae36ccf799d14bfb5",
+      "objective": 18409.506767709718,
+      "projection": 0.00499032097661134,
+      "iteration": 228,
+      "objective_calls": 930,
+      "edges": 19997,
+      "recomputed_sha256": "66bee7550e24207a16dd1bb011477e83790fe48f939a527c4587419f3edcd951",
+      "hash_ok": true
+    }
+  },
+  "best_projection_recompute": {
+    "lengths_sha256": "f4c9e5c0d4cb005453c21d787a01b64dc4f4fb0dfbce1479713f854dd8e998d5",
+    "objective": 18409.51058917322,
+    "projection": 0.0021692758256439126,
+    "independent_projection": 0.0021692758256439126,
+    "saved_gradient_max_abs": 0.0,
+    "saved_diagonal_max_abs": 0.0,
+    "cross_path_max": 4.163336342344337e-16,
+    "feasible": true
+  },
+  "final_recompute": {
+    "lengths_sha256": "01e90019e765e37bea0cc2cd76f2b14aa483bc15377c5c3ae36ccf799d14bfb5",
+    "objective": 18409.506767709718,
+    "projection": 0.00499032097661134,
+    "independent_projection": 0.00499032097661134,
+    "saved_gradient_max_abs": 0.0,
+    "saved_diagonal_max_abs": 0.0,
+    "cross_path_max": 3.7470027081099033e-16,
+    "feasible": true
+  },
+  "hvp_max_relative_error": 4.0383035575218605e-08,
+  "hvp_accepted": true,
+  "terminal_independent_projection": 0.00499032097661134,
+  "cross_path_max": 3.7470027081099033e-16,
+  "feasible": true,
+  "stop_reason": "wall_clock",
+  "stage_gate_passed": false,
+  "formal_convergence": false,
+  "lbfgs_history": "discarded; no Stage 2.7 secant pair was loaded"
+}
