@@ -1,0 +1,61 @@
+{
+  "passed": true,
+  "rows": 4996,
+  "observed_rows": 4996,
+  "masked_rows": 0,
+  "feature_names": [
+    "r_mean",
+    "delta_e",
+    "std_r_mean",
+    "std_delta_e",
+    "r_source",
+    "std_r_source",
+    "r_other",
+    "r_contact",
+    "r_remote",
+    "r_unknown",
+    "std_r_other",
+    "std_r_contact",
+    "std_r_remote",
+    "std_r_unknown"
+  ],
+  "acceptance": 1e-12,
+  "coordinate_set": "soft_weight_keeps_82_and_182",
+  "positions_82_and_182_in_coordinate_set": true,
+  "used_in_coord_equals_not_mismatched": false,
+  "mismatches": [
+    {
+      "ref_pos": 82,
+      "mature_pos": 59,
+      "wt_aa": "V",
+      "pdb_aa": "I",
+      "atom": "CB",
+      "in_soft_weight_coordinate_set": true
+    },
+    {
+      "ref_pos": 182,
+      "mature_pos": 159,
+      "wt_aa": "A",
+      "pdb_aa": "V",
+      "atom": "CB",
+      "in_soft_weight_coordinate_set": true
+    }
+  ],
+  "soft_weight_coordinate_count": 263,
+  "mismatch_mask_other_known_pairs": 33376,
+  "soft_weight_other_known_pairs": 33824,
+  "full_fit_normalized_energy": 5.03678701585229e-16,
+  "full_fit_normalized_geometry": 5.978895067211626e-16,
+  "bootstrap_max_normalized_energy": 1.4988010832439613e-15,
+  "bootstrap_max_normalized_geometry": 8.310287760773442e-16,
+  "reloaded_max_normalized_energy": 0.0,
+  "reloaded_max_normalized_geometry": 5.978895067211626e-16,
+  "bootstrap_replicates": 100,
+  "std_divisor": 99,
+  "bootstrap_dir": "/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap",
+  "bootstrap_arrays_copied_into_worktree": false,
+  "v01_sha256_unchanged": "9ca0108a47677fa27716442a2bfb8b5256ac101459049ba808c11a3d0b7bea33",
+  "table_sha256": "6e4c3a3fa6ea5ad92a6c186d9027b9874bf3e7d90fa307c434ccb3fcebcd94f4",
+  "n1000_train_rows_found_in_train_split": 1000,
+  "error": null
+}

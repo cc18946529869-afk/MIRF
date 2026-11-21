@@ -58,10 +58,9 @@ def main(args):
             save_checkpoint=args.save_checkpoint,
             resume_path=args.resume_path,
         )
-        test_results = trainer.test(
+        test_results = trainer.score_restored(
             mode='ensemble',
             save_prediction=args.save_prediction,
-            checkpoint_dir=args.output_dir,
         )
 
     mode = args.test if args.test else args.train if args.train else None  

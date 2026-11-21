@@ -404,50 +404,69 @@ class PairedDataset(object):
             return data
 
     def get_dataloader(self, mode, batch_size=128,
-            return_df=False, resample_train_valid=False, num_workers=1, shuffle=False):
-        if os.cpu_count() < num_workers:
-            num_workers = 2
-        else:
-            num_workers = 4
+            return_df=False, resample_train_valid=False, num_workers=1, shuffle=False,
+            train_row_index=None, drop_last=True):
+        if num_workers > 0:
+            if os.cpu_count() < num_workers:
+                num_workers = 2
+            else:
+                num_workers = 4
         
         if resample_train_valid and self.can_resample:
             self.train_df, self.valid_df, _ = \
                 self._split_dataset_df(
                     self.train_valid_df, self.split_ratio[:2], resample_split=True)
-                
-        if shuffle:
-            # logger.info('Shuffle..')
-            self.train_df = self.train_df.sample(frac=1.0)
+
+        original_train = self.train_df
+        restricted = False
+        try:
+            if mode == 'train_valid' and train_row_index is not None:
+                positions = np.asarray(train_row_index, dtype=np.int64)
+                if positions.ndim != 1 or positions.size < 1:
+                    raise ValueError("train_row_index must list the fold training rows")
+                if np.unique(positions).size != positions.size:
+                    raise ValueError("train_row_index repeats a row")
+                if int(positions.min()) < 0 or int(positions.max()) >= len(original_train):
+                    raise ValueError("train_row_index is outside the outer training rows")
+                self.train_df = original_train.iloc[positions].reset_index(drop=True)
+                restricted = True
+            if shuffle:
+                # logger.info('Shuffle..')
+                self.train_df = self.train_df.sample(frac=1.0)
             
-        if mode == 'train_valid':
-            train_data, train_df = self.build_data('train', return_df=True)
-            valid_data, valid_df = self.build_data('valid', return_df=True)
-            if self.distributed:
-                self.sampler_train = torch.utils.data.DistributedSampler(train_data)
+            if mode == 'train_valid':
+                train_data, train_df = self.build_data('train', return_df=True)
+                valid_data, valid_df = self.build_data('valid', return_df=True)
+                if self.distributed:
+                    self.sampler_train = torch.utils.data.DistributedSampler(train_data)
+                else:
+                    self.sampler_train = torch.utils.data.RandomSampler(train_data)
+                batch_sampler_train = torch.utils.data.BatchSampler(
+                    self.sampler_train, batch_size=batch_size, drop_last=bool(drop_last))
+                train_loader = torch.utils.data.DataLoader(train_data, batch_sampler=batch_sampler_train, pin_memory=False, num_workers=num_workers)
+                # train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False, drop_last=True)
+                valid_loader = torch.utils.data.DataLoader(valid_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
+                if return_df:
+                    return (train_loader, train_df), (valid_loader, valid_df)
+                else:
+                    return train_loader, valid_loader
+            elif mode == 'test':
+                test_data, test_df = self.build_data('test', return_df=True)
+                test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
+                if return_df:
+                    return test_loader, test_df
+                else:
+                    return test_loader
+            elif mode == 'zeroshot':
+                test_data, test_df = self.build_data('zeroshot', return_df=True)
+                test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
+                if return_df:
+                    return test_loader, test_df
+                else:
+                    return test_loader
             else:
-                self.sampler_train = torch.utils.data.RandomSampler(train_data)
-            batch_sampler_train = torch.utils.data.BatchSampler(self.sampler_train, batch_size=batch_size, drop_last=True)
-            train_loader = torch.utils.data.DataLoader(train_data, batch_sampler=batch_sampler_train, pin_memory=False, num_workers=num_workers)
-            # train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False, drop_last=True)
-            valid_loader = torch.utils.data.DataLoader(valid_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
-            if return_df:
-                return (train_loader, train_df), (valid_loader, valid_df)
-            else:
-                return train_loader, valid_loader
-        elif mode == 'test':
-            test_data, test_df = self.build_data('test', return_df=True)
-            test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
-            if return_df:
-                return test_loader, test_df
-            else:
-                return test_loader
-        elif mode == 'zeroshot':
-            test_data, test_df = self.build_data('zeroshot', return_df=True)
-            test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, num_workers=num_workers, pin_memory=False)
-            if return_df:
-                return test_loader, test_df
-            else:
-                return test_loader
-        else:
-            raise NotImplementedError
+                raise NotImplementedError
+        finally:
+            if restricted:
+                self.train_df = original_train
 

@@ -211,8 +211,9 @@ def run_seed_protocol(
     """Run OOF assembly and three residual arms on arrays already in memory.
 
     ``s_valid`` and ``e_s`` are shared by the baseline and the three residual
-    arms. Each arm has its own predictor and its own ``η``. Formal test
-    metrics are not computed.
+    arms. Each arm has its own predictor and its own ``η``. The three arms
+    share one initial state and the shuffle stream of ``outer_seed``. ``seed``
+    is not an arm offset. Formal test metrics are not computed.
     """
     if mode != "synthetic":
         raise RuntimeError("formal training and formal fusion metrics are not started in this step")
@@ -231,8 +232,10 @@ def run_seed_protocol(
     oof_score = assemble_oof(loaded_scale["n"], folds, int(e_s), fit_fold)
     target = torch.as_tensor(y_rows - oof_score, dtype=torch.float32)
     observed = train_batch["mask"]
+    initial_state = residual.shared_initial_state(embed_dim, int(outer_seed))
+    del seed
     arms = {}
-    for offset, arm in enumerate(residual.ARMS):
+    for arm in residual.ARMS:
         mask = residual.arm_mask(observed, arm)
         fitted = residual.fit_predictor(
             _arm_batch(train_batch, mask),
@@ -245,7 +248,8 @@ def run_seed_protocol(
             batch_size=batch_size,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
-            seed=int(seed) + offset,
+            outer_seed=int(outer_seed),
+            initial_state=initial_state,
         )
         valid_mask = residual.arm_mask(valid_batch["mask"], arm)
         correction = predict.residual_vector(fitted["model"], _arm_batch(valid_batch, valid_mask))
@@ -263,6 +267,15 @@ def run_seed_protocol(
             "observed_slots": int(torch.as_tensor(mask)[0].sum().item()) if mask.ndim == 2 else int(torch.as_tensor(mask).sum().item()),
             "oof_residual_mean": float(np.mean(oof_residual)),
             "retrained_residual_mean": float(np.mean(train_r)),
+            "initial_state": fitted["initial_state"],
+            "selection_initial": fitted["selection_initial"],
+            "retrain_initial": fitted["retrain_initial"],
+            "selection_orders": fitted["selection_orders"],
+            "retrain_orders": fitted["retrain_orders"],
+            "selection_index_source": fitted["selection_index_source"],
+            "retrain_index_source": fitted["retrain_index_source"],
+            "selection_first_dropout_mask": fitted["selection_first_dropout_mask"],
+            "retrain_first_dropout_mask": fitted["retrain_first_dropout_mask"],
         }
     return {
         "scale": scale,

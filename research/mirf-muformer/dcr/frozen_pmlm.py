@@ -7,7 +7,9 @@ does not call the language-model head.
 
 from __future__ import annotations
 
+import importlib
 import os
+import sys
 from pathlib import Path
 
 import torch
@@ -75,6 +77,10 @@ def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
     from fairseq import checkpoint_utils
 
     tokendict = Path(__file__).resolve().parents[3] / "Mu-Protein" / "mu-former" / "src" / "protein"
+    source = str(tokendict.parent)
+    if source not in sys.path:
+        sys.path.insert(0, source)
+    importlib.import_module("protein")
     models, _args, _task = checkpoint_utils.load_model_ensemble_and_task(
         str(checkpoint_path).split(os.pathsep),
         arg_overrides={"data": str(tokendict)},

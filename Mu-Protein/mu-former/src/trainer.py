@@ -434,9 +434,15 @@ class Trainer(object):
         ckp['log_info'] = log_info
         self.saver.save_ckp(ckp, ckp_name)
 
-    def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path):  
+    def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
+            train_row_index=None, drop_last=True):  
         
         self.best_epochs = []
+        if train_row_index is None:
+            self._train_row_index = None
+        else:
+            self._train_row_index = np.asarray(train_row_index, dtype=np.int64).copy()
+        self._drop_last = bool(drop_last)
         for model_idx, (model, optimizer) in enumerate(zip(self.models, self.optimizers), start=1):
 
             (train_loader, train_df), (valid_loader, valid_df) = self._prepare_dataloaders()  
@@ -461,6 +467,13 @@ class Trainer(object):
 
                 train_loss = self._train_epoch(model_idx, model, optimizer, scheduler, train_loader, epoch)  
 
+                # Fold models train exactly ``epochs`` steps and keep those weights.
+                # They do not score the held-out fold and do not reload an earlier best state.
+                if not restore_best:
+                    if epoch == epochs:
+                        break
+                    continue
+
                 if epoch % eval_freq == 0 or epoch == epochs:  
                     is_best, model_state, optimizer_state_dict, _returned_epoch, val_results = self._evaluate_and_save_best(  
                         model, optimizer, valid_loader, stopper, epoch, valid_df)
@@ -472,8 +485,9 @@ class Trainer(object):
                     self._handle_early_stop(epoch, model_idx, record.best_model_state, record.best_optimizer_state_dict, record.best_epoch, record.best_val_results, stopper, save_checkpoint)  
                     break
 
-            restore_best_model_state(model, record.best_model_state)
-            self.best_epochs.append(record.best_epoch)
+            if restore_best:
+                restore_best_model_state(model, record.best_model_state)
+                self.best_epochs.append(record.best_epoch)
 
         self._finalize_training()  
 
@@ -481,7 +495,9 @@ class Trainer(object):
         (train_loader, train_df), (valid_loader, valid_df) = \
             self.dataset.get_dataloader(
                 'train_valid', self.batch_size,
-                return_df=True, resample_train_valid=False, num_workers=self.num_workers)
+                return_df=True, resample_train_valid=False, num_workers=self.num_workers,
+                train_row_index=getattr(self, "_train_row_index", None),
+                drop_last=getattr(self, "_drop_last", True))
         if self.distributed:  
             self.dataset.sampler_train.set_epoch(0)
         return (train_loader, train_df), (valid_loader, valid_df)
@@ -524,7 +540,9 @@ class Trainer(object):
         (train_loader, train_df), (valid_loader, valid_df) = \
         self.dataset.get_dataloader(
             'train_valid', self.batch_size,
-            return_df=True, resample_train_valid=False, num_workers=self.num_workers, shuffle=self.shuffle)
+            return_df=True, resample_train_valid=False, num_workers=self.num_workers, shuffle=self.shuffle,
+            train_row_index=getattr(self, "_train_row_index", None),
+            drop_last=getattr(self, "_drop_last", True))
         ### -------------------------------
 
         total_loss = 0
@@ -593,6 +611,19 @@ class Trainer(object):
     def _finalize_training(self):  
         if self.distributed:
             torch.distributed.barrier() 
+
+    def score_restored(self, test_model=None, test_loader=None, test_df=None, save_prediction=False, mode='ensemble'):
+        """Score the module whose best weights ``train`` already restored.
+
+        This is the s_μF path. It does not read a saved checkpoint.
+        """
+        return self.test(
+            test_model=test_model,
+            test_loader=test_loader,
+            test_df=test_df,
+            save_prediction=save_prediction,
+            mode=mode,
+        )
 
     def test(self, test_model=None, test_loader=None, test_df=None,
                 checkpoint_dir=None, save_prediction=False, mode='test'):

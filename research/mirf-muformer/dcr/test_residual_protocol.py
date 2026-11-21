@@ -286,6 +286,33 @@ class ProtocolTests(unittest.TestCase):
             self.assertTrue(np.allclose(item["prediction"], predict.fuse(s_valid, item["eta"], correction)))
             self.assertIn("oof_residual_mean", item)
             self.assertIn("retrained_residual_mean", item)
+        reference = residual.shared_initial_state(4, oof.OUTER_SEEDS[0])
+        other_seed = residual.shared_initial_state(4, oof.OUTER_SEEDS[1])
+        self.assertFalse(torch.equal(reference["site.weight"], other_seed["site.weight"]))
+        self.assertEqual(float(reference["output.weight"].abs().sum()), 0.0)
+        first = result["arms"][residual.ARMS[0]]
+        for arm in residual.ARMS:
+            item = result["arms"][arm]
+            for key in reference:
+                self.assertTrue(torch.equal(item["initial_state"][key], reference[key]))
+                self.assertTrue(torch.equal(item["selection_initial"][key], item["retrain_initial"][key]))
+                self.assertTrue(torch.equal(item["selection_initial"][key], reference[key]))
+            self.assertTrue(torch.equal(item["selection_orders"][0], first["selection_orders"][0]))
+            self.assertTrue(torch.equal(item["retrain_orders"][0], first["retrain_orders"][0]))
+            self.assertTrue(torch.equal(item["selection_first_dropout_mask"], first["selection_first_dropout_mask"]))
+            self.assertTrue(torch.equal(item["retrain_first_dropout_mask"], first["retrain_first_dropout_mask"]))
+        self.assertFalse(torch.equal(first["selection_first_dropout_mask"], first["retrain_first_dropout_mask"]))
+        selection = torch.Generator()
+        selection.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "selection"))
+        for expected in first["selection_orders"]:
+            replayed = residual.shuffled_row_order(first["selection_index_source"], selection)
+            self.assertTrue(torch.equal(replayed, expected))
+        continued = residual.shuffled_row_order(first["retrain_index_source"], selection)
+        retrain = torch.Generator()
+        retrain.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "retrain"))
+        replayed_retrain = residual.shuffled_row_order(first["retrain_index_source"], retrain)
+        self.assertTrue(torch.equal(replayed_retrain, first["retrain_orders"][0]))
+        self.assertFalse(torch.equal(continued, first["retrain_orders"][0]))
 
 
 if __name__ == "__main__":

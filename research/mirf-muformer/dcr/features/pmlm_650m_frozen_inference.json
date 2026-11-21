@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "checkpoint": "/home/cc233/data/cc233_data/work_dir/MIRF/Mu-Protein/pretrained/pmlm_650m.pt",
+  "downloaded": false,
+  "trained": false,
+  "read_finetuned_hidden": false,
+  "read_fc_reduce": false,
+  "prob_calls": 0,
+  "training": false,
+  "requires_grad": false,
+  "embed_dim": 1280,
+  "output_shape": [
+    288,
+    1,
+    1280
+  ],
+  "token_index_checked_ref_pos": [
+    24,
+    82,
+    182,
+    286
+  ],
+  "site_token_index_equals_ref_pos": [
+    24,
+    82
+  ],
+  "lobe_min_token_index": [
+    24,
+    24
+  ],
+  "signal_peptide_and_bos_excluded": true,
+  "error": null
+}

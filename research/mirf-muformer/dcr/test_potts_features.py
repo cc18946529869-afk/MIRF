@@ -40,6 +40,17 @@ def _masks(length: int, excluded: int | None = None) -> dict[str, np.ndarray]:
 
 
 class PottsFeatureTests(unittest.TestCase):
+    def test_soft_weight_table_name_does_not_replace_v01(self) -> None:
+        self.assertNotEqual(potts_features.SOFT_WEIGHT_TABLE, potts_features.V01_TABLE)
+        source = Path(__file__).resolve().with_name("potts_features.py").read_text()
+        writer = source.split("def write_stiffler_table", 1)[1].split("def _jsonable", 1)[0]
+        soft = source.split("def write_soft_weight_table", 1)[1]
+        self.assertIn("identity_audit.geometry", writer)
+        self.assertNotIn("residual_geometry", writer)
+        self.assertIn("geometry.residual_geometry", soft)
+        self.assertIn("MAIN_BOOTSTRAP", soft)
+        self.assertEqual(identity_audit.ACCEPTANCE, 1e-12)
+
     def test_sample_std_uses_divisor_count_minus_one(self) -> None:
         values = np.array([[1.0], [3.0]])
         self.assertAlmostEqual(float(potts_features.sample_std(values)[0]), float(np.sqrt(2.0)))

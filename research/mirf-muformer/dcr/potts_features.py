@@ -305,6 +305,222 @@ def write_stiffler_table(root: Path) -> dict:
     return summary
 
 
+MAIN_WORKSPACE = Path("/home/cc233/data/cc233_data/work_dir/MIRF")
+MAIN_RESEARCH = MAIN_WORKSPACE / "research" / "mirf-muformer"
+MAIN_BOOTSTRAP = MAIN_RESEARCH / "dcr" / "bootstrap"
+MAIN_PREP = MAIN_RESEARCH / "prep"
+MAIN_SPLITS = MAIN_WORKSPACE / "proteingym_v0.1_split" / "subs"
+SOFT_WEIGHT_TABLE = "blat_ecolx_stiffler_2015_soft_weight_coords.tsv"
+SOFT_WEIGHT_AUDIT = "soft_weight_coords_audit.json"
+V01_TABLE = "blat_ecolx_stiffler_2015_v0.1.tsv"
+N1000_TRAIN = (
+    Path("/home/cc233/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms")
+    / "BLAT_ECOLX_Stiffler_2015_n1000"
+    / "BLAT_ECOLX_Stiffler_2015_n1000_train.tsv"
+)
+
+
+def _jsonable(value):
+    if isinstance(value, dict):
+        return {str(key): _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(item) for item in value]
+    if isinstance(value, np.ndarray):
+        raise TypeError("a feature audit must not store an array")
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def write_soft_weight_table(root: Path) -> dict:
+    """Recompute the 4996-row table with positions 82 and 182 kept in the coordinate set.
+
+    Bootstrap arrays are read from the main workspace and are not copied.
+    The v0.1 table is left in place. The acceptance bound stays ``1e-12``.
+    """
+    import geometry
+
+    root = Path(root)
+    if identity_audit.ACCEPTANCE != 1e-12:
+        raise RuntimeError("the acceptance bound is no longer 1e-12")
+    destination = root / "dcr" / "features"
+    destination.mkdir(exist_ok=True)
+    if destination.resolve().is_relative_to(MAIN_WORKSPACE.resolve()):
+        raise RuntimeError("refusing to write the soft-weight table into the main workspace")
+    v01_path = destination / V01_TABLE
+    v01_before = file_sha256(v01_path)
+    table_path = destination / SOFT_WEIGHT_TABLE
+    audit_path = destination / SOFT_WEIGHT_AUDIT
+    if table_path.name == V01_TABLE or table_path.resolve() == v01_path.resolve():
+        raise RuntimeError("the soft-weight table would overwrite v0.1")
+    prep = root / "prep"
+    if str(prep) not in sys.path:
+        sys.path.insert(0, str(prep))
+    import msa_prepare
+
+    wild = msa_prepare.TARGET_SEQUENCE
+    mature = np.load(MAIN_PREP / "mature_codes.npy")
+    decoded = "".join(msa_prepare.AMINO_ACIDS[int(code) - 1] for code in mature[0])
+    if decoded != wild[msa_prepare.MATURE_START - 1 :]:
+        raise ValueError("the mature query does not match the target sequence")
+    sequence = mature[0].astype(np.int64)
+    masks = geometry.residual_geometry(prep / "domain_map.tsv", prep / "1BTL.pdb")
+    if masks["record"]["used_in_coord_equals_not_mismatched"]:
+        raise RuntimeError("the soft-weight geometry used in_coord = ~mismatched")
+    excluded = identity_audit.geometry(prep / "domain_map.tsv", prep / "1BTL.pdb")
+    if np.array_equal(masks["other_known"], excluded["other_known"]):
+        raise RuntimeError("the soft-weight coordinate mask collapsed to the mismatch complement")
+    if not bool(masks["coordinate"][58]) or not bool(masks["coordinate"][158]):
+        raise RuntimeError("reference positions 82 and 182 are missing from the soft-weight coordinate set")
+    alignment, weights, total = potts_fit.load_official_alignment(MAIN_PREP)
+    if not np.array_equal(alignment[0], sequence):
+        raise ValueError("the official alignment query is not the mature query")
+    background = solver_v2._background(alignment, weights, total, identity_audit.STATES)
+    reference = MAIN_BOOTSTRAP / "reference"
+    manifest = json.loads((reference / "manifest.json").read_text())
+    for name, digest in GAUGE_SHA256.items():
+        if manifest["gauge_sha256"][name] != digest or file_sha256(reference / name) != digest:
+            raise ValueError(f"{name} does not match the locked gauge hash")
+    fields, couplings = _load_locked_parameters(reference)
+    full = all_components(sequence, fields, couplings, background, masks)
+    full_audit = identity_audit.audit_parameters(sequence, fields, couplings, background, masks)
+    if full_audit["normalized_energy"] > identity_audit.ACCEPTANCE or full_audit["normalized_geometry"] > identity_audit.ACCEPTANCE:
+        raise ValueError("the full-fit decomposition exceeds the locked bound")
+    replicate_values = {name: [] for name in COMPONENT_NAMES}
+    replicate_maxima = []
+    lock = json.loads((MAIN_BOOTSTRAP / "formal" / "seed.json").read_text())
+    for replicate_id in range(1, 101):
+        directory = MAIN_BOOTSTRAP / "formal" / f"replicate_{replicate_id:03d}"
+        identity_audit._require_replicate(directory, replicate_id, lock)
+        replicate_fields, replicate_couplings = _load_locked_parameters(directory)
+        replicate_q = np.load(directory / "q.npy")
+        parts = all_components(sequence, replicate_fields, replicate_couplings, replicate_q, masks)
+        checked = identity_audit.audit_parameters(sequence, replicate_fields, replicate_couplings, replicate_q, masks)
+        if checked["normalized_energy"] > identity_audit.ACCEPTANCE or checked["normalized_geometry"] > identity_audit.ACCEPTANCE:
+            raise ValueError(f"replicate {replicate_id} exceeds the locked bound")
+        replicate_maxima.append(
+            {
+                "normalized_energy": float(checked["normalized_energy"]),
+                "normalized_geometry": float(checked["normalized_geometry"]),
+            }
+        )
+        for name in COMPONENT_NAMES:
+            replicate_values[name].append(parts[name])
+        del replicate_fields, replicate_couplings, replicate_q, parts
+        print(f"soft-weight features {replicate_id}", flush=True)
+    deviations = {name: sample_std(np.stack(replicate_values[name], axis=0)) for name in COMPONENT_NAMES}
+    if deviations["r_mean"].shape != (identity_audit.LENGTH, identity_audit.STATES):
+        raise ValueError("the bootstrap standard deviation has the wrong shape")
+    records = []
+    seen = set()
+    for split, count in SPLIT_ROWS.items():
+        path = MAIN_SPLITS / f"BLAT_ECOLX_Stiffler_2015_{split}.tsv"
+        if file_sha256(path) != SPLIT_SHA256[split]:
+            raise ValueError(f"the {split} split hash does not match the reviewed v0.1 file")
+        rows = _load_rows(path)
+        if len(rows) != count or any(set(row) != {"sequence", "score", "score_bin"} for row in rows):
+            raise ValueError(f"the {split} split does not have the reviewed rows and columns")
+        for row in rows:
+            if row["sequence"] in seen:
+                raise ValueError("a sequence occurs in more than one accepted row")
+            seen.add(row["sequence"])
+            described = describe_substitution(wild, row["sequence"])
+            if described is None:
+                values = np.zeros(14, dtype=np.float64)
+                observed = np.zeros(14, dtype=bool)
+                described = {"mutation": "", "ref_pos": "", "mature_pos": "", "wt_aa": "", "mut_aa": ""}
+            else:
+                site = described["mature_index"]
+                state = described["state"]
+                values = pack_features(
+                    {name: float(full[name][site, state]) for name in MEAN_NAMES},
+                    {name: float(deviations[name][site, state]) for name in COMPONENT_NAMES},
+                )
+                observed = np.ones(14, dtype=bool)
+                if not np.isfinite(values).all():
+                    raise ValueError(f"{described['mutation']} has a non-finite feature")
+            records.append((split, row["sequence"], described, values, observed))
+    if len(records) != sum(SPLIT_ROWS.values()):
+        raise ValueError("the feature table does not contain the 4996 reviewed sequences")
+    with table_path.open("w", newline="") as handle:
+        writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+        writer.writerow(["split", "sequence", "mutation", "ref_pos", "mature_pos", "wt_aa", "mut_aa", *FEATURE_NAMES, *[f"mask_{index:02d}" for index in range(1, 15)]])
+        for split, sequence_text, described, values, observed in records:
+            writer.writerow(
+                [
+                    split,
+                    sequence_text,
+                    described["mutation"],
+                    described["ref_pos"],
+                    described["mature_pos"],
+                    described["wt_aa"],
+                    described["mut_aa"],
+                    *[format(float(value), ".17g") for value in values],
+                    *[int(flag) for flag in observed],
+                ]
+            )
+    reloaded = _load_rows(table_path)
+    if [row["sequence"] for row in reloaded] != [item[1] for item in records]:
+        raise ValueError("the written table does not preserve sequence order")
+    if list(FEATURE_NAMES) != [name for name in reloaded[0] if name in FEATURE_NAMES]:
+        raise ValueError("the written header does not keep the 14-column order")
+    max_reload_energy = 0.0
+    max_reload_geometry = 0.0
+    for item, saved in zip(records, reloaded):
+        if not bool(item[4][0]):
+            if any(float(saved[name]) != 0.0 for name in FEATURE_NAMES) or any(saved[f"mask_{index:02d}"] != "0" for index in range(1, 15)):
+                raise ValueError("a masked row was not stored as zeros")
+            continue
+        if any(saved[f"mask_{index:02d}"] != "1" for index in range(1, 15)):
+            raise ValueError("an observed row does not have all 14 masks")
+        values = [float(saved[name]) for name in FEATURE_NAMES]
+        if not np.isfinite(values).all():
+            raise ValueError("a reloaded feature is not finite")
+        delta_e, r_mean, r_source, r_other = (float(saved[name]) for name in ("delta_e", "r_mean", "r_source", "r_other"))
+        contact, remote, unknown = (float(saved[name]) for name in ("r_contact", "r_remote", "r_unknown"))
+        max_reload_energy = max(max_reload_energy, abs(delta_e - (r_mean + r_source + r_other)) / max(1.0, abs(delta_e) + abs(r_mean) + abs(r_source) + abs(r_other)))
+        max_reload_geometry = max(max_reload_geometry, abs(r_other - (contact + remote + unknown)) / max(1.0, abs(r_other) + abs(contact) + abs(remote) + abs(unknown)))
+    if max_reload_energy > identity_audit.ACCEPTANCE or max_reload_geometry > identity_audit.ACCEPTANCE:
+        table_path.unlink(missing_ok=True)
+        raise ValueError("the written table exceeds the locked identity bound")
+    if file_sha256(v01_path) != v01_before:
+        raise RuntimeError("writing the soft-weight table changed the v0.1 file")
+    n1000 = _load_rows(N1000_TRAIN)
+    train_sequences = {item[1] for item in records if item[0] == "train"}
+    observed_rows = [item for item in records if bool(item[4][0])]
+    summary = {
+        "passed": True,
+        "rows": len(records),
+        "observed_rows": len(observed_rows),
+        "masked_rows": len(records) - len(observed_rows),
+        "feature_names": list(FEATURE_NAMES),
+        "acceptance": identity_audit.ACCEPTANCE,
+        "coordinate_set": "soft_weight_keeps_82_and_182",
+        "positions_82_and_182_in_coordinate_set": True,
+        "used_in_coord_equals_not_mismatched": False,
+        "mismatches": masks["record"]["mismatches"],
+        "soft_weight_coordinate_count": int(np.count_nonzero(masks["coordinate"])),
+        "mismatch_mask_other_known_pairs": int(np.count_nonzero(excluded["other_known"])),
+        "soft_weight_other_known_pairs": int(np.count_nonzero(masks["other_known"])),
+        "full_fit_normalized_energy": float(full_audit["normalized_energy"]),
+        "full_fit_normalized_geometry": float(full_audit["normalized_geometry"]),
+        "bootstrap_max_normalized_energy": max(item["normalized_energy"] for item in replicate_maxima),
+        "bootstrap_max_normalized_geometry": max(item["normalized_geometry"] for item in replicate_maxima),
+        "reloaded_max_normalized_energy": max_reload_energy,
+        "reloaded_max_normalized_geometry": max_reload_geometry,
+        "bootstrap_replicates": 100,
+        "std_divisor": 99,
+        "bootstrap_dir": str(MAIN_BOOTSTRAP),
+        "bootstrap_arrays_copied_into_worktree": False,
+        "v01_sha256_unchanged": v01_before,
+        "table_sha256": file_sha256(table_path),
+        "n1000_train_rows_found_in_train_split": sum(row["sequence"] in train_sequences for row in n1000),
+        "error": None,
+    }
+    audit_path.write_text(json.dumps(_jsonable(summary), indent=2) + "\n")
+    return summary
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     summary = write_stiffler_table(root)
