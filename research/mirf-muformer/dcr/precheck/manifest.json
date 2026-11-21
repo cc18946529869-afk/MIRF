@@ -1,0 +1,199 @@
+{
+  "interpreter": "/home/cc233/miniforge3/envs/nsf310/bin/python",
+  "numpy_version": "1.23.5",
+  "numpy_file": "/home/cc233/miniforge3/envs/nsf310/lib/python3.10/site-packages/numpy/__init__.py",
+  "sklearn_version": "1.7.2",
+  "sklearn_file": "/home/cc233/miniforge3/envs/nsf310/lib/python3.10/site-packages/sklearn/__init__.py",
+  "scales": {
+    "n1000": {
+      "paths": {
+        "train": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015_n1000/BLAT_ECOLX_Stiffler_2015_n1000_train.tsv",
+        "valid": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015_n1000/BLAT_ECOLX_Stiffler_2015_n1000_valid.tsv",
+        "test": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015_n1000/BLAT_ECOLX_Stiffler_2015_n1000_test.tsv"
+      },
+      "sha256": {
+        "train": "6099139df983b7c5efd232013e8d8242674d310c8e509562283584b8c27c46b1",
+        "valid": "803af89ec564da0f84b857e3c6efbb96a9718e4db45d7ab853294b87f7406fc6",
+        "test": "66e8ce3eec1e603e435ff54111bc95804b64104a4f5da90fb1cf45a569f9854d"
+      },
+      "columns": {
+        "train": [
+          "sequence",
+          "score",
+          "score_bin"
+        ],
+        "valid": [
+          "sequence",
+          "score",
+          "score_bin"
+        ],
+        "test": [
+          "sequence",
+          "score",
+          "score_bin"
+        ]
+      },
+      "rows": {
+        "train": 1000,
+        "valid": 500,
+        "test": 999
+      },
+      "duplicate_sequences_within_file": {
+        "train": 0,
+        "valid": 0,
+        "test": 0
+      },
+      "sequence_intersection_counts": {
+        "train_valid": 0,
+        "train_test": 0,
+        "valid_test": 0
+      },
+      "oof_val_counts": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "oof_train_counts": [
+        800,
+        800,
+        800,
+        800,
+        800
+      ],
+      "each_row_one_oof_fold": true,
+      "residual_train_count": 900,
+      "residual_val_count": 100,
+      "residual_partition": true,
+      "index_sha256": {
+        "oof_fold0_train.txt": "bc7947a0057b40c3164091410855f9b0bc3799c4c63c3eae59e0bf496df4fcaa",
+        "oof_fold0_val.txt": "4f3249ba33dcbe36de63026a01cb3d8bbcf43eae211369c5433fefaf2fc7ade1",
+        "oof_fold1_train.txt": "b1cd98dc571ec961fd6e97cbb773b3d9ccccaf856e55166c132ceae904636dda",
+        "oof_fold1_val.txt": "a243e72b249abb64118b7dc9e80a0ed6326a54456db04a601a52c1acb72e92f4",
+        "oof_fold2_train.txt": "018d8b9377eaa8c7c3680001754113cc308b21531634922c9a77b42a5c01084d",
+        "oof_fold2_val.txt": "f5fcef4761dd40b3aec2a39883158b025e80511612657ef099fd870bbfd2f423",
+        "oof_fold3_train.txt": "218170c59c77feaede29ce165fa9ba52334cf3f227202b06676799a2c47e282e",
+        "oof_fold3_val.txt": "3f9e436e51c2ceeb277044f607c66c9b9e01a08827116f5ed0a3afccde943cd1",
+        "oof_fold4_train.txt": "642d86832568ea7d4f41a2b3f7729e903ceed0cd525ac01a64ec22db57d3b170",
+        "oof_fold4_val.txt": "9a54ad8922d967b21e2b1eb110003af1095265a2783207c064648befe4605880",
+        "oof_fold_id.txt": "a80ac3262619ca93290dc018a0cd8589c2cad3130d19d5990f0eb8a7a625cfd1",
+        "residual_train.txt": "7c495f50b0f0fca822abd1f78a7aa8d0ee4def82cf58fc3cb3b5c56238687c85",
+        "residual_val.txt": "8879ad70386f5c7d09c797c56df2e6ad0e2848681b14f13f79068e1aebb3bace"
+      },
+      "fold_train_is_exact_complement": true,
+      "fold_train_indices_inside_outer_train": true
+    },
+    "full": {
+      "paths": {
+        "train": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015/BLAT_ECOLX_Stiffler_2015_train.tsv",
+        "valid": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015/BLAT_ECOLX_Stiffler_2015_valid.tsv",
+        "test": "/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015/BLAT_ECOLX_Stiffler_2015_test.tsv"
+      },
+      "sha256": {
+        "train": "615e47bd09ca1a413e77449dbf286036d227d588cfc12034feff70c7a9ffbe67",
+        "valid": "803af89ec564da0f84b857e3c6efbb96a9718e4db45d7ab853294b87f7406fc6",
+        "test": "66e8ce3eec1e603e435ff54111bc95804b64104a4f5da90fb1cf45a569f9854d"
+      },
+      "columns": {
+        "train": [
+          "sequence",
+          "score",
+          "score_bin"
+        ],
+        "valid": [
+          "sequence",
+          "score",
+          "score_bin"
+        ],
+        "test": [
+          "sequence",
+          "score",
+          "score_bin"
+        ]
+      },
+      "rows": {
+        "train": 3497,
+        "valid": 500,
+        "test": 999
+      },
+      "duplicate_sequences_within_file": {
+        "train": 0,
+        "valid": 0,
+        "test": 0
+      },
+      "sequence_intersection_counts": {
+        "train_valid": 0,
+        "train_test": 0,
+        "valid_test": 0
+      },
+      "oof_val_counts": [
+        700,
+        700,
+        699,
+        699,
+        699
+      ],
+      "oof_train_counts": [
+        2797,
+        2797,
+        2798,
+        2798,
+        2798
+      ],
+      "each_row_one_oof_fold": true,
+      "residual_train_count": 3147,
+      "residual_val_count": 350,
+      "residual_partition": true,
+      "index_sha256": {
+        "oof_fold0_train.txt": "7ce090ed935fbe29b1ea2f2491da8843877d3cf5c0735633b91232c1b665b056",
+        "oof_fold0_val.txt": "555d4e939dac17b6fe1f933a69d2c9eb8d24ce51aa2b1f692a51831da41f86d1",
+        "oof_fold1_train.txt": "9a127fcbceea319e3ed9451c2ca410d3e692f3a4ca7e042bc9ff67927b714645",
+        "oof_fold1_val.txt": "ac949158e90699318de38e934a1b97615ef878f39140819e2909f0cb4424a947",
+        "oof_fold2_train.txt": "f71931670feb2d976b5a1df3fbf6631788e9bc8253a9dad130b29901bf47b14e",
+        "oof_fold2_val.txt": "95c683f99799603d47e6fb44a4170c429bf25e49169f0497d38b5bd7b8d3c598",
+        "oof_fold3_train.txt": "8662c903777d71a5fddbc52711610df085c142aed781ca89fabfac3a01f2dd83",
+        "oof_fold3_val.txt": "165d3dbac860047d0faa7d08fec55160e126743fb3f65b16d10e25ea2f734116",
+        "oof_fold4_train.txt": "4317605b2d1c818a7a69bbeab22b38acf976644f1e380202f3d37b0c695e9353",
+        "oof_fold4_val.txt": "b095fef1acd2cafbaf0f12ebee9f4acdb58c4cff9ab360df008924f4b3000a00",
+        "oof_fold_id.txt": "f08f08a1b29d871ec975172e8cb4e028f8ebee939942c42deae0398c3ca1d773",
+        "residual_train.txt": "5b7f4880f786a3b17d100f6bd868c87863321b5a509bef91dfa43476133b7908",
+        "residual_val.txt": "d68c7aca3dfa2b2d1c4db1eb1d09f5716b19da40c8220497a2873b1a98256c53"
+      },
+      "fold_train_is_exact_complement": true,
+      "fold_train_indices_inside_outer_train": true
+    }
+  },
+  "proteingym_sha256": {
+    "train": "615e47bd09ca1a413e77449dbf286036d227d588cfc12034feff70c7a9ffbe67",
+    "valid": "803af89ec564da0f84b857e3c6efbb96a9718e4db45d7ab853294b87f7406fc6",
+    "test": "66e8ce3eec1e603e435ff54111bc95804b64104a4f5da90fb1cf45a569f9854d"
+  },
+  "seeds": {
+    "values": [
+      1975576344,
+      94706340,
+      1220745215,
+      508376101,
+      1910795809,
+      141521756,
+      1119615152,
+      929659347,
+      120967996,
+      1571307030
+    ],
+    "unique": true,
+    "collision_with_known": []
+  },
+  "n1000_inside_full_train": true,
+  "n1000_rows_whose_fold_would_change_if_full_fold_ids_were_reused": 803,
+  "n1000_valid_test_byte_equal_to_full": {
+    "valid": true,
+    "test": true
+  },
+  "muformer_full_byte_equal_to_proteingym": {
+    "train": true,
+    "valid": true,
+    "test": true
+  }
+}
