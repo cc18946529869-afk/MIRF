@@ -1,0 +1,708 @@
+path	bytes	sha256	shape	dtype
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/reference/manifest.json	24189	023638fa02b127bbb337afe3874d0604d5c97b81e7fd7f1d7405928e7755c06d		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/reference/fields.npy	44312	574a234e5b4eb66ac17330b9364b4eab5aa9b00f33175597523209dc046d78de	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/reference/directional.npy	244028360	332ee13d667e8bae9f7f42976f0764a0ff8c95e4fbead843d73f8f8d1e27d367	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/reference/h_hat.npy	44312	59f3bc61ed99a6448c75119af9c54cf7995f094047ead32784d2da2c8de3cbec	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/reference/j_star.npy	244028360	eaedeba815dfea038a1847d92febb0c7bd6109cefe008e4ad5fba0a7aa5c472d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/seed.json	281	a5fae87846cb5340df757776a1b7e6c98a08fcd7154872f6d5ba14e70f004b30		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/stage_100.json	542	17f75081ac5bd4e896eedb03c428594fe0db61d328abd90103cb37de4e02dd9c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/manifest.json	3039	5cae0fa065922f07aa58e94395ec2689c8411b4989720604feb1e13ec1cdf0c7		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/directional.npy	244028360	2b0d5291663058a4c0fb12390d2182dd58e7aa317c417ba4d518500d90eed65f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/fields.npy	44312	14ba342ed991d13e314d1b25bcff6b47a290e5451dd49bc8954eb672d22f60c9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/h_hat.npy	44312	693ce93683fde9badb4f960981432f228b4cf87ee9e356da5a587a36093a705d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/indices.npy	383328	f06c435ea81b668dc39f675df606ebc711d2fe020c884b1e9e4aa5d4e302cd4c	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/j_star.npy	244028360	b62fe7b0c3f7d8232129bb8e4e3dbfe60a77acf2670782086d76248c43280e90	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_001/q.npy	44312	d730a6b772fdaefb779ae06fe289cd7ea904fbe4717d8cc64b82b672ca990379	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/manifest.json	3039	97174e990efe380bde7d9d5c84216879867368b75ece53de57dba4d86069a267		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/directional.npy	244028360	fc9bc817cd1dbd0051be32cf13357b9071455e9000d51e5ebff703c0d0f37caf	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/fields.npy	44312	ce56097815c5bd254f26842666eab30f8f91b27b779125fefe0e1cffb5dbda0b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/h_hat.npy	44312	fa0fb1602c11517b8fc6206fdcf318f08b72e7b9f1a5ee3dc19fa4c558d0eee0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/indices.npy	383328	2da629add0f5f5245d85937aa022c778a667e22a3e0e1bd10f5fe5f24d655eb7	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/j_star.npy	244028360	6ce2c17160861af0a0658e862fb0e03e806582cbfa1edb2c4d419616643f3af4	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_002/q.npy	44312	a931e2dceeb55f920b72d54e7b481b1b5c071b0a045b2b0f87ebe304a387a2d4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/manifest.json	3039	15f2ffcec752f11315082bf6aa45b9164567e5598f2eae878fcfff0f50b42473		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/directional.npy	244028360	2fe7990273c3a1f94444934b1ca257cf0f3e77de5171e26dff32c1d49beb80bb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/fields.npy	44312	02877ef0f896e1a23cf707a4aaf75e23a8cf38ee91c209383cff3da3aff15910	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/h_hat.npy	44312	91eccfc7537c46d97931927bef8dc13f1d836dba7af0f26de7e1c0a6979de72e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/indices.npy	383328	d8d1b4d6496aeb499d88824c6b78406f9be9d82374ec2127f51c6501f46bed85	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/j_star.npy	244028360	7cae5620506b62fb8b5f950e6ec0a9bcff35653620fef44690d6074fbcf2d821	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_003/q.npy	44312	0d2429940504648dfca233e06a2049811ef2bc1eb2a1bf350976e1a7781a07ad	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/manifest.json	3039	2abedcc4210b9a1c74a989478724953383a36701928138ac8c7eeb470a34bacf		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/directional.npy	244028360	2b1f6d63c42be89aefbdac363d8977dab83c332d782d820805c0b0c49292ce4b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/fields.npy	44312	c74c8a65ef5aa6eb8dab33f599263a33adf360fd34503214e9b02763b3b74f57	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/h_hat.npy	44312	0ae47d85cd15d0ea026d0cb2d694fb1b50d7953f05fd12d1dbf175e361ac25f0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/indices.npy	383328	ea542e2a9a4b11d627abdde8528bc6e21b1094c1e12c8612e29e3cfbe29d2ca9	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/j_star.npy	244028360	ca732d104ebeed63cb710d73740b9d5064cd8affae05a5d33c1ac0e44ddcee4b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_004/q.npy	44312	51f07f6ef80df56210526de6ab2a09ef1fd3635842a499d56836b1fd63b1272a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/manifest.json	3039	a28b0913eca0140eb83248021b57695ddf2e9d74ae6c9537beee5cb8723beba5		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/directional.npy	244028360	3e453540f2f7d3197ab2a2fdcee548377bf9b8ed95e87a69cc95ebc895daadc8	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/fields.npy	44312	5ef08dc695c79da261e4612cf939a9dd7675712baa008e30c35cd3c82c28952a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/h_hat.npy	44312	e8034808d1104fe78c7dab0da626ff45f7aaf07615626084e198513bb524dc25	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/indices.npy	383328	603bda5f446880fe4a31f8a2929a023ba0b7e2b29a2e2dae81190e80fc86ee73	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/j_star.npy	244028360	aaeab6b24d278c412cb8488ad93db63fafe75fd528325025a8705a79c1799b12	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_005/q.npy	44312	bbdef2500c8d60ece5e00c8485f0b82d1541e25ecef83b7bd2e07f76aacead1f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/manifest.json	3039	3ff7ce19a0d2aafb30d88f556c40d1a078de1d7e5d22fefb9ea79275f57bde76		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/directional.npy	244028360	c2c5fa648a053469ece8e7de63dbf1c32160ce7a5387340baf1b216ec7fdbad9	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/fields.npy	44312	48a90f714228fb999993a95be554863c8394366ccecd3fec64f4da881fba939b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/h_hat.npy	44312	62fe805d728b86ff0b2e0713ea46517a7ca33758ef11a0147ead941702f20396	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/indices.npy	383328	413dd22a9fca3038062f7b11bb1981e0211ab8fad254d0ce4bcee288248e16de	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/j_star.npy	244028360	79d7fbda3b3c531cc316bdd1b44ff87c8e4740b822eaf33ed3c099a804b9623b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_006/q.npy	44312	cc6c9044455997e309d854cb8ba22553ca5b9e9e8f04247d8e68433d27dbd16d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/manifest.json	3039	8c833d734bdadd753795383d00c9e5330d7156012b00161dadf7e484815a9019		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/directional.npy	244028360	816a187d0d2de6e08d7f98691697a26b3b7c5cf2c6cf4ac2ad9d943826f20d38	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/fields.npy	44312	fca61afbe7728228cf4018d5e21e52cb4d4b77323db71da74ddff4033d68f004	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/h_hat.npy	44312	76072ffdd9d55f57856cd951a68979b38215adc851ada99a4ad333cc9924843d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/indices.npy	383328	61d1f9886333e38aa82e64fbc1f251c13c795fd3c91d5aa8c5dd2f2d52ea7af1	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/j_star.npy	244028360	2dbfcefbee2e73325d088b3d61b2419fa78d666957805c907e07943d96334929	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_007/q.npy	44312	52c5e872dff2707059ad471050ce42d10a439cedcb817869e81caf643965ea7c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/manifest.json	3039	2fb01728d9deadf00be568f36237e79a6ade39d2aed1ca0b1855e07c9478f590		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/directional.npy	244028360	f5d1e9c6181c20ebbffa1d9cfccae0f8125e737fa26705731f9303c6fb15c273	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/fields.npy	44312	add5d26af5071b427cc7e89e4aab8199f4185d954605dac027d65587f2a795b2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/h_hat.npy	44312	95056cfb20977fdc6afc14157f600c90eb66a181696012cca5f25af3d8da0085	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/indices.npy	383328	fac27ef261af28f219c487fdc141266b2cb40395fcbc87bd09e82388257f0ebd	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/j_star.npy	244028360	4d2f99b8e67a2779440cfba41887d404b91525e1f279316d14ea952b825863c5	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_008/q.npy	44312	c93ecf26118c3dd3cf41f473b4f5a7315b3309ec0647525118f4fc38b9cfc8bd	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/manifest.json	3039	242f35a61705e8622193487d65762cc3e46091dc2aa6b19cd231ff9fac039d46		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/directional.npy	244028360	4d4107a1c046a721945391189b4bcbcfcdc865fd6c97a2a96f36c101f8108863	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/fields.npy	44312	7cb3c8e92e4013f6434cc96fcfea15edae2a973512bcf1202dc915f01498ccd6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/h_hat.npy	44312	fb45926dd6953115ec98c81be39e89c8504a53c1d48d1feebda9b666ceab5feb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/indices.npy	383328	1c9909a70de94c053c6d2ef98720f0f5b7167309f29bed59ecb316c3ee30ea1b	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/j_star.npy	244028360	a42fd6efe3ec5d06889d4daacd5b8eaaa64fcd3b957689c342987f05f9cfb99c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_009/q.npy	44312	ca9852f877e0cf4eae031f5d4a65582085dd043105ec44a8050c41ea54792100	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/manifest.json	3041	5475fc8f218ffafeab6e588e2338a78ecd370450dcf62f0bd1e92ad2f1d1073a		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/directional.npy	244028360	ccad8e25d5ceab48b2dc7ea73109afcb73e7f2b48318779186cd5a74d41ce133	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/fields.npy	44312	56fc379cc33c25cd15d74596f90d5173bc4845b7f296f6ef56dcda79ce312491	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/h_hat.npy	44312	8f852ce4fb7d0dc958b8c41cde0f4e1446806ac4131a4da67ca4b85e690c9bbe	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/indices.npy	383328	aa227c3a557afc3fef485108b5b470a377df52cf7ca32d8c048ef29ae810c749	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/j_star.npy	244028360	b521d318bf9f67dae1f03440f7068934517be8e5ded5c310089c7dc22223f46d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_010/q.npy	44312	35270a9e13f27f45abac310636c440de2fc6e0d674495d96c95b5a983d860d8f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/manifest.json	3041	f38a1939f77f1d1f43b4f090e4e3b4cb518b370dd7cad2a2cb8d7156d0e4897e		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/directional.npy	244028360	4978eb22426026160646c060201fa47190d75b6218d72618c7df9cf56434db84	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/fields.npy	44312	bf0d6706803035787a42ee2e84210610dfd9279de7b699dd5f97d496e41c54e0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/h_hat.npy	44312	37ac9e899012cb4b59ad64cb71bdc3457e2506e7eed80eb485b09a7d34aa2e69	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/indices.npy	383328	617742fe06eccf5ea16d4059738ca316801f1fb4dd8f74aada823d9f1f4082b4	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/j_star.npy	244028360	85bf53472ebcae2b459b81ecfde73d86245f8d6adc673f2b7d478cc918ec2f6c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_011/q.npy	44312	0655387fc0a2f6bb6cbb9f32c56b2b99520a7e7a42fef079963c698eb4f0fca0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/manifest.json	3041	2214ead07026bd8bd2d37d5fb44b5caa19125bf6aa23ef60d0e6f43faec82547		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/directional.npy	244028360	5ed9c7f2fe0b558025c0f606b7178603f5a1f3369bfe037d2a70b0d47d3d7eed	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/fields.npy	44312	2cc3a2fd864e5065d6ecc38243312ad967f40189fc3a10fa8a3ad06ed614ad58	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/h_hat.npy	44312	a8b4a9bbd290387bc020538393fda1d892a89609df3fb7c26acf43d535e917ca	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/indices.npy	383328	a4c507146c82ddf2ee401031f3a7c16370f0c8d6989971aa353e9785027b6ddd	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/j_star.npy	244028360	3746c42cf0c0a6197a2a0d2d1615f296711ed3429afba7f1815ea9ed2eeadd62	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_012/q.npy	44312	3a9c037b0544fca2bad4794da9933d23e1e875b7e84bf3fe170d2a4f67cce6f9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/manifest.json	3041	eec8025fb4c7dd4dff2e891256a0d3e623a322743d4f41309c8657ed574f0456		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/directional.npy	244028360	0a631423779154b9592fdf512b54fb89b2f386f0175c1dd268c372eafe35261a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/fields.npy	44312	f5ea8af6dbe014abee33a08dd511a52d4c2f6e70bbe1f48e73b429c04f7a4ed4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/h_hat.npy	44312	a20e5df3d1729f6cfad8dbffd1ce03a3b126a468ac90298fb9ae17cec52c6422	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/indices.npy	383328	bb4cfadba6db290238653c16e39e071abeae11e12cfdfea9cc6ed39dabdc7f53	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/j_star.npy	244028360	8570712241af7c24058e69e048dcdad299a7e49446e20c2555fef216329ce3ea	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_013/q.npy	44312	3a6acff9d2661390b8c09e7d46c292f739daf75d23cda5f17f77d0bdb37990d3	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/manifest.json	3041	69c35f91edd2742e60bc0e30810d19e18aafc3a1ad0ae9bc8d199051c51a1cc1		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/directional.npy	244028360	90127986e20cf46b73f2834006451b2ff61ca4d18027fc852e54283f673be084	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/fields.npy	44312	9ce8ea6a9a6b827c43f08aa6cf8c88e5fc3809abb9cf54d2ebf9c98f0bbe943f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/h_hat.npy	44312	c7845f1465ba454f302eeaab149cd1cfc5ebca1f3dcd2937ac3a24422aa64309	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/indices.npy	383328	5e31f3b86f7a5cd53978e21da39812155e60a7e8daa89ea307a8a2cd66d8f1c6	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/j_star.npy	244028360	29e160b0452622c67b0cbc5460447dd7ac02a7c0137e50d863448f23efcb7d8e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_014/q.npy	44312	9bd00ab94807baa40fb638b698a57c3169253529c6424114353c230ebc23f75e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/manifest.json	3041	bf11e0bedd4de61fe5f24849197721fcad419b6641d6cd69c421e31bc6a0cc5c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/directional.npy	244028360	24772cd343ae488a2a183c9c983acd6bba40ea7effc0f8107bfbc8c0ba3e2db2	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/fields.npy	44312	bdb406243c43fed97737d499c0d17169e0beab7d06af8012be51443ecc79f784	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/h_hat.npy	44312	efd31538ee0671cb4c0f468f8a2c15e9c93bcf0a40e897001b622fa8626da430	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/indices.npy	383328	3e84e78a20d9c74ab5c17bb187dd066f59b7ab7f570e633748b0b053c04dccdb	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/j_star.npy	244028360	3e5bed0385ec164a45ff0b95789a3a48f6743986f9e68e625c1d5a8e2d6f6d9a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_015/q.npy	44312	8b573ad908fc96551e222a0f2d660201b6c43d8a9833134c228e1aef7a903cf9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/manifest.json	3041	032b1ef8d9117ccb878fdca4d454840926345deeb42f003fd0720b423551edf4		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/directional.npy	244028360	17a33b811f8d30d62152631ae8b7863a4dfb38281c0e5fa95019d9626388da37	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/fields.npy	44312	11f611d2c367792f6fd3172db3c3702df3442baa882060ad94f65d5ea56323a2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/h_hat.npy	44312	d4152d9b1e49d8c47015054cf3ccfce10cec4ba93a5da205b65fad24818ec9ba	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/indices.npy	383328	4124f266ed51b4ceccb404baec173766fbd3eb2ed3f787d822760ce89c5217ee	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/j_star.npy	244028360	9d2798f201017d25bc788b2b00df06ccd826f68527ac58c5e463c8cb74f35c16	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_016/q.npy	44312	ae158bdb55f397b6611818e9be836504be9306c70a451369999bee870635bf4b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/manifest.json	3041	9faa0f5b3f0495b9b3f2f48f3035b5e9cc8b8975a260e317974df7d3d505e3e6		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/directional.npy	244028360	532c3e97c443868690aecf82f0a179fa4e935d5197d5e4f5943b1e6c6d10663f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/fields.npy	44312	eabd3d00f7a41697babcaeb0422282016c9b55146c8e3cba25ef141be554da75	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/h_hat.npy	44312	ee08aa4360fbaea587af2ba22ff4afe4047862a22e45fe79b83b32221e71a95f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/indices.npy	383328	f0ad375d67911f059ae4c9bd5fd4d475c7ff471c4887218e96e82d2923a551d7	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/j_star.npy	244028360	b3223102b23ca8244ab7a6b0a4f32f9f6e4c776973fed4f3aa549deb538acd23	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_017/q.npy	44312	11520588d4da2c16c3b0532b80f5af13b541caca207eee837dddb7ae011faf29	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/manifest.json	3041	002c74ccfdeae312efc6f896224dfc6d87d852896cbe8404d2af99e30061ed08		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/directional.npy	244028360	dc3a8204d1726bbea928a3619dda5ac57995c4839aed767a1f1d685645cfc94f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/fields.npy	44312	a0a8bd2da21967fbdc83ccb1352e0f2698c195137ef675c5c537f9e1adcdb85f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/h_hat.npy	44312	ef57c9e09d2f3683dde70a7ae452da87e2b903e2d9cb6f376d3f8503fec00596	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/indices.npy	383328	da34adaa9bc6fc3c038fa58a1578062aff40466180d376aa38de932e35404c76	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/j_star.npy	244028360	310cad128e2a7e15c2e1fbcdc353c77dc1affee34151e8e4586720df9250490f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_018/q.npy	44312	2b57d692d48a74af69468a7b527b24800ac01e1d183c807e345278e6d9b86d46	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/manifest.json	3041	54db4dd28c2753e33b682151e3eb89561f4f7751360648fe78773dae46da5e65		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/directional.npy	244028360	d0d329728feed3da595c9a5c7cf9667630c630d3ca0364238b6a476c437f815b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/fields.npy	44312	d4df6636d65d097190826fb42b687e99971e812d689dcef5cbbbf800bd81d06f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/h_hat.npy	44312	81f55b886e4a42409863317eeddbe702a6fcef75cc8d0716420b0a491b6eb328	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/indices.npy	383328	5f00421565d5856d7d072d335b06a281800f9d76b1774c266ce42707e51949ed	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/j_star.npy	244028360	5f4012d380a87d44d41f3f08c12f346cb8a3c010fe8b791ac3f05140ec0425ac	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_019/q.npy	44312	b11cd4ade5b9a2ef9818b23d905da2a5a769e8060e8ae97f7a545a0e8d53a5e9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/manifest.json	3041	95e4c87f40c758bd67048ed0befdce811d43315f93eff7ea320998f60f99f8bb		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/directional.npy	244028360	3e740f1bfca50db4231fd214767cfd48c16e8da73e5b5fdffc5dc6004c7554ef	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/fields.npy	44312	55dacb98cf9fe041dbfc2774685faa9311d5367f2d1414655fead880bbc8cc8c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/h_hat.npy	44312	90e3ea27ea19bab159da0b5a1773b23a26293ef49facffc7cf3a6eb3bfc6a488	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/indices.npy	383328	8e7f9db9c842d5da51fc9fe10f2f17deba1d03c65c4e6698ef43af03dcb941cf	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/j_star.npy	244028360	36c5ff39210e9b24ee39523c2f693bff840d9be94ad82489503881cd48ece643	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_020/q.npy	44312	929426fe70f912d05b901a51cbcdc97eae8316f215915a034efd4c7980e3ef1a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/manifest.json	3041	100589354cbb44b66a84c8b977af1606f486ba7c80eea9b3eef5034e7a436402		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/directional.npy	244028360	ee61a9956568c8356842c9711161bf106a8c2231e0d5f75fd1b44ab420fed96f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/fields.npy	44312	8b373e0fe1efd92a7a801fd45d722fc8d10d960b28b69f95187e2a9d2147f7c2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/h_hat.npy	44312	dcae1e21166123b7b7f16bd5199209e2cc969a1309dd0b88eca556214622fe8d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/indices.npy	383328	d430adea770694f9d5e147972c9a5ccd835bc3c4490f36103fe40161a48b0703	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/j_star.npy	244028360	0f744b798d5198a744c9eff942a7823061d502d2c891f6ec07745096e9232f86	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_021/q.npy	44312	8706cdb8ee34ffb16728417911ff0491ba4f0d6c2089ddb8c3711366a5ac2f25	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/manifest.json	3041	32b4565cf4729c47118a64148cf5d0b10e810bb195d36920af0d1106365de1bb		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/directional.npy	244028360	9f0a0a530e42bd4a681a1aab4d0992f16458d11a06ef3244d3ab3b848cee74e5	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/fields.npy	44312	0b89d65d568e5bf89ff06304bf8b1b857ddc3c2410150e1460dc60cbcab9aeb6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/h_hat.npy	44312	3034934ddb3dc05a4cd829697bc344d39b0e730c0d719e701712c934f7f41563	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/indices.npy	383328	d60b82c22406bfcfd5a3a57795a2ed27eaf6e2b87d10ff46bd26a22b2ee7d6b0	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/j_star.npy	244028360	bff42533086181c988ac3ddb78da97e76964e2f67282542bc7d4d9a4f462fb75	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_022/q.npy	44312	57ee0c36c0810d065520646345495563c8d1ef7b8611839853e1801bded0c77b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/manifest.json	3041	78759704315cb2a91f7f5940aea227c51998a325209ec0e343bcb7c77b8dca65		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/directional.npy	244028360	0206dd867aec6492cf2c54136ac0f68f5136348453e85c1b5128538157fd52f0	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/fields.npy	44312	79b445524832574bfb68f72908b483b0027836ad47b3ea372a05e4f3181a0a42	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/h_hat.npy	44312	42cd986504955d3721c421b087ec0842628023b3761fd211985a069515fda41b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/indices.npy	383328	11f977f42505cd15f05a1c0d271fb9897bbd6c969cc38395ed1c7c3eab699e84	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/j_star.npy	244028360	1da19aaba5b7339e180d483e22d4cf7ac8706773823fde71f65770141891e327	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_023/q.npy	44312	4df3a9797d8d92d59af88d20cbdf7f9d92f060e4f430b2e4d749506b119ff355	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/manifest.json	3041	8da4e8a48abbc5d795999fee36093c1a41fc233c8b45543bf2ab6adab5728259		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/directional.npy	244028360	97272a7dd11df8c2f1018bcffddeb95a59cab9fed0733673989076580627e6b2	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/fields.npy	44312	f4679379e37e3a9293e041d14b225ec20c99589b6d7698df681a0329608d059c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/h_hat.npy	44312	2b90c0ae1ed2e52ccf557239ca26b5d8234577c6d8672754ced3432b465a0af4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/indices.npy	383328	e390217ac5fb5fa46c239473ba415e894e25e0755e59582930dc842cd3c65e6a	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/j_star.npy	244028360	cc1dff052a63e2ee7ae03439bfc735ff8c74d09a299c62d181a4d2447df1fac1	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_024/q.npy	44312	e3edef234cbaf2e21facd335aa9ad5e1af7e2116e1bc1395d1747c365e987db7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/manifest.json	3041	d59acd057c562181f7f11d9fe30256aa7d803d937be362efc323f8f70cf327b7		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/directional.npy	244028360	ff0296b9e8faed3054c7d2801798d59eac7f73e89d80437df1945da2fb0ba45e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/fields.npy	44312	1d1f5b63258ba5b6320cde586f81cc6a7b5c38355a435c8c08b652134885abc0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/h_hat.npy	44312	ce58f44574e4e3ba09029133e6cfa1db4c6fcf49e511bf6c89c09337aa5f3bae	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/indices.npy	383328	106064b7631ad104a2c35f89374ff4e21fb7c7d532fbf6f81e170798b4125fba	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/j_star.npy	244028360	0eb44d5888bde942edce924d2250d4a8b9f694fa6992a0b17cc98c3b95019b6f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_025/q.npy	44312	9af31d4829fc46c0cde1aa6ae316c3668f459abd9c13d7f870aeee0621aa18eb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/manifest.json	3041	44079ae51d30bbb7bb80d42df2801c6ed0cae9b42130375b03625058b9bfb0f9		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/directional.npy	244028360	2bdab0cf633f1f2e641037191f3bbdcd85c53be89d5dd1cdae6796cfed43c9ff	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/fields.npy	44312	e7a12d98039603e43db712132f7afad3a86207b4780d1e87b0f2bdd0520d9898	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/h_hat.npy	44312	c8975f038299d9ad2ed265822809ddbfc5d991d46cc49df11591665c4df275a7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/indices.npy	383328	4d83721cd2d1d033d9438d00187c83d3be79aed8f8b4e3bec8c95638bbf217fc	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/j_star.npy	244028360	cdb6e93a511330e77268331c0a0434f53639c09ffd141d0ec7e018a1ec27e7d8	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_026/q.npy	44312	ea6bce8418d30d2b125f7711c177c38dc0810502ba25c914979d2f0da8551a83	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/manifest.json	3041	63dd1f1113b4015c6283243e311c28820e771931c0943d492a75202b1ba5b7ed		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/directional.npy	244028360	72eb5bff566d3655fdbeb0e782637bc421b5bdb120fcffb500042a45ba49aa34	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/fields.npy	44312	3a569c8e510fdc81a0cbb9286ce08ad1e29bf8099bd668ed71a5ff92bbb3e586	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/h_hat.npy	44312	0c4c3f0ce491b81e37a6d1d5a98b95699ca360573de445d0b884f838b8610c08	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/indices.npy	383328	420e652e22835304be8fb7fca90dfc18ece9989e452a80ae68c173aa52ddb951	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/j_star.npy	244028360	6a6350a37c75b60b0e0e8b0005f01070ee158d5746f52d9cb8471124fbbd82b3	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_027/q.npy	44312	ad730d95b3488b45666f52959409ec2de4a4b2258c4584660481ebeb379f3aa0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/manifest.json	3041	ae7118445a5b2607909f914536b46863b7181ac30dd24ae52e17dd48508e2aa1		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/directional.npy	244028360	ef9d787a47a213e8112f8f16a1a18987ffc62a7d1c858e00b17a22452426602c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/fields.npy	44312	57b2869228297ed8094449f2a1b67d1a9dac4679c300b00b410c2e7007b6d559	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/h_hat.npy	44312	ed7775ada4dbdf2b019e0dda06b521b6a117fda20247e6c99581f09060006e7a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/indices.npy	383328	a014bb4792efe02eddefe42d6dd5e92815cfc716c3c362427dc3bf1b8e572149	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/j_star.npy	244028360	1ca550e679fa47b59535c2bca9a029922fb2b6cb8d30f3a124834f14b7ca982f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_028/q.npy	44312	7d787d1e5cffe66598ff8fad14d0f8642381d868a6635844a1e297fe3908a566	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/manifest.json	3041	1157d001085ea9de0be56b2de0f6043fd781fe4de8b03938ad5700bab920215f		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/directional.npy	244028360	87e8944cadcffe0260ca82c704bcce335494e0af26b6b194cab1f84d99c1bdd9	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/fields.npy	44312	0bf72f34ed36a68bc02c37c687eac98e812048f90bf8a13a11e406aba9be7536	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/h_hat.npy	44312	9e3a739564931c20fb75bb7144552361582cc3d805b48bfd267422e4674e9f75	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/indices.npy	383328	12c895c19470b72b5c8c2f1db44e2f944eb21efa3fd93a731e36b922d8243107	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/j_star.npy	244028360	be8a9a170a541fdb9762785354028bc781365cd8911a88b1d2a5b578d197a79c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_029/q.npy	44312	122fee62ddadc7b6ea8f629efa4a6e4bb5a09176efe2a221f4f832dff27a99c5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/manifest.json	3041	397b92335a4bb80d546e811b84a9cc5faa196482116464ff6ca86a42a99b6893		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/directional.npy	244028360	9e5da62e88a93a2acc448cece0a7c3d175ad47069ea0b60f509e126b3a4feffb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/fields.npy	44312	bfc7b99b981f51ac04ed64584b3bf38fe5c57f8c9ea54adb1842c3375e96e36b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/h_hat.npy	44312	cd23a839e14c2d62b6af740688b29f82708f8348fe996f5d1ec4b45418dbee7e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/indices.npy	383328	3c72658afc4fad35fdabfe2354ef91f1b7a82b4d7ceda0763be7b3d7376b6c04	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/j_star.npy	244028360	1aa0ee2846d0f5b2a4e2cbb9e38284928e98766e796ce56c197da4227801d86a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_030/q.npy	44312	d5a72080a077165812eb64d241429c0a1dd87cc192ff54af1c0bca3c8c962f8d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/manifest.json	3041	c775752061d27cf4a804e266a1ca7005af1c060c041a8a9c32ce0c8596d5d178		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/directional.npy	244028360	bca9f44bcdc3d0dcaa931bf4a2a258523025bf2bf319ee40ba94c1b81965a038	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/fields.npy	44312	a39d80181734f915f418b191122a517bb929f271bfacd3727389cbb9f2a54de3	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/h_hat.npy	44312	ae36c834a4f6d34e08613be25ca154f451af521d5da04895f26c09d65ac6b044	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/indices.npy	383328	a1e80c5137b3e69905494df2cc2ecf73fd2c17dcee5b044f8228fade06a7290f	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/j_star.npy	244028360	cdb030bdf85fd6a60f0df90c525a7f7e62cfb5b3740f94b40384f9d1da381611	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_031/q.npy	44312	7d37942306bb326e24fcca9665f3c19339676bf7f112a727f8668d70259ffd73	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/manifest.json	3041	16876fb2b8a7b0ac9ee4365dcd169d3eb24277d36a48e1ffd4813ab87eb982d1		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/directional.npy	244028360	6cf25bd2c0fa95cabb8cb20e7713b706cbc6112e82987dc99044c0a30678d6fc	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/fields.npy	44312	fd0d235e3d71258091fc65d231e57b2372bd85f711598e96b664924f8236aa55	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/h_hat.npy	44312	b9ba46cc45725e5b71da4918bf25373293473bf07a6feb6965326b27140f05d9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/indices.npy	383328	b637e255727922416f5f21a09050b156b3131c27c05a3132f168c9ab98f1a5af	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/j_star.npy	244028360	9f89ff63bc5625c94ebf9c4065c06837cfafc1122186e9ce92f9e05b3d7cbd65	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_032/q.npy	44312	72a91a82e7364b6a9d9a3bc87b79e371e9ff5c9aa81a00d440abca11cb3afd40	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/manifest.json	3041	7bb25fda079c6ac625263320079142e6d52ecaab8b7ce231c6f7d279dff600f9		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/directional.npy	244028360	4ee80326564da76234b668b23d3471bd9c4b30ac5df5c87b6ecf22779f815097	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/fields.npy	44312	da1b241cc9ee201b608c10c72da26e32d536b94da65d23cf411fe9ccc3969fbf	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/h_hat.npy	44312	e572ac439439208178c54ffa4f616b088f7dc9c915d1ae4544eb3b9e45058057	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/indices.npy	383328	c20ebfac0da64e4e53a6961de8401628f10cc887ecab7d9a559d81a1cba53ab6	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/j_star.npy	244028360	1a5ec9cfe2cf305b0ec2f6cffbc1007891c657b1771720e03e1bdab7a3370656	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_033/q.npy	44312	99d2b8118ec462333122d115a2bd781bdbe13b31ab123dbe55752956676cbd62	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/manifest.json	3041	d3cc01982e057c584ff29ea08aa84159fac34b9e02928fd4d4d34bab147d443e		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/directional.npy	244028360	a9befa3ef279af2ca8e9fe4de588edd33678321c635d28b1dc8056a525abcb2c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/fields.npy	44312	3e0750f01bb314bed17f50bbafadd6497ba2c295f3ec2c50e0af7dba734cdd02	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/h_hat.npy	44312	46b426b1fb1604aec7295975dac2dd6b75b1a8ab94e1c1dd73d2b2f3f5093cc6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/indices.npy	383328	6e2b9628ec430335f0bbd296223666ec4dc7f9db12f3447af35ab8e1a24b3d95	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/j_star.npy	244028360	9856d49d68a493831890cde8e3e446dda5c11c740057a90efeac65597441603c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_034/q.npy	44312	03b44059d33647b153cbc142cae1e5d9514598a4463df17a4e703d9c0ac466a0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/manifest.json	3041	aa84c49df5526df2daeb68066c1b922514172ba2f4f52064d327aca0a416dbb4		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/directional.npy	244028360	58f54d7b4be34ff1877d44f98f98a61523f6ed2f61c9e546ea30748cba43d29e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/fields.npy	44312	467b29651945217e60f71e2012a7817ac4cedb55a1f5658feab904f7f9d73b82	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/h_hat.npy	44312	8579e0b68b4d47c70f9c0f29e4fdc0d0ee9a2b9f944ddc176622978ec77b11c6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/indices.npy	383328	94d9d14e1eff4f8eeae5830b90e2860819b760cd85caf8dd50c4f73b86e1ca4a	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/j_star.npy	244028360	71cb72548904099d4ad1ac32538ea8792668ba024c94ddbae7d27257caf041eb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_035/q.npy	44312	796a2eb911f9e30d8c7ca36845506a0830cefd2c4cb38bb1c0e7f3b312ee61f5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/manifest.json	3041	0c25a929dc611d1eed27657e44b07da4ad91046300eded27b710c401067b9383		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/directional.npy	244028360	599f2048230b53f7cb13b03e6c3d7bd029fffa671cbccaa20efc518a26324ff6	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/fields.npy	44312	eeb5162b30a35de9ddd567a808103d83736891b4218af98e9f38a338c1f5f520	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/h_hat.npy	44312	98afa1a7acc6e6b5524a120526292488de9abd5567c5c957a85b9fbbc18834c5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/indices.npy	383328	3a51737c68b7366958a67539a9779fe30fcda294fb6b6c441a5142dbb53f0a40	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/j_star.npy	244028360	832db8c49258fc17c4d755f110924a4eeb7af58a57dfeca7d3da5809276806b4	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_036/q.npy	44312	5a9daf2a9f8ed684b69836d5f23a9f9c44d2ef26ff1264249db4e638fd367a6c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/manifest.json	3041	df1f6696d815dde199f6f47fa22cd0b2be8126b69069f111090b0d5ad0cec6a3		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/directional.npy	244028360	ab2c6d4ae8e3c4cf4c09f2912965e413e67b46e6c2e944b0e80454405797c2cc	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/fields.npy	44312	31df26d768376d4c97b25d0df5ff67d132f5548ac23eeb7901a656b772ec9e2d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/h_hat.npy	44312	2b1c10796eaecc81b29323144ab5cf7a1261f98c893aa0a505a88e825dac816b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/indices.npy	383328	628490e4ed0369fd496e11ab1485425c345b8b4a5222d2c4d3bb032b35e8eee1	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/j_star.npy	244028360	66649998a95bf42e6709cce7c2d552c33850005d86b5eeb89a296aaa002ec00e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_037/q.npy	44312	42877398c2654716292c37714d78f25a378df5a84a002da9b391ddbc22ce925c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/manifest.json	3041	85908d01bb1e4ccfb82d5c56885847bf465f7c909f3271cfac017991f24afcf6		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/directional.npy	244028360	e6d53da40385b8bdf6df6876f148f3511fd801b7268f0b461007f4269271c59a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/fields.npy	44312	b4249be7280fcf8fec42fb596eaa014c1c7e87526ac54cd0f462ab8129042588	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/h_hat.npy	44312	94d113964b36d56175a972a27bce7f9d46296ab2411cd98dcde8820bc46760ea	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/indices.npy	383328	25c6cff116bc87cf87857a7abb1823b31dcfd22082bb73a7ad902891f0254695	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/j_star.npy	244028360	42f34e5c7eb07ca1ce338e20cafc5bc6d1de7b4f0a4f3c4578931859e8c1e2ed	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_038/q.npy	44312	51c5b3598305d0c3355d7d2b6a3085c8b9d96ee03e6c078ec1b11da40542e182	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/manifest.json	3041	04e6ff4ef8a7b5aa8aa3c28dc2929ab8d2f94d32ae779392689418f122161b16		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/directional.npy	244028360	70103d6da2ca369addd4ddf090005b21765607fbcfa10012eee8e6d5555baa03	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/fields.npy	44312	c690e56219003d83e358826f6e6e26e259a655237b6f40b2fd78490dc0137c9d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/h_hat.npy	44312	e99d858cc855a9571bdbfb88c80b8bfcd5270ec690274d1307f1daec5b98e504	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/indices.npy	383328	bd31ab7b81910a38293e2fd6128114603df3488761ea7207c9744036add403e3	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/j_star.npy	244028360	e3552414ddc3a4d95aa391ff37de9b12fae6a78306d7c60d0953c0867dc12987	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_039/q.npy	44312	ad13757b5d3c3efbd93debabe398e1c980c043fbca8a9e0b168acafa23f2e77b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/manifest.json	3041	812a251a361459138df9b82e6c05c5e4d03d275eafa3a34109ccb9511a979536		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/directional.npy	244028360	076c90281489d1ba2b1637a148d837a8414dd619f5be53b1e1263b556f24b481	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/fields.npy	44312	b46766f9250d4be42c0dd83dd11e87735e030f386d46eda621842b5806fc2cad	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/h_hat.npy	44312	5e1636bb16efa724848bdf46172883bda893c9fd371818051bbbd5ca74740b76	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/indices.npy	383328	8131d7e03e8f84abe0843233f034561771fc097684d15ab65b38fbd64328fdf8	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/j_star.npy	244028360	82a4be25d5fdd6b5a2bb1d789c005647c517e38696601104ba6a776fc2eac246	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_040/q.npy	44312	bcbc04613b8b9ce54050e8f4f7a38e68a1568dae2f65fdab57595951b8e64106	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/manifest.json	3041	2d00cee843d0b61f0131442fc6d653553c01eeb181e33a669bc5a8d68837a378		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/directional.npy	244028360	b78db742d492dec0ffda60351e0063643b062cc820a7254ec12f6622bba247f3	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/fields.npy	44312	9628fb269d14203f57578e9476627c74025047bd5caf621c63224b423525f563	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/h_hat.npy	44312	7cb649166c3f4adea777d36d3dee5dfee7f38aacad4e6712c975b2ba8c419874	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/indices.npy	383328	0f4ac5dfe04056c3648b9de11b34d31db3b4222d5a90acdcdc4f9b84804983b4	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/j_star.npy	244028360	263ed07427345ac46aa7371c1d4276949a623bb52124490460211f702e005d0f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_041/q.npy	44312	1efc4c4317729994769d8b693f605071c5fa6edee0648c5252d5cde3bb23f579	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/manifest.json	3041	5928116520f79d3f7dc7a47db0617e8f614a7137d0123b169fa481d20fad7a53		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/directional.npy	244028360	4d7efbb92340dd8ff8e38a47d8abbb44430a60634052672476b9acf23950d41b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/fields.npy	44312	d7278708840da3c8db7d83d9f0a15dca9e36c9db7392f127af40659b66dd08ef	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/h_hat.npy	44312	ceb0fa90262fd59a3df37f58f9fa6d2e4ebee14362fdb18e9c00a0a0b55acb6e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/indices.npy	383328	07741a2429a9fca194416a8d5e7cc8e690408e2409372c00ff57bc55a810ea33	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/j_star.npy	244028360	ccae3206fc188eb9d6413b934dd5a340415edd8174ea18ad2d47fdde3b3b4db1	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_042/q.npy	44312	4bcb23ba5c33eee310c13e69cd03dcc534ba3f0940007a82449f1e20f8ea77d0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/manifest.json	3041	2a17cd591d0a372ab0138200b8b9093f918227b43a2c24e8119268bf58a6d873		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/directional.npy	244028360	8b50ad49c9268a43bd2e35119519b2d225bed0c7e2b5281aa49bd3587eb8efcc	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/fields.npy	44312	f7a15b4f6c90a2cc2fa4a423a8a7786da653e351aa400598e590b6b2f0dfd5ba	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/h_hat.npy	44312	6523acc5255644bfd225c42e3f200f58af87748a0fa1291199f026b56a3efc34	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/indices.npy	383328	d13e1a468f3565b57448298427df1f578a696c8efe219486e4052cd726643f52	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/j_star.npy	244028360	c7561cec4e4b4deb57628c4b4978cbc904b289c6a4b71f86c9f02e24be8467cb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_043/q.npy	44312	924e88a85441e76c580db7d64df8f6033ab388d5962fa1926c771cc647f169c9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/manifest.json	3041	67f08b15a11cc3762ccf9a35f9b7e49a16b8ab9cf4b881bde03cb3b1b1dcd3b5		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/directional.npy	244028360	852e915b5b95a89da4892e53eaa3ff95cc9c73250b05ad82a50e01a17b037503	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/fields.npy	44312	0915972c613c394678dab7bb3e00619b3ba3779d8ad7502537688173f35daa14	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/h_hat.npy	44312	e8e2a3387fbd1d404516eed505954460fe911a3100ecbf52d4cb52fb80a97d95	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/indices.npy	383328	2927a60c135e807c2078afc5cf60eed589ed732b046bc4d301ccbba7f085f266	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/j_star.npy	244028360	43f2b4c02297285f59d9b96cb87cb8a4d546a760cc34f2f6ed9c760cd8e9a5cf	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_044/q.npy	44312	e7750e02bc449d4e5878e0d40fc9beb77d0f8a79fc86b70da467236c1cd28e71	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/manifest.json	3041	e513330e2e75354c43f1a57b888bc4be24639548487e3795036fc795293f73e2		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/directional.npy	244028360	6e6be196ef81a8bc1ddc88730172572cfb1c3f1a1d51932369c7f828dccc2bff	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/fields.npy	44312	8f501bbe1e8e9389f0dd0660b8ab7ccb99b2e82247915a4a085ac95a730f7f84	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/h_hat.npy	44312	933a463036b5ca7996813806b5279334909b074944901925cf7cb256d9a4ee1c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/indices.npy	383328	b40adc28452dbffe7b2312a56a748d17c9ec0ad395a0b490a71bcb3501567c6a	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/j_star.npy	244028360	58162e8e6cbb424b6816658d13b4187f9f7ea33d3186ac168160735039c95a70	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_045/q.npy	44312	9ecd86f490a07e4579787c260cf19383fd8b2332db2f521f54529f5ddc01a8bc	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/manifest.json	3041	0e519e1131a09f7eabed583429a80d51d574d1ea9ac458993b23dc4b5f2231d5		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/directional.npy	244028360	ce2817f0c0501d597344ddfd86c1cd6ce9436fd5a48cb2a0ca2636ac5ee293f4	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/fields.npy	44312	90fd8ac335143c13c908d75b06203e92e1f5e65ba20c9c3b46d105d4f0d21864	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/h_hat.npy	44312	034a98e359181f331b41e13c6ae522714094c36e2aed9d1cd02d983ee2c59217	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/indices.npy	383328	bdf83d2edc1291aa482bdce99f5e6f917a66023bd331f6e4d00befb7d618af85	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/j_star.npy	244028360	5f1acc1438239342995e5c6a1ef851735cb76f0e421ae55ae87730757c640484	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_046/q.npy	44312	69838fe1a1f3779a58ee34fd9dffb240400e70940ea7d1881be775a90ef06dbc	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/manifest.json	3041	e30f69c7218d74cbbecb3a38976e3a4ef5fff078a57653712aaf74552f124a17		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/directional.npy	244028360	29d9722395776ab53882c4c2ce1f91448c51e7f03e823f2e8ec27798ae6040d4	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/fields.npy	44312	c0a1626b9b0b4e4c545c2f78ebb8c7a84e6c4c089b5c6cad8f71d09fa17400d4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/h_hat.npy	44312	39c73fdc621ed427d1ccc87cbfce1f9dbaf84026f61fcc795232e15ba60ba8ef	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/indices.npy	383328	7ea2b62e486defb9fbfe986cb39b28ed1648e5a4c78842cc1e92ab9c6206fdfd	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/j_star.npy	244028360	946b2893fad6d1643c5ee6b5d470c740636eab11cd1d9a49efa764c5f7e3cab0	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_047/q.npy	44312	36a51bfdb0363cf30d57666bf16efbf3fcc5b34a9cd44a2ac9ea2ae871df63e5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/manifest.json	3041	cda69eb27ca5741f59ca52a8098229544544827800a47cba4217148dff9aadc3		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/directional.npy	244028360	85bd3a4932b2c9c5a9f46a097c0286e765086905d5b5adbe17b625228902455d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/fields.npy	44312	88a7aa97a07ff98c25368fabdca69ed70b6ae325c0743b76f566376ba1948647	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/h_hat.npy	44312	f7284f5a84415ab44a81a34247c4dd5e08f540dcde75c643b81132496111d412	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/indices.npy	383328	8fb30afee478acf62c51ed312cb13aeeff9c1f93713e1868184598fe0bfc3816	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/j_star.npy	244028360	5444f669e9d88c7dc04762ada15aa29519f153b9f4910f9e08d9fd345bde2159	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_048/q.npy	44312	766169953a01de4093680a821ff8add006b8fd8279cc2c45ff45d4610d991eb0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/manifest.json	3041	666b99bb8e7742273c5d2610efc4e7b20ba9479e875b6bee582361da8c911a1c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/directional.npy	244028360	6f883b0ae9b12b887de3bb1e3d1b3443224ce0bc25dc68e4151f649d740a63e1	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/fields.npy	44312	dcfdf9b14572e2b473850afa3658bb8350c809450f0c671baaaaabe22d1874b2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/h_hat.npy	44312	c691ad8a51e52b71c50c5679a97755377917f17c41275e8aedab9930f25baffb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/indices.npy	383328	eae7d33471ca1e0125bd5fc3bfbee9e507d6cf40cf41ea992177a75de38814f9	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/j_star.npy	244028360	449f1084436a513fa96444b7d72cf1901150ee0c34d23683c4bed222ccb39d57	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_049/q.npy	44312	91fd2e94617fd98a7682848dc019d03d182fbb927fcd3c02e0b07123ba8f6150	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/manifest.json	3041	60a6d4021ff550ab3607308e0a36d8a25262e37d51b0c4d7cb1e0b86b13fbbd5		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/directional.npy	244028360	82a77892e5b64e6f06e46b9ef06d7d6e993ea272be00355f9f25c6012d7d7f95	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/fields.npy	44312	915d371d555e1fe8f33a01610f664f56e0024f392e797b3340d8c7a8b586b470	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/h_hat.npy	44312	c5b054498747bfdc69c2887289253565678d6edf5e26dfc12608ae7baa286bb6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/indices.npy	383328	f441d9de442db90e8f2635fa893c3960bf5df07afd8863b38ac328e66812ebee	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/j_star.npy	244028360	2c2cdffe779ca2bf80080ebcbf8428b02a714eaf95d97b7d4464ae1ba28549ae	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_050/q.npy	44312	6a21f022a4c9ab596268ce9cf7560ca45de7dec42ab2e5ed443f15271dd3bbb0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/manifest.json	3041	018970731a38c94f7dd85b54c5f4157aef0a84a10660cc1101e371109c2268b1		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/directional.npy	244028360	f2ce5899d86b1c60dd5532fde9abf01b77c82f2980b24d648d3fa5f16e3af018	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/fields.npy	44312	a9260475f0861449d14635cba84f44335a3606484729b29dd7431cb71c24c61a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/h_hat.npy	44312	90cab9644e86349c9ec5480fa2d103b487fafc35b2e1453c87bb0afff1c07085	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/indices.npy	383328	ed454d1ab1af9ddc02b95387e788dce2301534f2e03acb57fd99dfa53278dd3b	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/j_star.npy	244028360	d977f976d70b3aac20807ab48ccc65ca0cdc22d933231324081b5d5eb1c07a65	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_051/q.npy	44312	0574258a347b55e00bdaad7ef27c36783938fdc51e8b590bc2c0bb54c6ca6965	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/manifest.json	3041	961797a2bb879ffcee1bc94f466291d847ea72113c521c75c4f45c2d8f1f786b		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/directional.npy	244028360	c58ebc353008461b2a5bdf162e02785b194f930366ad3fd4c12a8e93349d247b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/fields.npy	44312	169c3e3024c8446591d0fd0b53ebad6c7263da7239a5f90c093d22715bdaaa9b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/h_hat.npy	44312	736df85325c3bf83b0806e96e36cd20fe69e99ecf55901cd2929435c6db1d088	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/indices.npy	383328	69de538ae408b8943c86f51039efef0a80d343cb5673b569036a1b9e16dc9a61	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/j_star.npy	244028360	1ef9d18ac61933885f65d099d799576b2b558eaf010839528646a90df0dda1ff	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_052/q.npy	44312	a729db9d4f33440539908fe5923675beb4e291b07d635c6356a3bc61b080b59f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/manifest.json	3041	60061c474262dcb19e24d414cedc354592a1dc44ed843e337b2cebefc31c26b8		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/directional.npy	244028360	e4a5d17b0299b9c7f4e1d21f4012946b0bd2bc8eb3766b856d418fa76070db7f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/fields.npy	44312	6af4dbb520bf20b86502f8eb0ec95847ef92dc51b3e939d2c035ff242adcf0ee	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/h_hat.npy	44312	66605cb665fd0438d78a2437c98592c4b1393246b641372b41812945ca83fc0f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/indices.npy	383328	dcfad7eb39e8e2c7a39262faf36b75aa172e97cbf65a152486fd93bc522ea5be	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/j_star.npy	244028360	33caaf2b901284e0a67c801fe10fa39ffd614d4f2a6818c35c4c4ff2a46abad6	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_053/q.npy	44312	37d513ae43c41201ba9f8a39353a7eaa41de6adca2ddd0df6efed9dc25089b9b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/manifest.json	3041	f5da92047674ed05cf83ef374f1253a016702599a2ff373caea641b9d836d621		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/directional.npy	244028360	971990c1616079d3262bfca34fd8d2835314834d51f7f5a1239d6a3aa6482751	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/fields.npy	44312	ee6af4e0e230e3d97aebbea2687788e03d082610e7dd6fff19262270d9b02738	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/h_hat.npy	44312	01c65d40901f16ae28d2ee123f3cd8f5cdf1681f4e25d31637e9ef7bb8a06e02	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/indices.npy	383328	ba0e504e1105f76ec18b1c81357fa1432eadaf71dcfddcd43fb1a6b748160e90	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/j_star.npy	244028360	0a565a867cae68177b57f42bfe98b05ec7f30de82381276dd29357bf0c678c79	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_054/q.npy	44312	613bf6c501c54ae44b7f250dd0ed3cf65ed9ba15723ee962e8093502dd8285fc	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/manifest.json	3041	4399dae94bc30944996e41d41b0fc542ba909ac525207e3ac6bf461438bfa9cf		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/directional.npy	244028360	229349072d7b68791f6d25970c119711aee58feca755bb6827f33fe13908ea8a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/fields.npy	44312	d0a883524b2149682c69f812a10338d66653b835d9ab63c7106f9ad2a8be07bb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/h_hat.npy	44312	904f67788e40ea2a1ffca8052679ca5de74bba66e964ff55ca562fcf5412b0cb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/indices.npy	383328	5e2c91d25c76ba460aa8a1ca9161e42f3726a6ada19e489c919f2d7984ba2fb2	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/j_star.npy	244028360	af0883365016f67c36e23a70715e746f7328a23fc42e391109a9818dfd14fc2b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_055/q.npy	44312	c7171b2da82a29a96578917697fa18d66947ad69a7d223b33b59902a69cefd19	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/manifest.json	3041	9ab4bc3fb8ecb9e184d58db4559b5a4d48df1e6de70de516174e7a4ff2600036		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/directional.npy	244028360	66bbf8003f203cdcb46675500dc8ca4a24e8eb2f42210dcfc3dfb76a31b5068b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/fields.npy	44312	86e5a7ca40855fa93b749beaf62e94b3c365e7be25de4dc409402eb9d11d710d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/h_hat.npy	44312	1787bebe51b0f6c14734ecbc8a67e0d12ae18267d042c1e23b643365a21214ba	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/indices.npy	383328	8da3fabce25d184b252dc9a636e6b28bf4fcbab2f97b4509e3929774c8e1c358	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/j_star.npy	244028360	785ae87dd713fdfe8b6f8da15c8469ee6a8886ec5bf52d2319046b7d8dfe3ea9	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_056/q.npy	44312	16ab88c9111bd645fa5d3cc8e06c923b8f5b50f0b53facbe925492cb93a49170	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/manifest.json	3041	4a0756eb9baf63a5d43817569c885782fb1b6a07a6103e7a7f39a7d9217a2c3c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/directional.npy	244028360	f6d09060492ee0befff272c1652e7f980d537ece59522e2d0c211d9bc4b4b8f4	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/fields.npy	44312	22d08d768e13b384efb6c9c4103eb38c9d6cda28c53e3647a5b715efbb2b5361	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/h_hat.npy	44312	f28a90be76263cb6b47fed297fa3c5491080a6e1b267c201b94645fe60e76114	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/indices.npy	383328	df9abffe2871a11635b967f9ff9149b763c0c471a120ee119f76e1205526e92a	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/j_star.npy	244028360	94d56e8731138884f7c7190aa1c4f44eb9d53eaa3ecd92c20b2d2361f17ab779	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_057/q.npy	44312	5def405ee4bb030396182fcbbdeec5d28c68319a68376a41a6d543f30944abb7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/manifest.json	3041	215879e017ec86535e39a8ec8376198fc278fcc0c5913a4345b95dc74bc7dfa7		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/directional.npy	244028360	cff3447dbe987a31b4a6b451f2975cc9e20c8d232de012aa8efaa6bcad891c8f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/fields.npy	44312	653f3189b75c264baa0b190485baa8505579ebff8876263e1900eb40ebb5c18b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/h_hat.npy	44312	baa0f3dccbe026fe2bbf7f1bbb4bf362d6ff0c074e7f01e47428870f491e5d3c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/indices.npy	383328	e92077b718411862c778af6c33fa1c9fdcbb57e526e793f1dafddf316229b938	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/j_star.npy	244028360	2ca6b5de8a8cdf91c335d752bc01486d5e27857e8b20669afdabd707d750625c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_058/q.npy	44312	3ebcdaa55507a3c973345bced697364c95508cd99ac800470fcbdc9512158c31	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/manifest.json	3041	fde798fa3a3bcad08e20b0c27553adf6bb1ac7234ea0e72d741af766b52e41ba		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/directional.npy	244028360	b025206d91a9b2be30d9ba59c59f3ce19e2de3240df5cc4a183e1e6fd8f5687d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/fields.npy	44312	c87b9df0e33ec40427e7eff7fc8e589902cc5e52ef2e9f57c26c549860a3dc66	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/h_hat.npy	44312	6ef47be39fba758e862e94033a4d6160f13235d529e40c5fda3ce8825bb24fdb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/indices.npy	383328	08a4a890eaea7554fdb99a50f66fb3e42e5b1dd2f1df9d441749326251641393	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/j_star.npy	244028360	db004c8029961cb68ee029c35fe4d6e334c333620bd5639aefe1071e35998ced	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_059/q.npy	44312	e90fbe9dcf404b1f584c8c1bb55eb26b27c782bedd4c143708fa007ae82ff6c7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/manifest.json	3041	103dd203790299adcd1fb95ac4c20d49b7659022612159a68410c61c745f7408		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/directional.npy	244028360	a1035b12181464785e408178bc027f704ae5733787c2e60af24542c45ea4691d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/fields.npy	44312	29320d2d9e0c2cd4aa443d6e5f4bcfb3cb18e5e5c8a3d98a16668fc359d27257	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/h_hat.npy	44312	5292fb0deb8fe347140d26bf6270b8a442b8f0c3b0c3530675da4f3e4816b30b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/indices.npy	383328	cb5980054cf31e72e57121bc0187b6f0e13ebc77307e2daba090e39254113271	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/j_star.npy	244028360	b0954a4a8c87d04ece64da5ddd540d02e3884371a8f522a43c28a97a14e1a26f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_060/q.npy	44312	255570160837824311482c838bcbdd687bfb07de23cc88b6be060fd7bf2a5a23	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/manifest.json	3041	9eecaf63593c2ab31d92e8c41ab70eb249ba65ccb1b7cc51c264bfa0ce2edece		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/directional.npy	244028360	a2d543457f7cdabbc54fa6b3e9f45b36ae19c9c6c3da354f1190bd87d545f68d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/fields.npy	44312	014662f491a0ecc9369d19111c5548deb08e50ecbc1c2633545a0f0899f83e93	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/h_hat.npy	44312	a842bcf8647e035e8dafe1a7e354187a4ee54a1cad4490ba822b450e438f4647	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/indices.npy	383328	f9ade08c4de98f36853065ec02c409680cb5ffc81f1ffb89b4785e8000a64d87	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/j_star.npy	244028360	928e26a5786e61062e5878adf8606633cd169517ca3cedbbc74625be7480e084	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_061/q.npy	44312	d311b16cae99085d809b480ae80cf4c11da463fae40619f90947473137dbfe8d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/manifest.json	3041	be4eb32760abf31145c47e073f1071eee3ad0752ac3650f50bb4f056d76f07d3		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/directional.npy	244028360	45b3ecc76cc309ec934c6b5a4f02f2ca997dd7a7591b12a20f88cba36be58d5e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/fields.npy	44312	6387c80df6b976b4807082b4d4e8fbe43acb4f3baf8feaa9df71d08d7e646f47	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/h_hat.npy	44312	ed7268238eae80d06d5f8ea33bd280101a5e3f9fb0f6ee6149134d0bef155c35	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/indices.npy	383328	4cbf576b47a60510d34fc9bd8375594e3ba529d96acec427c70a7c8fe5e0ed20	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/j_star.npy	244028360	dcf9b35edc5f94d437b2a54b27043937186f759e97eaaef188d06b93ee737081	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_062/q.npy	44312	a20fec26d9698ce025ec28f328a9a1e8650d892e073322076a21a2dd16ad3cbb	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/manifest.json	3041	1d47b010dee28ee8d3de4e10731c7aa4a68b71855ebd907e9bd42f26ae25e105		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/directional.npy	244028360	1d198f7b4a607890deb974243020772882ccf1f629132faecd7c1a5ad24b1ecd	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/fields.npy	44312	62593deee5ad80d3b439cb8ee9455aa87bfd58be646ca124d21d0ba7ed212eb4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/h_hat.npy	44312	e3bfa9400fe90aceed753a255a0f9199bec2b22b82de7af2fe75ec5e0d30b06a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/indices.npy	383328	2492f8e0613f837b1b409620b6a7e3bfa562b70e28a2d328e571fbb37eb356a7	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/j_star.npy	244028360	6341f25d2cc08a06bc339754ec50e66b256ba75593b3f23bf0e9145b25b9c1c1	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_063/q.npy	44312	609d732c7ef6a2ec96c769348a0fd0725f5ea1990f86ce87707bf7446ce2d20a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/manifest.json	3041	fc11306980721e8aa337236443d8b6270a5548dcd1a517fc154d9dfc02b9b942		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/directional.npy	244028360	1d17c501866ec36ee4c126784956acb4e7a12c0ceae7325b88a281fddc6ec428	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/fields.npy	44312	50c7e566b2737861f92a06625f2dbf1b2ee4c5809c4f2d3210fd04b5d68a429b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/h_hat.npy	44312	752f76ee91d9c86199155d35d753740f74ddd2d7f74385e115166b0d1c930bb8	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/indices.npy	383328	331f3feb50b6edcae32aa0d9f029efe8217a4771b6ed52ce6c72aa992bbbcbd5	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/j_star.npy	244028360	fe23b9b84430207ed4559babd2e192d35c7714fae73229db003f8779b6a21b80	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_064/q.npy	44312	4d05334d23ad1c9fdf7129213bc62cf91a430332701efc82ece52cb94038c4bf	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/manifest.json	3041	49342d59ff5f618552f181f69e2b56438405e7407dc893b793539f859e895ccc		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/directional.npy	244028360	7f2c9054634095724b10b9da934fb634bb6c844f5651d221e2c2a37cd46471f6	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/fields.npy	44312	3c8ae26dd9f9a57fba3760ca037562bfda45f0061c42b01351a71ff312408e4e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/h_hat.npy	44312	2b8cefa74f6b56750de68033bfafcf7b12da158177284cdcc6f26c8f3c9e0f20	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/indices.npy	383328	7b319d194e3195b2d9d22b884f72f13a46b94ec8fb5b61bf6f4e05c7b6ed6b75	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/j_star.npy	244028360	edb24313360ba2ec10a5086b0b094e0d7811824c3132b89eda9c6af4644951e5	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_065/q.npy	44312	86360f7e4e674dab7ae5e0ba52d7ec65d51fa4b23d8aab155b92c88422d5cb88	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/manifest.json	3041	6ee7522fc6a7442093f36bc84adccfb1442e8e2accc75006d44e02c446973f88		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/directional.npy	244028360	4d4e6ba05b33d3531ec5108b4426b79a11193250ba26365b934ca23681b4dc87	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/fields.npy	44312	b417398cb5e0b95d7cc1ac08d1119222b14b148f5231969db99f815464392765	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/h_hat.npy	44312	924ceab761cb9aee7b6523e36cbbd06397c376ca90590c453ed1d9bcf3dcccd8	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/indices.npy	383328	a3381e48f0de3cc871cf428c2d4173e98a19c5febc9ce02b878eb1dcf13b3eae	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/j_star.npy	244028360	c3c6ccb64985b018a14fdd4d39015ac5a75f9a8a3d6a261bc0cea23734f026eb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_066/q.npy	44312	89ffa010466441265ea17bb691aadadf451036dfe2a308ca34669386e3fc2db7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/manifest.json	3041	67dc22ea58fbbe9d74cee84582787eb44930ed30e25a6102149f1dcfac0fc6e2		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/directional.npy	244028360	3bd2bac3da15401daa36211fca93cf6dda7d3dfbe2d9b8c047a693585cc747a3	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/fields.npy	44312	df693817bf53ad5e9769d2caa7cffaacaaad2c4ff53c6d1a2215e83896408709	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/h_hat.npy	44312	7a9f43d28ab0c363375116f3c42916a0397ce23ef36f699223a0e3b87d7b587e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/indices.npy	383328	c38f969c0b744b14074046b372521ffe56fc41ef1db377529793c6f8cf835e99	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/j_star.npy	244028360	8ef34f61c6dc2702be776a4cab9bb1bc8d6a0a3ab79fc0c4f023fd4c8c6c913a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_067/q.npy	44312	c573b2ef3baa481800576921df8de3b27690951221316ef18bebcbe905b0c158	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/manifest.json	3041	dc1d25461b0e14e089f177282a0af66ea852e0827362c8a8ef62816c526a1356		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/directional.npy	244028360	2ff816fe9f8ecbe7116910e28a49162ec2caf3bea4781b51099fb3234116a062	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/fields.npy	44312	db93e6491c7717fd5ba24b7294e09955f9a84d61d0976d9c577c7a55f8fa36b4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/h_hat.npy	44312	4e081abbe0ddae5fda181ea22c9ea47c4faa555b1f36daa02bbf9b182609f6a8	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/indices.npy	383328	ad562a0a5787d39d214a6f3cf42fc3afaaa50615236434b85e884acd37ce6509	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/j_star.npy	244028360	ea92a3f478f8f5d107599835414cc8bc65e32e82291eeb204fe5482c660caf81	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_068/q.npy	44312	748af8797724f75656ced1ecfc5ec36d4a4a9a11596635ecea13c5ac37fed292	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/manifest.json	3041	02c1685024672714746bab107f7a32eb94d6be9fe7a488c90f903db7a80529aa		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/directional.npy	244028360	5b14611cba8751427cadeb8dcbe535891c4e8272c9111f59624760866c0c52ed	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/fields.npy	44312	9f51be017a40a867b20dd47075cc8981344da709c4930b309f7380a534cdb05b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/h_hat.npy	44312	1e9a986e634b834d08c8867e5ec440be6e8925d59e1b6995ec29b80ac08126f1	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/indices.npy	383328	78269b24839cf3d8f254dd87c73eceb758cde5003eba274df7b062a5d5a52cf2	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/j_star.npy	244028360	1024c303016c01441f80dcd64dcfc33209ef3862e617c7d6b27021f645ce35f7	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_069/q.npy	44312	ea41fda90b6f5cce683b50c1a537d1a2f8a4a53ddf97d522da65c52a957ce924	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/manifest.json	3041	8de44bc5a892748b5fcb3550353ad18559eacaead758648d0a06970b21faa0ea		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/directional.npy	244028360	9fffed4a1dfaa719ed5b469d6ad9916cc0f6cf4d224b5f3b572e381463c749ff	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/fields.npy	44312	62b909bc21cd7dcb4f7253c63822b483cb6cf22487a522f150f5e9f3307a5974	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/h_hat.npy	44312	2f6a33822a1a048c2e7cb2a26975cf7285b91d30b85f24f32f0a766371cbde22	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/indices.npy	383328	5941d881161c4937eb8cd3500f87e5a48ff2eac7301903f97e56dbeedc1aa835	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/j_star.npy	244028360	44c397c050df103f2424ccd08f3c1fc99d708875c35017b320cf288336aa51be	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_070/q.npy	44312	15404be051253d4c57b087fd593b89257a18e3b10bff64b2a5306be5bcfac471	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/manifest.json	3041	6803576af0e67b6fb07351f22bf0379ffb3e31db3016b4baf4890937f1432aae		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/directional.npy	244028360	3decdc547dc18d4a8cb394bb163661ae53b9af671eebe1255ea526f426c3b805	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/fields.npy	44312	80a7f468c50bd9c5d28b38eceb3d88372b2266984d3486895f472e430071ab5f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/h_hat.npy	44312	09ed0d182b5ef200e581d97edc9afb6be7c300bc10233a483895a0ace5923337	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/indices.npy	383328	aee588fa691947e04e35b0de2160bc729debf6d86c0647f100d81bd483d4b34f	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/j_star.npy	244028360	23002a0f6ac3c40532ac092ee0d62a04ed7ac31c8770f5d6d8b9f60d06eb9596	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_071/q.npy	44312	f86261acc24201b99b97861ac3194e2b79cd0b819da4410118004f05f3f06e4b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/manifest.json	3041	3ae307450c6ed1b1ababc8a20a865b59fef958ec6336225ce6c965c58cdcd8b4		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/directional.npy	244028360	6d76041fb4b41e9289ab0e7673fefe51446e95b5eb7ceb5095f70bc493b19ccc	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/fields.npy	44312	cb54646bdd01341b802b73d14a09ba2cedd2a4f3ce81df0a619ada1d7d095ed0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/h_hat.npy	44312	9be917d1fbeccdc0e77d920e6987e24834da91ecfc52fa511fa7c7a2690e0ae4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/indices.npy	383328	4a67e7b80bcaab9e2142d92a79de45397f2012b88979ae1581272263316bd40c	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/j_star.npy	244028360	0e05acf280185cc9d49f9e9ca87ab28805288c97f5b6f0d8492d68a97beb2d18	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_072/q.npy	44312	ffc20b3fb048dd7fff84cd548a1c706c1b57b0d99111e3a94cb94f5f96fcc781	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/manifest.json	3041	6f4d2325c19da61f50b5f83590099873d4f482daa50bffd22cb04b46c951180c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/directional.npy	244028360	3d28b898620205671fd40e3e15568d0cf7baa351ca09794b5cd7e25a69d5403b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/fields.npy	44312	5e5213205d82cf98efc652ac964e4eacd2dbb05e5eb297e8bc1598603cd49b99	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/h_hat.npy	44312	673d8c17a832ae1851526f919e7a2b7af00a9e9da1ad318274b53c93ed488623	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/indices.npy	383328	75cf359fb81d95c5540208af2206f1811259edd272f119be53ae0f17f1b0952d	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/j_star.npy	244028360	c84b1ba81859d593b1480696c3d3d09cb92e2ea8af532670b22ee93357e589e7	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_073/q.npy	44312	4abc4ce1b1fd8f3cb814180d54362ebf68d1607ca341f7612c1024192e7adca4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/manifest.json	3041	f05c1ede2eff0e5b65f7a044d47d40dea4a9aa9be55fbb03e543585a05724c20		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/directional.npy	244028360	7c307a0f95fd9cc640159386e813e178b927c142eade68c155469a76f91027e3	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/fields.npy	44312	0c4f65780f25f759bd01fc2a1c209e0695b329893fdd49d2f5f0dd3d5ffe79ed	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/h_hat.npy	44312	6056f04aba9aab373a144af2e7c8254f00ab55bcf90fa57ef80f3dc0accfa578	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/indices.npy	383328	61aefe0a757e025e8f5f4ee1a05d6d4e350920fbc69ff42fd208cb986ee45edf	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/j_star.npy	244028360	db5327e8726917fee922cf733eed67974b6d4c3e0d06570d16645df50a5e3191	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_074/q.npy	44312	a84853e144edc9551686af09addfb33308bcc995bf781096e96bf3864231a215	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/manifest.json	3041	5c38ec4eb8292fe2ee3d919b444b70cfcf0a5fca8b0fb7061fbd5e53bd717240		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/directional.npy	244028360	d3bd156f22d23f1905cd331a0d45d69da6deefc1be67e97a2608154e890ea063	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/fields.npy	44312	97ffaca6bcaf52b5a2b66a7555cf2d8b9af19e93e6a919be905d7a341b430053	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/h_hat.npy	44312	5666f17406f92bcd8d04fd13520d637b073564bfaa4e304b0c292d344fb0fc9e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/indices.npy	383328	d5819a85a7759bf9d0edc9245f957f7a64178d917cc7c805a884989ab507ef0d	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/j_star.npy	244028360	7f8e618e577c973ddffa8903f6909f7adf5e280d2c098183d5db2d0b1d9d073f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_075/q.npy	44312	ef1aa446c88b79fd74c6df7c6c3d3496f868ae75d4dc3333dc0829441e32f6e9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/manifest.json	3041	c731d01b37aa040dbf6e6676bcf8cbbabe2a7c74f8ab56dee56664e5674998fe		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/directional.npy	244028360	cf8b177011a2a49fc9750568bd5b7b9c6a6fb2a665a9d6321ebeab5032cada1d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/fields.npy	44312	75de323cd62cce1817e5657705569f3e3bc10b770cf0f9f1d0015f646a3a6bac	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/h_hat.npy	44312	191e158b35ba452a1bb9c083456bffd15e3d09fde6b8d5db4da86b4c7c2c879b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/indices.npy	383328	5266aa8ab6ceb2ca70ad5bf03a8164757a04164cc8d0ed853d9f39f357041e4e	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/j_star.npy	244028360	e8b7319a95b8917d38041591610b066728624543a7d3609e1a691d1906663056	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_076/q.npy	44312	dadcb62686002f2a10871b2c031362f2b54b5520371535e139fdc7970021e170	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/manifest.json	3041	58814bc5db0d0d2ac397c1349078badbd81a95ca89f6d719a5be3167cbc84db5		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/directional.npy	244028360	ddb5f0565d52b8102d0842169899219bfb160b904d4815cbc9101fe7192fd262	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/fields.npy	44312	5b8724d51d146b830df0ed4842949174ce338b3dec29d25e170af840ec090827	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/h_hat.npy	44312	737e2620843e0040d64a949f08c78332c6586dfd6a5c1620d6d435e268b99621	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/indices.npy	383328	af950b60d8a07f6b51e2826fd1438cbd377d281767e666bb78833bf199bccee4	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/j_star.npy	244028360	0cb91ac3872fdc24f6e46e9c94d47fbf4abb8dcfe7cd1d16937775365a75f298	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_077/q.npy	44312	c2062bcb99c9afdc2798205b1088632a8a9a27c44d5bba7cd8fb360586f40387	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/manifest.json	3041	2d086e154963087b49f76e03cb04f4354566dd28ae4dfb291baf7a0251952737		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/directional.npy	244028360	b296d5c01bd9b034af6d431d7dcbdfb7e0aced2eb6f0eb0356d467ac2103dd28	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/fields.npy	44312	cfbba3d3306ebb6f39110e17085ac3e0ad3e952ca124074f801961964ae86ed2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/h_hat.npy	44312	d12182eeb40e155fd26fb9e802b078912d83213253f759d6e7291653ecbd0334	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/indices.npy	383328	365995566dad08abf8a7519bd3fca167f9f3fc2cf6920c89403f795b3c5179ad	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/j_star.npy	244028360	0610abba39a6f4c3e5315f1d2cf4730861793fde4d8eca5a5e88b84a9454d444	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_078/q.npy	44312	c1b5a9432aed54b5f807ed1f192f34f87c20524b7f3ed1cae07ecb1bb104cdbf	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/manifest.json	3041	cb4e8de7a7eac7e9afaa0ba4c5d57d44b072784aab4eb0375cfb86a8737f0588		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/directional.npy	244028360	7ddcfde9b6eac43ab4e5d39d988ad1769df1b09b95599fd381cdecd68ad9f181	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/fields.npy	44312	11839bdcb2fa12b63d4bc8e07873dd48a731a9eee5903a26b6cdb3aa37e5ae27	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/h_hat.npy	44312	1c57bf92619e637e5fa4544b884767f406aca848215843d62cb51a1af9d1448c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/indices.npy	383328	edc784eaf8f677745e4f22bb5d4c8052c2aa126818b986ed0b4baac49e9d8c09	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/j_star.npy	244028360	04943e442ed26012a6ba39a03c26862c88a861cf3bb8328af557e79ee2190512	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_079/q.npy	44312	b7063164bbaf0c9e832c8748af0f719186b61af63f20e853d0e24055cdd2734f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/manifest.json	3041	4fa113f1eaf61919ad8eb56c3eb6f638e8d71c53a3a7947dda8fed1dba311ac6		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/directional.npy	244028360	46b8647be13cb7932a556e39c7ac6163f87ce1000b101629f77edec1f4f8397c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/fields.npy	44312	1797b43d61ed2c02e1b821f2eb5b744e5aa496675dadb9771174f79733a426fc	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/h_hat.npy	44312	7cefec1d019db574442c7e93bc523cd035e325fe8fa55b6342965be647931fdd	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/indices.npy	383328	d58ef6a4abfaff3021fb9c394da2061413a6233014817eabd4c20462d9eb8173	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/j_star.npy	244028360	72cfca48f509732bd6452b1f760999459a834673ed7193a714c11a8310385d66	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_080/q.npy	44312	89e6d54747ae87d9e1f04ce8d635efb32593f290eb2a7021bd21d3185668aad3	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/manifest.json	3041	ffc7acf453555ebe3f7ab2cf8f3e241b4ca5028a66a2fe87fb50f2075896e591		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/directional.npy	244028360	1d99218cd736ff674de4d3b2fc43039d165afc20b88a7035dedeb789d21dfa01	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/fields.npy	44312	756bfdd4e79d79ebdc04253a604e0435e2293677ebf36d095029756fde2114f2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/h_hat.npy	44312	77e592d64ffd77f6300aa7b66fa8e7440c935c7603e491690bdc1bcc26341176	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/indices.npy	383328	95083b60e21aaa01ff383131ee77cfe7219f7c1de0ae1e1fc1befa28a3964f1d	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/j_star.npy	244028360	81c3361cbad8f0f8402b5f3ed424c33a5bd79e9ad80b36d70b9fffa3a8426e2a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_081/q.npy	44312	d7c3b5cd13cacab74a5b208fe62f46ab35d31061239401d25cfa0b623ec4b403	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/manifest.json	3041	b89b38f026a9ebded0d8d1f12386df7dda7997d6af0c8d2d1cff421d67208afa		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/directional.npy	244028360	716b80ac4f26dab857159e64d0a92def68c04f5d9e9f8fc4ffac98a582cc9faa	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/fields.npy	44312	dcf8d950d0825de19c17f1608eec4ee66a968434ff0930ac75200c53821c07c5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/h_hat.npy	44312	efddbf68de9d2cb35efc8bf66d69a26bafab9b44e0d94a0f77a9a0dd3cc92ec5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/indices.npy	383328	ad6e6ae6326c2c55cd797d2d915b86dcfa6c2336b966664960ae920c3518681a	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/j_star.npy	244028360	7e764fed25e8ebbf9357cf7b97e47d4b4cbbf752a581fd6a1395cadfe32db38a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_082/q.npy	44312	3215532155bca470fd1d4eb037a7433245ec323bd3afc6a77215641d52885f63	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/manifest.json	3041	8ed0eda74c6757c8200d75bc56f520024f9ef6109fd458394e990c1bee9052f6		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/directional.npy	244028360	dbfc830379d652a2669bd833fe870344b2350dab48bb075f31e1109f31f6c666	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/fields.npy	44312	a324a6d7701e9bf65551516b56cddf1483b0ca154812d0c0ef7d0554e7ab94c4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/h_hat.npy	44312	46a0ee8a47b1cfd7c592cf1824e87fa0d0a6870c9a31cd3ef3ff1b964d0e2160	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/indices.npy	383328	b917bd6db5672e28a7c63d47e0c10fb0dd5d43d29c94ec0af5f772245bda5b64	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/j_star.npy	244028360	6b5c198504eac258205b77767d51d26856da487da905d8962d82b776398a8a16	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_083/q.npy	44312	7582e4eabf16217b277f401f54d1626b0823750fb13c033d8783b555ece97291	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/manifest.json	3041	7a3d3e4ca9f5635893dbc4fc959c3d53973b94aec82f8954f5999a4e48fc2cc4		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/directional.npy	244028360	2385cc04020c171e8adf17e0af231fbad778212fd6f9a416a956b44ee14d6642	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/fields.npy	44312	0fe7bf2b90bd5e4035158334c9225cde14eb4c56f1af264b474661446e76d9c2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/h_hat.npy	44312	20b8b277fc00f39eb3de8caef1746b4811d09cb7cbe417cedcf415aed4b36953	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/indices.npy	383328	cc3a7bbcbec442dc460669b048f27de50849e53f9e1291fc97a94667087d1f45	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/j_star.npy	244028360	4c614ca371820865733698dc720004300536c770f8ae8d12da7da180135fcd83	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_084/q.npy	44312	f4fa7255f068bd023c7efc128fbbaf72c4e572631815fb269f0ac617324b3a2c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/manifest.json	3041	0d1ff5f0b632fc832c88686d63f1cbad6e569d8bf67ad781464b2b4d5d351b35		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/directional.npy	244028360	0bb0dd4a56e35321bb78efa057620e3317ed0fe84335a145c2b9a4c53ee94f0b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/fields.npy	44312	53584d70cbaf71916b256db806a123c4b2dba4e82dab04571616d7785d68a097	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/h_hat.npy	44312	d2044a17af899c4e1bfcbcc4e5265d7bd72dc1bd2a5d940e88ad53c1662436d8	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/indices.npy	383328	583b12694ad6140b6f84f7703210ddd388eb001f54be2c0aaecd2bd94756b6f6	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/j_star.npy	244028360	b001580c250fa343b90184e562570652623d125c70207ae365c67b10a8d95eb8	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_085/q.npy	44312	018af892f3ca46714ea759bd87b83605018f843a624a039b9840eabb45789ab4	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/manifest.json	3041	e4db4e46eeb4529b4fbb9da380f515e6cd0d2d336aa8ec83f02805d3a08bac89		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/directional.npy	244028360	45778e863e55f3a8c68a16ec41fc2bb5acdad407fa60630f6fcb945476fd209f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/fields.npy	44312	d90ef361f4a8d8961e1932bf34a99ec64b82a5917f5510d6ae862ae44e3d87ee	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/h_hat.npy	44312	fec63f93a76ca9dd86d6cc9bb182be9fab5683ff7a070eb5fcac336a266e6c62	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/indices.npy	383328	6f91834893c06af94b19e376c462a4ed0343f42f86265f535ef57f8f59b47e79	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/j_star.npy	244028360	95bb1d691a83dbc8c40879d1bde6eaacfa93e2ca83a21115159a20023267628d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_086/q.npy	44312	dccf1a050f95780845efc51dde48548bff80d7d1d606c2d4396e189285cb9b5a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/manifest.json	3041	3bb4e71104104e225ea7c74733c52308faf7d2a4e69d7d7468cec2defa9d776e		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/directional.npy	244028360	7aca55d3d5c54136b4c5adb44b8bd08e30761cb385688b6e021137a022d8f3e1	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/fields.npy	44312	2e5e755edcffda65cfecd0c7ba5884b926d4013d9e3da78f2c1f7199162bc3e2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/h_hat.npy	44312	054bfdcbb50e1baf2080ac9922c48bd945140bc6a9662d9ed9aaf3040a4861a9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/indices.npy	383328	a30cbe06bdc3e80d9978b8a4e7e20bb1dd6fd796640593a87c2b368321c3aa77	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/j_star.npy	244028360	b2daee114f66b2c8cf716d965f6ff6f0b1931440ad9bbbf7c32a962affca649c	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_087/q.npy	44312	6dec6e4fb16350b4eedd2daedcd9c27b65111a4206fe0c91e5d2e7296092987e	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/manifest.json	3041	ad8d528cdde8d24b3750cd1667533593873fd89973d5c43c63b5d542bb78a64c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/directional.npy	244028360	166cc06e06799c225736e5917300d796abc677667db5b43fbf0082de1497f964	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/fields.npy	44312	9cc72099818df1757ac44ef3073c56ef9304b39f91b69c40a390bc828adc6f2b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/h_hat.npy	44312	e78796090851ac5bf6d21470ce75d9b4cab2d761287801e493bd6a49c12e4fd7	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/indices.npy	383328	cec6bb253d75c53b22bbd14b4271d8d4e259b2126db9ea8fdb23219d4c965211	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/j_star.npy	244028360	c419de48edbc61aff1a78755c6770c2a6b19bc6df12f4c297051f46435fb4c79	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_088/q.npy	44312	79ba503403544fa1c34894f65a1b57f2ff5bcdb427eede7f8a6dbd7ed87d6b3c	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/manifest.json	3041	720730eaf767f11ec5fe378d74972706b38df8f690867c21a8f9d645f90eb434		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/directional.npy	244028360	ac31d19d64d191afd1414d49ec19e6d7ba4fb0a03d2714d72d48a7eb2d2a506b	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/fields.npy	44312	b9c950722b96d62b7dd9f293e172ee438630f87349cba72b2e525f8b7336e26a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/h_hat.npy	44312	d586419d572712957648d912855d0eb5e92198d44aa5faada59e88bbd032c530	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/indices.npy	383328	fa9cd44dba69e2e5a6ca61b1c6b51b548af129a17006761946b2de43a5ddc6b6	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/j_star.npy	244028360	9fdade9651b6d2017d21f161a9b876387d9e4296d2fb360a8faffc0e0baba31f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_089/q.npy	44312	0c13a69a81a65626048a2c7d8d91ec91588372f10c323cab4baa67a71316e2ca	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/manifest.json	3041	9bab694c5cbfc137cd4ac0cbf95ca38e340fa176945ae36fbe52bd5df93ac69e		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/directional.npy	244028360	81529274a0b9994455d2babf7fa49475ba7f40aebc264a3840e5b28293c61e53	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/fields.npy	44312	dca6e4099e165ce43bfe6678bacc7564ddfea0d081a2429b56d993004338cbce	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/h_hat.npy	44312	8fe5e6376e7cc4a455c4d2e4d917250edc8a97a0cd0f0e490dcb9784e358e026	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/indices.npy	383328	e3a6d1ba99d864f5e411af2808c71a39cf76cc5cd7cf41b6f3876b4f3b263ed6	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/j_star.npy	244028360	a0d93ea9f6954ed2c4c46814cf6b0eee6539df550b2e476e1225670930a0745f	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_090/q.npy	44312	e4ec69168a914fb4ce9b49e49b33fd149f1ae9fb628357bdf08e5261725fd80a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/manifest.json	3041	2825efc3a25a17e0a8b6aea597cf245da264e3187a0360c455e963290fb1ea65		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/directional.npy	244028360	4a3a8366082a3760b9640bbf18f32bc1cb0fa9b14928259852f6f22bb4df234a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/fields.npy	44312	985888a3e72cf2eae42f2403cea6e33aef5e8395303d107845cdad5d1866f467	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/h_hat.npy	44312	0459abdc11cf1728cb0f0e4549a33e0e05e7c2b007d5be3b51566fe37dd357db	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/indices.npy	383328	8142bdbb9a5c966af31c01969254593afdd15fa28132ab00109c8adcb4668749	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/j_star.npy	244028360	75439213c51de19d3eb5f7cdec237ff705bae0bb67ac59d1fb4dd71be00fb8f0	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_091/q.npy	44312	8cc84464a03056cadcd934efebf3c6a31a486662d7b6b9881c6de4f0a40dea4f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/manifest.json	3041	eecd06098547017ad6655d3383e014b6d1a8ab585779e9cccbabee7b4155dc1c		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/directional.npy	244028360	6704e4fe8fcafd9e306d1355ca5a346b296bf64ebe228a632daab0770eee2659	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/fields.npy	44312	59f3a44c2e09a54863a6d4b68aa824f0361f85a42280f8be8854ac91d3edd006	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/h_hat.npy	44312	9e17ea1ae60059eff8c9323f94853d63e0f3c5dafd3b57372059da7d51c6fff2	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/indices.npy	383328	0641e0d5d8fd32abcbe152896cdd35442f8ce80fd89360ee915c74cf43e38404	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/j_star.npy	244028360	d81327da7e5db2cc3cd37edefd334a454fda554178b69539c0c30093494fbe8a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_092/q.npy	44312	8002a74f1e80311433b63b268ba8430b16fce24b01a1a81498dec58f8c907f8d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/manifest.json	3041	062be24a940bdfe60bfcd7780ced0b9b6a2c66fd761e8d432c46b7db2fb32ffa		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/directional.npy	244028360	7668d9da58fed6b76e886d2a25cbcf64a08ff99f0669fea5157f5945db772090	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/fields.npy	44312	5680e91deffd1d6c13678ff7835fc0e9da0c4c7d69f2a061c16451d5be3bc179	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/h_hat.npy	44312	5923fac0588bfed7e543d8719b14aa96785a7ce1af4c10c9bdceeed787553397	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/indices.npy	383328	2f9eed2a3b88870587e6fc114f565e40ce237295768cfcd0fab7318a06cdf62e	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/j_star.npy	244028360	0e3390d8d203e8f3c9f5c615872368db2d119dc02c59b51fcb493110899a2c0d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_093/q.npy	44312	4f35da578d2bb0739210351deb9674ab90f08680227d41f34e05f0ed3ce4ac6a	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/manifest.json	3041	dd55a886998ed23d074056da515027b798c5b2872ad19a8700280fc42c6a6d34		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/directional.npy	244028360	d3008fb10ccdf2c8b06e3a459e5256b54e720f13be3d739074f341ce1797285e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/fields.npy	44312	cca725d214b9aefe42d39dd7e3fe01a76a559bd8acbcc59735800cac88d983d5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/h_hat.npy	44312	7028b108a48121f4010682eab69279863a96052c51118589d2cc2d658aabb3dc	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/indices.npy	383328	c1a6f15ad28e4de63b0d0bc25a31e4640e6df7f5921214930d1c07408000e93d	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/j_star.npy	244028360	7ca48d321d460cd9099b49799e1377d9a87f53ed0081df5bee26331fa8b2465e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_094/q.npy	44312	27ae8c626ce62299b931b1adf1ba77e57a3a4086049ab6cbdc994349d81fbc2f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/manifest.json	3041	d1509059f5a1469b6b4751ec076d58dcb6df5fe103fc0e9b3d8c9909354c156f		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/directional.npy	244028360	75eb3f038152e3b171c862cb101f0446ce4339572cebf1cb3ccf0f2d59ea3b7e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/fields.npy	44312	35e46bdcbc91dbdd90d09c62e06fa40b1483d877cf2424a418a37b7766030c24	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/h_hat.npy	44312	0a6365c49252581f59b534bd5c2d99b09dad5cc7cc2cf28eea5e0fa90773e9e5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/indices.npy	383328	50d1e92884f215989343f548257683fc147c9d3b8fcec42f95479ef3a32b4386	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/j_star.npy	244028360	16629e2fcf30c2d58068be769e9f4c69ee8e93cf8d0f511c901d5a83bbd78808	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_095/q.npy	44312	1ca621b3e561f9f19394ed890af753d767d9526c307b78129da677d82d2b3610	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/manifest.json	3041	c28a31577b0ea9788c0fba9434e7f29f73ecad13cfe20d3e8b6574408d1046a0		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/directional.npy	244028360	77e58af83e2b889dd39e1fc70675959d0f610b579ffc42ff59bc721498356685	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/fields.npy	44312	89a663861bc29f27b55352d4909f0947b0ab9026ba08955127a4e63e01ce54d6	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/h_hat.npy	44312	cf5e9719d3e7885c05d9f35dfa31367887ca9b55e481c64d499f1a0de69f3a5f	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/indices.npy	383328	a5b6078757f936f20c3c6519289158debce9c85451d8038d9bcaa36ca9cbf160	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/j_star.npy	244028360	e6848a4a79ac086dea79ca7f6675e2ae2e51364473d32e6f817eead5bb36553d	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_096/q.npy	44312	ac475a4ee563a7ad4840a06a102cde46485168e3b8e7ebd13bf26c300cb9cc2b	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/manifest.json	3041	46fdae8f095e88c645941c29c08977d2e6a07d012c4ea60ce7f20ae217951ef3		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/directional.npy	244028360	c74655c0c72f150d31a20602d277210fe07730aa01bc967aa725dcb6e49f2bbe	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/fields.npy	44312	9929509ece96e083bacf9dbaef016854020ed7d076a47db99dc8b77171809b09	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/h_hat.npy	44312	c5517460072c7bd69504b5fc3299db8d336260a8091e3f66f84f271d21f94b74	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/indices.npy	383328	b7bdf6fa6d58d76d75e82226b6a21866ab4b476331dbd740b8640dc7a7b03d23	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/j_star.npy	244028360	875feeb2ab79355b89dd42e612265f7498c358a81bd282ef4db4bfe3db1c4efb	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_097/q.npy	44312	8e8208d376da808e7fcf0f45e7a5d57deedd3e2cc9116b7c3baf6876d310ede9	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/manifest.json	3041	c0bce4a9b1d5661513d686f8f4f5d0766f1e645271382fa72497dd93d34f2d68		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/directional.npy	244028360	14c8312f4f75c5a6cd25c318cb3548faf71996b09fe988ef354856195281790a	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/fields.npy	44312	97b64b01c14cef3616d2d86464ba8657267616204179f7cfbd09850499fb80e1	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/h_hat.npy	44312	a9295d8bcbbcedacf7e5fe870ea07ee0f080729618726beffd3135539edc8f11	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/indices.npy	383328	30afd37847f2d3e446b2c36d7760c5e905a997b1ef604bc4b1d39619fd40e183	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/j_star.npy	244028360	b769f64d0ef675a05404cae5afff5625d6a6d29e853c3d1a4d517a4332f952e2	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_098/q.npy	44312	f7ba9494be9e973a1b566756d93a1dc6ee1310daf2df4e587c577f67062b2944	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/manifest.json	3041	aeedd8de7cfda0008c61bf04f695d4bd4722392d0fa3e4a9c1646c9e9ca02cbe		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/directional.npy	244028360	62081a92648de2bf69e90d9b423c4a802e41cf5648d25d245e338cb010e6ed7e	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/fields.npy	44312	1365b560c64639230588b787985c0732484c32902a2689cda231623b07d594d0	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/h_hat.npy	44312	319809ffb59a03811d36a0b4b80c1d430c66851e824e40120d1375b86fb04b4d	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/indices.npy	383328	547e6aecbf805ab172c4fc23feb5d1afe75120ad76b21a9ca3ad46c6a68f1d6e	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/j_star.npy	244028360	fa1c3c9ee7df668e1f7531e93934c636f4504086b9479fcddfc45d0320abf5ad	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_099/q.npy	44312	bfa53c2040cd680b67eec6eec6140dfc6910e9d10f055cb567107e955ecc5a87	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/manifest.json	3043	cf51047ddc832d9252d4c296cbbba7effaf2b5ea92551710aa8459374f1adf3a		
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/directional.npy	244028360	2aa9600f4a55ef48dddbc11975fe5775ce655a618bdee9a02d5f0c9611fb18bc	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/fields.npy	44312	dde54ad3f786b1bc1ddd943bd9bad17250adb1622531f751f3cf99ef9b518e00	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/h_hat.npy	44312	9d0c66124bd29ef867b1929b50de4fcd9e27b6921d2116acdc2d95a934cfd2d5	263 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/indices.npy	383328	c566267577c18fe49df3fb18f050031e9544e8c89820ae4ec1c8707f4ac28a19	47900	<i8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/j_star.npy	244028360	11a2e013a7afb0695aca0cad670ea047a0f7650baf39fb3f23d47ff505f79485	263 263 21 21	<f8
+/home/cc233/data/cc233_data/work_dir/MIRF/research/mirf-muformer/dcr/bootstrap/formal/replicate_100/q.npy	44312	762ab6706f896355f689508d74ee2223da5cbe1dd7d0ab19a41883146e691c40	263 21	<f8
