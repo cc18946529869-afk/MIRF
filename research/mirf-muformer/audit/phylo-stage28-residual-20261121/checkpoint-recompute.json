@@ -1,0 +1,40 @@
+{
+  "indices_sha256": "f6b8641cc208ffc95a4d6e994f35f025ab5f0e7280afb31d7b31a09b75b5b974",
+  "reference_profile_sha256": "04190f9b93a2127ccaa6c7f520a33e7c9857801a0fcc3b32c28c954192d23d49",
+  "topology_sha256": "f3054da4a487b5334dcbb4a6c8b5346fc2318a681e50d6c3c6014bf524b39860",
+  "library_sha256": "95cbb6dabcbc936c098f364f277239c25262c2ac6d1c1de7fdef9d2e8ecf36f6",
+  "official": {
+    "path": "/home/cc233/data/cc233_data/work_dir/MIRF-phylo-stage28-residual-20261121/.work/stage28/protected/official-final.npz",
+    "lengths_sha256": "64f697464961867b79f714e7e9548414343ee5c8c2f2dfcbfa1ee822dbdc83ee",
+    "stored_objective": 18409.51634274794,
+    "stored_projection": 0.0030093556729571614,
+    "objective": 18409.51634274794,
+    "independent_objective": 18409.516342747935,
+    "projection": 0.0030093556729571614,
+    "independent_projection": 0.0030093556729571614,
+    "objective_abs_difference": 0.0,
+    "projection_abs_difference": 0.0,
+    "gradient_finite": true,
+    "cross_path_max": 6.484071092549559e-16,
+    "cross_path_within_1e-8": true,
+    "feasible": true
+  },
+  "diagnostic": {
+    "path": "/home/cc233/data/cc233_data/work_dir/MIRF-phylo-stage28-residual-20261121/.work/stage28/protected/diagnostic-step62.npz",
+    "lengths_sha256": "584c0f547b631c1b9575675091bd8852d414c949b3ade1cc1e98844451e105f9",
+    "stored_objective": 18409.51367259069,
+    "stored_projection": 0.002465552721970801,
+    "objective": 18409.51367259069,
+    "independent_objective": 18409.513672590685,
+    "projection": 0.002465552721970801,
+    "independent_projection": 0.002465552721970801,
+    "objective_abs_difference": 0.0,
+    "projection_abs_difference": 0.0,
+    "gradient_finite": true,
+    "cross_path_max": 4.3021142204224816e-16,
+    "cross_path_within_1e-8": true,
+    "feasible": true
+  },
+  "diagnostic_is_better": true,
+  "continuation_checkpoint": "diagnostic"
+}

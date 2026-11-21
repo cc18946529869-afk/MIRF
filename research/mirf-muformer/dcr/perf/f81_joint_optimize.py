@@ -1,5 +1,9 @@
 """Joint mixed-coordinate optimization for a fixed F81 topology."""
+import hashlib
+import json
 import math
+import os
+from pathlib import Path
 from time import perf_counter
 
 import numpy as np
@@ -44,6 +48,37 @@ def curvature_pair(dx, dg):
     return (dx, dg, sy) if sy > threshold and math.isfinite(sy) else None
 
 
+def save_checkpoint(directory, name, *, lengths, physical_gradient, hessian_diagonal,
+                    mixed_gradient, objective, projection, iteration, objective_calls):
+    """Write one full parameter state and a JSON sidecar containing its SHA-256."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    arrays = {
+        "lengths": np.ascontiguousarray(lengths, dtype=np.float64),
+        "physical_gradient": np.ascontiguousarray(physical_gradient, dtype=np.float64),
+        "hessian_diagonal": np.ascontiguousarray(hessian_diagonal, dtype=np.float64),
+        "mixed_gradient": np.ascontiguousarray(mixed_gradient, dtype=np.float64),
+    }
+    temporary = directory / f".{name}.{os.getpid()}.npz"
+    np.savez(temporary, **arrays, objective=np.float64(objective), projection=np.float64(projection),
+             iteration=np.int64(iteration), objective_calls=np.int64(objective_calls))
+    target = directory / f"{name}.npz"
+    os.replace(temporary, target)
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    meta = {
+        "name": name,
+        "sha256": digest,
+        "lengths_sha256": hashlib.sha256(arrays["lengths"].tobytes()).hexdigest(),
+        "objective": float(objective),
+        "projection": float(projection),
+        "iteration": int(iteration),
+        "objective_calls": int(objective_calls),
+        "edges": int(arrays["lengths"].size),
+    }
+    (directory / f"{name}.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    return meta
+
+
 def candidate(point, positive, step, alpha, snap):
     trial = np.empty_like(point)
     trial[positive] = point[positive]*np.exp(alpha*step[positive])
@@ -52,7 +87,7 @@ def candidate(point, positive, step, alpha, snap):
     return trial
 
 
-def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, threads=4):
+def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, threads=4, archive=None):
     """Budget charged per actual objective call, including rejected trial points."""
     point = np.array(initial, dtype=float, copy=True)
     assert guard.feasible(point)
@@ -79,9 +114,25 @@ def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, t
     n = len(current.site_log_likelihood)
     gradient = -current.length_gradient/n
     diagonal = current.negative_log_hessian_diagonal/n
-    emit({"event": "initial", "objective": -current.log_likelihood/n,
+    objective_value = -current.log_likelihood/n
+    emit({"event": "initial", "objective": objective_value,
           "projection": projected_norm(point, gradient)})
     best_projection = projected_norm(point, gradient)
+    best_objective = objective_value
+    checkpoint_meta = {}
+
+    def remember(name):
+        if archive is None:
+            return
+        _, _, mixed, _ = chart(point, gradient, diagonal)
+        checkpoint_meta[name] = save_checkpoint(
+            archive, name, lengths=point, physical_gradient=gradient, hessian_diagonal=diagonal,
+            mixed_gradient=mixed, objective=objective_value, projection=projected_norm(point, gradient),
+            iteration=accepted, objective_calls=counts["objective"])
+
+    remember("initial")
+    remember("best_projection")
+    remember("best_objective")
     no_new_pair = 0
     while accepted < maxiter:
         if projected_norm(point, gradient) <= 1e-5:
@@ -183,9 +234,15 @@ def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, t
         changed_edges = int(np.count_nonzero(trial != point))
         point, current, gradient, diagonal = trial, following, new_gradient, new_diagonal
         accepted += 1
+        objective_value = -current.log_likelihood/n
         p = projected_norm(point, gradient)
-        best_projection = min(best_projection, p)
-        emit({"event": "iterate", "accepted": accepted, "objective": -current.log_likelihood/n,
+        if p < best_projection:
+            best_projection = p
+            remember("best_projection")
+        if objective_value < best_objective:
+            best_objective = objective_value
+            remember("best_objective")
+        emit({"event": "iterate", "accepted": accepted, "objective": objective_value,
               "projection": p, "sign_changes": flips, "history": len(history),
               "changed_edges": changed_edges,
               "counts": counts.copy(), "elapsed_seconds": perf_counter()-start})
@@ -194,6 +251,7 @@ def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, t
             emit({"event": "independent", "iteration": accepted, "projection": projected_norm(point, audit),
                   "log_likelihood": ll, "gradient_max_abs": float(np.abs(audit-gradient).max())})
 
+    remember("final")
     audit, ll = independent(point)
     p, q = projected_norm(point, gradient), projected_norm(point, audit)
     discrepancy = np.abs(audit-gradient)
@@ -205,4 +263,4 @@ def solve(engine, auditor, guard, initial, emit, *, maxiter=600, maxeval=1500, t
                    "zero_edges": int(np.count_nonzero(point == 0)), "feasible": feasible,
                    "both_gates_passed": bool(feasible and max(p, q) <= 1e-5 and discrepancy.max() <= 1e-8),
                    "counts": counts, "maxeval": maxeval, "maxiter": maxiter,
-                   "elapsed_seconds": perf_counter()-start}
+                   "elapsed_seconds": perf_counter()-start, "checkpoints": checkpoint_meta}

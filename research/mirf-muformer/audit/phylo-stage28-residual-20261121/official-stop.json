@@ -1,0 +1,18 @@
+{
+  "source": "official run f81_stage28_trust.py sha256 02a4d9fa0472ef691090d0e5c5d7249b77041a2484b3d71d5f4e8c20817647e9",
+  "all_trial_statuses": {
+    "accepted": 27,
+    "projection_increased": 118
+  },
+  "after_accepted_step_27": {
+    "projection_increased": 18
+  },
+  "armijo_failures_after_27": 0,
+  "zero_conflict_after_27": 0,
+  "nonfinite_after_27": 0,
+  "invalid_after_27": 0,
+  "projection_gate_after_27": 18,
+  "predicted_versus_actual_mismatch_after_27": 0,
+  "trust_halvings_after_27": 3,
+  "why_trust_crossed_1e-3": "Each failed line search halves the step cap. After accepted step 27 there were three line searches, 6 trials each, and every trial had status projection_increased. All 18 had a negative objective change, so Armijo was already satisfied. The cap went 0.0059604644775390625, 0.0029802322387695312, 0.0014901161193847656, then 0.0007450580596923828, which is below 0.001, and the solver stopped with trust_collapsed."
+}

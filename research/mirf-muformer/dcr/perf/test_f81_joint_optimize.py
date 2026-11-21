@@ -1,6 +1,10 @@
 """Focused tests for relative trust, mixed coordinates, and joint acceptance."""
 from decimal import Decimal, localcontext
+import hashlib
+import json
+from pathlib import Path
 from types import SimpleNamespace
+import tempfile
 import unittest
 
 import numpy as np
@@ -58,3 +62,30 @@ class JointTests(unittest.TestCase):
         accepted = [e for e in trials if e["status"] == "accepted"]
         self.assertTrue(all(e["objective_change"] <= 1e-4*e["slope"] < 0 for e in accepted))
         self.assertTrue(any(e["changed_edges"] > 1 for e in events if e["event"] == "iterate"))
+
+    def test_archive_keeps_gradient_state_apart_from_objective_state(self):
+        class Tilted:
+            def evaluate(self, s, **kwargs):
+                target = np.array([.2, -.4, .7])
+                loss = .5 * float((s-target) @ (s-target)) + .05 * float(s[0])
+                gradient = (s-target) + np.array([.05, 0., 0.])
+                return SimpleNamespace(log_likelihood=-loss, site_log_likelihood=np.array([-loss]),
+                                       length_gradient=-gradient, negative_log_hessian_diagonal=np.ones(3))
+        q = Tilted()
+        guard = SimpleNamespace(feasible=lambda p: bool(np.all(p >= 0)))
+        with tempfile.TemporaryDirectory() as raw:
+            directory = Path(raw)
+            _, result = solve(q, q, guard, np.array([0., .03, .3]), lambda _row: None,
+                              maxeval=80, archive=directory)
+            names = ("initial", "best_projection", "best_objective", "final")
+            self.assertEqual(set(result["checkpoints"]), set(names))
+            for name in names:
+                blob = directory / f"{name}.npz"
+                meta = json.loads((directory / f"{name}.json").read_text())
+                self.assertEqual(meta["sha256"], hashlib.sha256(blob.read_bytes()).hexdigest())
+                saved = np.load(blob)
+                self.assertEqual(saved["lengths"].shape, (3,))
+                self.assertEqual(meta["lengths_sha256"], hashlib.sha256(np.ascontiguousarray(saved["lengths"]).tobytes()).hexdigest())
+            best = np.load(directory / "best_projection.npz")
+            final = np.load(directory / "final.npz")
+            self.assertLessEqual(float(best["projection"]), float(final["projection"]))
