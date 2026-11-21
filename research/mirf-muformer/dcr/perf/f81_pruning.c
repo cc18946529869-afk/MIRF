@@ -301,12 +301,12 @@ int f81_gradient_block_size(void) {
     return GRADIENT_BLOCK_SIZE;
 }
 
-void f81_sites_fixed_blocks(const uint8_t *states, const double *profiles, int32_t nsites,
+void f81_sites_fixed_blocks_diagonal(const uint8_t *states, const double *profiles, int32_t nsites,
                int32_t n, int32_t leaves, const int32_t *offsets,
                const int32_t *children, const double *stay, const double *redraw,
                const double *length, const double *log_redraw, int32_t force_log,
                int32_t max_degree, int32_t threads, int32_t need_gradient,
-               double *gradient, double *site_loglik, int32_t *statuses, uint8_t *log_used) {
+               double *gradient, double *site_loglik, int32_t *statuses, uint8_t *log_used, double *diagonal) {
     size_t bytes = (size_t)n * Q * sizeof(double);
     #pragma omp parallel num_threads(threads)
     {
@@ -352,6 +352,15 @@ void f81_sites_fixed_blocks(const uint8_t *states, const double *profiles, int32
                 if (status == OK && need_gradient) {
                     double *total = gradient + (size_t)block * (n - 1);
                     for (int32_t edge = 0; edge < n - 1; ++edge) total[edge] += contribution[edge];
+                    if (diagonal) {
+                        double *hessian = diagonal + (size_t)block * (n - 1);
+                        for (int32_t edge = 0; edge < n - 1; ++edge) {
+                            /* Native contribution is the log-likelihood score.
+                             * Return the diagonal for negative log likelihood. */
+                            double score = contribution[edge];
+                            hessian[edge] += score * (score + 1);
+                        }
+                    }
                 }
                 statuses[site] = status;
             }
@@ -362,4 +371,17 @@ void f81_sites_fixed_blocks(const uint8_t *states, const double *profiles, int32
         free(messages);
         free(inside);
     }
+}
+
+/* Keep the gradient-only ABI used by archived runners. */
+void f81_sites_fixed_blocks(const uint8_t *states, const double *profiles, int32_t nsites,
+               int32_t n, int32_t leaves, const int32_t *offsets,
+               const int32_t *children, const double *stay, const double *redraw,
+               const double *length, const double *log_redraw, int32_t force_log,
+               int32_t max_degree, int32_t threads, int32_t need_gradient,
+               double *gradient, double *site_loglik, int32_t *statuses, uint8_t *log_used) {
+    f81_sites_fixed_blocks_diagonal(states, profiles, nsites, n, leaves, offsets,
+                                   children, stay, redraw, length, log_redraw,
+                                   force_log, max_degree, threads, need_gradient,
+                                   gradient, site_loglik, statuses, log_used, NULL);
 }

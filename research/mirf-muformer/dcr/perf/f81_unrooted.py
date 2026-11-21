@@ -96,4 +96,9 @@ class UnrootedPruning:
             return evaluated
         gradient = np.empty_like(evaluated.length_gradient)
         gradient[order] = evaluated.length_gradient
-        return replace(evaluated, length_gradient=gradient)
+        ordered_diagonal = evaluated.negative_log_hessian_diagonal
+        diagonal = None
+        if ordered_diagonal is not None:
+            diagonal = np.empty_like(ordered_diagonal)
+            diagonal[order] = ordered_diagonal
+        return replace(evaluated, length_gradient=gradient, negative_log_hessian_diagonal=diagonal)

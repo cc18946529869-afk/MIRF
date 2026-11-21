@@ -49,6 +49,7 @@ class Evaluation:
     site_log_likelihood: np.ndarray
     length_gradient: np.ndarray | None
     log_domain_sites: int
+    negative_log_hessian_diagonal: np.ndarray | None = None
 
 
 def build(output: Path):
@@ -85,8 +86,14 @@ class Pruning:
         self._native.argtypes = ([ctypes.c_void_p] * 2 + [ctypes.c_int32] * 3 + [ctypes.c_void_p] * 6
                                 + [ctypes.c_int32] * 4 + [ctypes.c_void_p] * 4)
         self._native.restype = None
+        self._native_diagonal = getattr(native, "f81_sites_fixed_blocks_diagonal", None)
+        if self._native_diagonal is not None:
+            self._native_diagonal.argtypes = [*self._native.argtypes, ctypes.c_void_p]
+            self._native_diagonal.restype = None
 
-    def evaluate(self, lengths, *, gradient=True, threads=1, log_domain=False):
+    def evaluate(self, lengths, *, gradient=True, threads=1, log_domain=False, diagonal=False):
+        if diagonal and (not gradient or self._native_diagonal is None):
+            raise ValueError("Diagonal evaluation requires gradients and the extended native library")
         lengths = np.ascontiguousarray(lengths, dtype=np.float64)
         tree = self.topology
         if lengths.shape != tree.parent.shape or not np.isfinite(lengths).all() or np.any(lengths < 0):
@@ -104,12 +111,17 @@ class Pruning:
         status = np.zeros(nsites, dtype=np.int32)
         loglik = np.full(nsites, -np.inf, dtype=np.float64)
         log_used = np.zeros(nsites, dtype=np.uint8)
-        self._native(self.states.ctypes.data, self.profiles.ctypes.data, nsites, len(lengths) + 1,
+        curvature_blocks = np.zeros_like(by_block) if diagonal else None
+        arguments = (self.states.ctypes.data, self.profiles.ctypes.data, nsites, len(lengths) + 1,
                      tree.leaves, tree.offsets.ctypes.data, tree.children.ctypes.data,
                      stay.ctypes.data, redraw.ctypes.data, lengths.ctypes.data, log_redraw.ctypes.data,
                      int(use_log), tree.max_degree, threads, int(gradient),
                      None if by_block is None else by_block.ctypes.data,
                      loglik.ctypes.data, status.ctypes.data, log_used.ctypes.data)
+        if diagonal:
+            self._native_diagonal(*arguments, curvature_blocks.ctypes.data)
+        else:
+            self._native(*arguments)
         if np.any(status == 3):
             raise MemoryError("Native partial likelihood workspace allocation failed")
         if np.any(status == 2):
@@ -127,4 +139,11 @@ class Pruning:
                 result += partial
         if result is not None and not np.isfinite(result).all():
             raise FloatingPointError("Nonfinite total gradient")
-        return Evaluation(math.fsum(loglik), loglik, result, int(log_used.sum()))
+        curvature = None
+        if curvature_blocks is not None:
+            curvature = np.zeros(len(lengths))
+            for partial in curvature_blocks:
+                curvature += partial
+            if not np.isfinite(curvature).all():
+                raise FloatingPointError("Nonfinite negative log-likelihood diagonal")
+        return Evaluation(math.fsum(loglik), loglik, result, int(log_used.sum()), curvature)

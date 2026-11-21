@@ -61,8 +61,8 @@ def condition(s, g, h, method):
     transformed_g = s*g
     transformed_h = s*s*h + transformed_g
     if method == "hybrid_log_diag":
-        scale = max(abs(transformed_h), Decimal("1e-8"))
-        change = max(Decimal(-4), min(Decimal(4), -transformed_g/scale))
+        scale = max(abs(transformed_h), abs(transformed_g)/4)
+        change = -transformed_g/scale if scale else ZERO
     elif method == "hybrid_log":
         change = ONE if transformed_g < 0 else -ONE
     else:
