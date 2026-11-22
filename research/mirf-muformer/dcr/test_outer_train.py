@@ -14,6 +14,7 @@ import torch.nn as nn
 
 import oof
 import outer_train
+import predict
 
 SRC = Path(__file__).resolve().parents[3] / "Mu-Protein" / "mu-former" / "src"
 sys.path.insert(0, str(SRC))
@@ -40,6 +41,12 @@ class _Trainer:
         self.best_epochs = []
         self.e_s = int(e_s)
         self.scored = False
+        self.valid_sequences = np.array([f"v{index}" for index in range(6)])
+        self.valid_df = pd.DataFrame({"sequence": self.valid_sequences, "score": np.zeros(6)})
+        self.valid_loader = ("validation", id(self))
+        self.test_sequences = np.array([f"t{index}" for index in range(9)])
+        self.test_df = pd.DataFrame({"sequence": self.test_sequences, "score": np.zeros(9)})
+        self.test_loader = ("test", id(self))
 
     def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
             train_row_index=None, drop_last=True):
@@ -50,11 +57,64 @@ class _Trainer:
         if restore_best:
             self.best_epochs.append(self.e_s)
 
-    def score_restored(self, **kwargs):
-        if kwargs.get("checkpoint_dir") is not None:
-            raise AssertionError("checkpoint_dir was passed")
+    def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
+        if valid_loader is None or valid_df is None:
+            raise AssertionError("validation set was not passed")
+        if valid_loader is not self.valid_loader:
+            raise AssertionError("validation scoring did not receive the validation loader")
+        if not np.array_equal(np.asarray(valid_df["sequence"]), self.valid_sequences):
+            raise AssertionError("validation scoring received a different split")
         self.scored = True
-        return {"predictions": np.linspace(0.0, 1.0, 6)}
+        self.scored_split = "validation"
+        return {
+            "predictions": np.linspace(0.0, 1.0, self.valid_sequences.shape[0]),
+            "sequence": np.asarray(valid_df["sequence"]),
+        }
+
+    def score_test(self, test_loader, test_df, save_prediction=False, mode="ensemble"):
+        raise AssertionError("test scoring ran while scheduling the outer model")
+
+
+class _SplitTrainer:
+    """Validation length 4 and test length 6, with different sequences."""
+
+    def __init__(self):
+        self.valid_sequences = np.array(["v0", "v1", "v2", "v3"])
+        self.test_sequences = np.array(["t0", "t1", "t2", "t3", "t4", "t5"])
+        self.valid_score = np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float64)
+        self.test_score = np.zeros(6, dtype=np.float64)
+        self.valid_df = pd.DataFrame({"sequence": self.valid_sequences, "score": self.valid_score})
+        self.test_df = pd.DataFrame({"sequence": self.test_sequences, "score": np.arange(6, dtype=np.float64)})
+        self.valid_loader = ("validation",)
+        self.test_loader = ("test",)
+        self.best_epochs = []
+        self.validation_calls = []
+        self.test_calls = []
+
+    def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
+            train_row_index=None, drop_last=True):
+        if restore_best:
+            self.best_epochs.append(2)
+
+    def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
+        if valid_loader is not self.valid_loader:
+            raise AssertionError("validation scoring did not receive the validation loader")
+        if not np.array_equal(np.asarray(valid_df["sequence"]), self.valid_sequences):
+            raise AssertionError("validation scoring did not receive the validation sequences")
+        self.validation_calls.append(valid_loader)
+        frame = valid_df.copy()
+        frame["prediction"] = self.valid_score
+        return {"df": frame}
+
+    def score_test(self, test_loader, test_df, save_prediction=False, mode="ensemble"):
+        if test_loader is not self.test_loader:
+            raise AssertionError("test scoring did not receive the test loader")
+        if not np.array_equal(np.asarray(test_df["sequence"]), self.test_sequences):
+            raise AssertionError("test scoring did not receive the test sequences")
+        self.test_calls.append(test_loader)
+        frame = test_df.copy()
+        frame["prediction"] = self.test_score
+        return {"df": frame}
 
 
 class OuterTrainTests(unittest.TestCase):
@@ -93,6 +153,101 @@ class OuterTrainTests(unittest.TestCase):
             self.assertEqual(train_idx.shape, (800,))
         with self.assertRaises(ValueError):
             outer_train.train_outer_models("n1000", oof.OUTER_SEEDS[1], full, _Factory(6), mode="synthetic")
+        self.assertEqual(factory.trainers[0].scored_split, "validation")
+
+    def test_validation_and_test_lengths_stay_separate_and_eta_uses_validation(self) -> None:
+        trainer = _SplitTrainer()
+        produced = outer_train.execute_muformer_request(
+            trainer,
+            {"restore_best": True, "epochs": 2, "eval_freq": 1, "patience": 1},
+        )
+        self.assertEqual(produced["split"], "validation")
+        self.assertEqual(produced["score"].shape, (4,))
+        self.assertTrue(np.array_equal(produced["sequences"], trainer.valid_sequences))
+        self.assertEqual(trainer.test_calls, [])
+        test_rows = outer_train.score_restored_test_split(trainer)
+        self.assertEqual(test_rows["split"], "test")
+        self.assertEqual(test_rows["score"].shape, (6,))
+        self.assertTrue(np.array_equal(test_rows["sequences"], trainer.test_sequences))
+        self.assertEqual(len(trainer.validation_calls), 1)
+        self.assertEqual(len(trainer.test_calls), 1)
+        y_valid = np.array([0.0, 1.0, 2.0, 3.0])
+        residual_valid = np.zeros(4, dtype=np.float64)
+        y_test = np.arange(6, dtype=np.float64)
+        s_test = np.zeros(6, dtype=np.float64)
+        residual_test = y_test.copy()
+
+        class _Unread:
+            def __array__(self, dtype=None):
+                raise AssertionError("test labels were read before eta was locked")
+
+            def __len__(self):
+                raise AssertionError("test labels were read before eta was locked")
+
+            def __getitem__(self, item):
+                raise AssertionError("test labels were read before eta was locked")
+
+            def __iter__(self):
+                raise AssertionError("test labels were read before eta was locked")
+
+        with self.assertRaises(RuntimeError):
+            oof.fuse_test_after_eta(
+                eta_locked=False,
+                eta=None,
+                y_test=_Unread(),
+                s_test=_Unread(),
+                residual_test=_Unread(),
+                label_sequences=_Unread(),
+                score_sequences=_Unread(),
+                residual_sequences=_Unread(),
+                mode="synthetic",
+            )
+        with self.assertRaises(RuntimeError):
+            oof.fuse_test_after_eta(
+                eta_locked=True,
+                eta=0.0,
+                y_test=_Unread(),
+                s_test=_Unread(),
+                residual_test=_Unread(),
+                label_sequences=_Unread(),
+                score_sequences=_Unread(),
+                residual_sequences=_Unread(),
+                mode="formal",
+            )
+        locked = oof.lock_eta_and_fuse_test(
+            y_valid=y_valid,
+            s_valid=produced["score"],
+            residual_valid=residual_valid,
+            valid_label_sequences=produced["sequences"],
+            valid_score_sequences=produced["sequences"],
+            valid_residual_sequences=produced["sequences"],
+            y_test=y_test,
+            s_test=test_rows["score"],
+            residual_test=residual_test,
+            test_label_sequences=test_rows["sequences"],
+            test_score_sequences=test_rows["sequences"],
+            test_residual_sequences=test_rows["sequences"],
+            mode="synthetic",
+        )
+        self.assertEqual(locked["eta"], 0.0)
+        self.assertEqual(
+            locked["eta"],
+            predict.choose_eta(y_valid, produced["score"], residual_valid),
+        )
+        self.assertNotEqual(locked["eta"], predict.choose_eta(y_test, s_test, residual_test))
+        self.assertEqual(locked["prediction"].shape, (6,))
+        self.assertTrue(np.array_equal(locked["prediction"], test_rows["score"]))
+        self.assertFalse(locked["formal_metrics_computed"])
+        self.assertFalse(locked["formal_experiment"])
+        with self.assertRaises(ValueError):
+            oof.select_eta(
+                y_valid,
+                test_rows["score"],
+                residual_valid,
+                produced["sequences"],
+                test_rows["sequences"],
+                produced["sequences"],
+            )
 
     def test_fold_rows_enter_the_training_batches(self) -> None:
         rows = 10

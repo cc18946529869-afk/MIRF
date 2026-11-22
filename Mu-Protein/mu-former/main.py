@@ -58,7 +58,9 @@ def main(args):
             save_checkpoint=args.save_checkpoint,
             resume_path=args.resume_path,
         )
-        test_results = trainer.score_restored(
+        test_results = trainer.score_test(
+            trainer.test_loader,
+            trainer.test_df,
             mode='ensemble',
             save_prediction=args.save_prediction,
         )

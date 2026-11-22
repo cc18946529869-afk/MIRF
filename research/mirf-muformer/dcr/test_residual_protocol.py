@@ -239,6 +239,7 @@ class ProtocolTests(unittest.TestCase):
         }
         y_valid = np.array([0.0, 1.0, 2.0, 3.0])
         s_valid = np.array([0.1, 0.2, 0.3, 0.4])
+        sequences = np.array(["v0", "v1", "v2", "v3"])
         valid_features = np.zeros((4, 14), dtype=np.float32)
         valid_features[:, residual.DELTA_E_INDEX] = np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float32)
         valid_rep = np.zeros((4, 4), dtype=np.float32)
@@ -259,6 +260,9 @@ class ProtocolTests(unittest.TestCase):
             y_valid=y_valid,
             s_valid=s_valid,
             valid_batch=valid_batch,
+            valid_sequences=sequences,
+            score_sequences=sequences,
+            batch_sequences=sequences,
             fit_fold=fit_fold,
             mode="synthetic",
             max_epochs=2,
@@ -313,6 +317,115 @@ class ProtocolTests(unittest.TestCase):
         replayed_retrain = residual.shuffled_row_order(first["retrain_index_source"], retrain)
         self.assertTrue(torch.equal(replayed_retrain, first["retrain_orders"][0]))
         self.assertFalse(torch.equal(continued, first["retrain_orders"][0]))
+
+    def test_same_length_different_sequences_are_rejected(self) -> None:
+        loaded = oof.load_scale(PRECHECK, "n1000")
+        y = np.array([0.0, 1.0, 2.0])
+        score = np.array([0.2, 0.1, 0.0])
+        correction = np.array([1.0, 0.0, 0.5])
+        left = np.array(["a", "b", "c"])
+        different = np.array(["a", "b", "d"])
+        reordered = np.array(["a", "c", "b"])
+        called = []
+
+        def fit_fold(train_idx, val_idx, epochs):
+            called.append(1)
+            return np.zeros(len(val_idx), dtype=np.float64)
+
+        for mismatched in (different, reordered):
+            with self.assertRaisesRegex(ValueError, "sequence"):
+                oof.run_seed_protocol(
+                    scale="n1000",
+                    outer_seed=oof.OUTER_SEEDS[0],
+                    e_s=5,
+                    loaded_scale=loaded,
+                    y_oof=np.zeros(loaded["n"]),
+                    train_batch={},
+                    y_valid=y,
+                    s_valid=score,
+                    valid_batch={},
+                    valid_sequences=left,
+                    score_sequences=mismatched,
+                    batch_sequences=left,
+                    fit_fold=fit_fold,
+                    mode="synthetic",
+                    embed_dim=4,
+                )
+        self.assertEqual(called, [])
+        with self.assertRaisesRegex(ValueError, "sequence"):
+            oof.select_eta(y, score, correction, left, different, left)
+        with self.assertRaisesRegex(ValueError, "sequence"):
+            oof.select_eta(y, score, correction, left, reordered, left)
+
+    def test_choose_eta_does_not_read_test_labels(self) -> None:
+        y_valid = np.array([0.0, 1.0, 2.0, 3.0])
+        s_valid = np.array([0.0, 0.2, 0.4, 0.6])
+        residual_valid = np.array([0.0, 1.0, 2.0, 3.0])
+        valid_sequences = np.array(["v0", "v1", "v2", "v3"])
+        y_test_values = np.array([9.0, 8.0, 7.0, 6.0, 5.0])
+        s_test = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+        residual_test = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+        test_sequences = np.array(["t0", "t1", "t2", "t3", "t4"])
+        state = {"locked": False}
+        recorded = []
+
+        class _TestLabels:
+            def __array__(self, dtype=None):
+                if not state["locked"]:
+                    raise AssertionError("test labels were read")
+                return np.array(y_test_values, dtype=dtype, copy=True)
+
+            def __len__(self):
+                if not state["locked"]:
+                    raise AssertionError("test labels were read")
+                return int(y_test_values.shape[0])
+
+            def __getitem__(self, item):
+                if not state["locked"]:
+                    raise AssertionError("test labels were read")
+                return y_test_values[item]
+
+            def __iter__(self):
+                if not state["locked"]:
+                    raise AssertionError("test labels were read")
+                return iter(y_test_values)
+
+        original = predict.choose_eta
+
+        def spy(y, score, residual):
+            recorded.append(np.asarray(y, dtype=np.float64).copy())
+            eta = original(y, score, residual)
+            state["locked"] = True
+            return eta
+
+        predict.choose_eta = spy
+        try:
+            locked = oof.lock_eta_and_fuse_test(
+                y_valid=y_valid,
+                s_valid=s_valid,
+                residual_valid=residual_valid,
+                valid_label_sequences=valid_sequences,
+                valid_score_sequences=valid_sequences,
+                valid_residual_sequences=valid_sequences,
+                y_test=_TestLabels(),
+                s_test=s_test,
+                residual_test=residual_test,
+                test_label_sequences=test_sequences,
+                test_score_sequences=test_sequences,
+                test_residual_sequences=test_sequences,
+                mode="synthetic",
+            )
+        finally:
+            predict.choose_eta = original
+        self.assertEqual(len(recorded), 1)
+        self.assertTrue(np.array_equal(recorded[0], y_valid))
+        self.assertEqual(recorded[0].shape, y_valid.shape)
+        self.assertNotEqual(recorded[0].shape, y_test_values.shape)
+        self.assertFalse(np.array_equal(recorded[0], y_test_values[: y_valid.shape[0]]))
+        self.assertEqual(locked["prediction"].shape, y_test_values.shape)
+        self.assertNotIn("y_test", oof.select_eta.__code__.co_varnames)
+        protocol_source = oof.run_seed_protocol.__code__.co_varnames
+        self.assertNotIn("y_test", protocol_source)
 
 
 if __name__ == "__main__":

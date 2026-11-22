@@ -252,6 +252,7 @@ class Trainer(object):
         self.init_model()
 
         self._test_pack = None
+        self._validation_pack = None
 
     def init_model(self):
         muformer = Muformer(
@@ -306,6 +307,28 @@ class Trainer(object):
     @property
     def test_df(self):
         return self.test_pack[1]
+
+    @property
+    def validation_pack(self):
+        """Outer validation rows, in file order. This is not the test split."""
+        if self._validation_pack is None:
+            valid_data, valid_df = self.dataset.build_data('valid', return_df=True)
+            valid_loader = torch.utils.data.DataLoader(
+                valid_data,
+                batch_size=self.batch_size,
+                num_workers=self.num_workers,
+                pin_memory=False,
+            )
+            self._validation_pack = (valid_loader, valid_df)
+        return self._validation_pack
+
+    @property
+    def valid_loader(self):
+        return self.validation_pack[0]
+
+    @property
+    def valid_df(self):
+        return self.validation_pack[1]
 
     def log(self, msg):
         if not self.distributed or self.local_rank == 0:
@@ -613,12 +636,48 @@ class Trainer(object):
             torch.distributed.barrier() 
 
     def score_restored(self, test_model=None, test_loader=None, test_df=None, save_prediction=False, mode='ensemble'):
-        """Score the module whose best weights ``train`` already restored.
+        """Score one explicit split on the module whose best weights are already restored.
 
-        This is the s_μF path. It does not read a saved checkpoint.
+        Both the loader and the frame are required. Omitting them does not
+        select the test split, and this does not read a saved checkpoint.
         """
+        if test_loader is None or test_df is None:
+            raise RuntimeError(
+                "scoring the restored model requires an explicit split and does not fall back to the test set"
+            )
         return self.test(
             test_model=test_model,
+            test_loader=test_loader,
+            test_df=test_df,
+            save_prediction=save_prediction,
+            mode=mode,
+        )
+
+    def score_validation(self, valid_loader, valid_df, save_prediction=False, mode='ensemble'):
+        """Score the outer validation split on the already restored module.
+
+        A missing validation set is refused. This does not read the test split.
+        """
+        if valid_loader is None or valid_df is None:
+            raise RuntimeError(
+                "validation scoring requires the outer validation set and does not fall back to the test set"
+            )
+        return self.score_restored(
+            test_loader=valid_loader,
+            test_df=valid_df,
+            save_prediction=save_prediction,
+            mode=mode,
+        )
+
+    def score_test(self, test_loader, test_df, save_prediction=False, mode='ensemble'):
+        """Score the test split on the already restored module.
+
+        The loader and the frame are required. The returned scores are not an
+        input to eta selection, and this does not read a saved checkpoint.
+        """
+        if test_loader is None or test_df is None:
+            raise RuntimeError("test scoring requires the test set to be passed explicitly")
+        return self.score_restored(
             test_loader=test_loader,
             test_df=test_df,
             save_prediction=save_prediction,

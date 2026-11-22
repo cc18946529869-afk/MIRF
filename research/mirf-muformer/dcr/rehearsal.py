@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 
 import metrics
@@ -19,12 +20,24 @@ import residual
 
 
 class _RecordingTrainer:
-    def __init__(self, request, calls, e_s: int, score: np.ndarray):
+    def __init__(self, request, calls, e_s: int, valid_score: np.ndarray, valid_sequences: np.ndarray,
+            test_score: np.ndarray, test_sequences: np.ndarray):
         self.request = request
         self.calls = calls
         self.best_epochs = []
         self._e_s = int(e_s)
-        self._score = np.asarray(score, dtype=np.float64)
+        self._valid_score = np.asarray(valid_score, dtype=np.float64)
+        self._test_score = np.asarray(test_score, dtype=np.float64)
+        self.valid_loader = ("validation", id(self))
+        self.test_loader = ("test", id(self))
+        self.valid_df = pd.DataFrame({
+            "sequence": np.asarray(valid_sequences),
+            "score": self._valid_score,
+        })
+        self.test_df = pd.DataFrame({
+            "sequence": np.asarray(test_sequences),
+            "score": np.arange(len(test_sequences), dtype=np.float64),
+        })
 
     def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
             train_row_index=None, drop_last=True):
@@ -48,11 +61,25 @@ class _RecordingTrainer:
         elif self.best_epochs:
             raise RuntimeError("fold training kept a held-out best epoch")
 
-    def score_restored(self, **kwargs):
-        if "checkpoint_dir" in kwargs and kwargs["checkpoint_dir"] is not None:
-            raise RuntimeError("score_restored received a checkpoint directory")
-        self.calls.append({"kind": "score", "fold": self.request["fold"]})
-        return {"predictions": self._score.copy()}
+    def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
+        if valid_loader is None or valid_df is None:
+            raise RuntimeError("validation scoring requires the outer validation set")
+        if not np.array_equal(np.asarray(valid_df["sequence"]), np.asarray(self.valid_df["sequence"])):
+            raise RuntimeError("validation scoring received a different split")
+        self.calls.append({"kind": "score", "fold": self.request["fold"], "split": "validation"})
+        frame = valid_df.copy()
+        frame["prediction"] = self._valid_score
+        return {"df": frame}
+
+    def score_test(self, test_loader, test_df, save_prediction=False, mode="ensemble"):
+        if test_loader is None or test_df is None:
+            raise RuntimeError("test scoring requires the test set to be passed explicitly")
+        if not np.array_equal(np.asarray(test_df["sequence"]), np.asarray(self.test_df["sequence"])):
+            raise RuntimeError("test scoring received a different split")
+        self.calls.append({"kind": "score_test", "fold": self.request["fold"], "split": "test"})
+        frame = test_df.copy()
+        frame["prediction"] = self._test_score
+        return {"df": frame}
 
 
 def _states_equal(left, right) -> bool:
@@ -76,10 +103,24 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
     scale = loaded["n1000"]
     seed = int(oof.OUTER_SEEDS[0] if outer_seed is None else outer_seed)
     calls = []
-    score = np.array([0.1, 0.4, 0.2, 0.8], dtype=np.float64)
+    trainers = []
+    valid_sequences = np.array(["v0", "v1", "v2", "v3"])
+    valid_score = np.array([0.1, 0.4, 0.2, 0.8], dtype=np.float64)
+    test_sequences = np.array(["t0", "t1", "t2", "t3", "t4", "t5"])
+    test_score = np.arange(test_sequences.shape[0], dtype=np.float64)
 
     def factory(request):
-        return _RecordingTrainer(request, calls, e_s=4, score=score)
+        trainer = _RecordingTrainer(
+            request,
+            calls,
+            e_s=4,
+            valid_score=valid_score,
+            valid_sequences=valid_sequences,
+            test_score=test_score,
+            test_sequences=test_sequences,
+        )
+        trainers.append(trainer)
+        return trainer
 
     scheduled = outer_train.train_outer_models("n1000", seed, scale, factory, mode="synthetic")
     if scheduled["formal_training_started"] or scheduled["e_s"] != 4:
@@ -106,6 +147,12 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
         "mask": torch.ones(scale["n"], 14),
     }
     y_valid = np.array([0.0, 1.0, 2.0, 3.0])
+    if scheduled.get("s_mu_f_split") != "validation":
+        raise RuntimeError("the scheduled score is not the outer validation score")
+    if not np.array_equal(scheduled["s_mu_f_sequences"], valid_sequences):
+        raise RuntimeError("the scheduled score is not aligned to the validation sequences")
+    if scheduled["s_mu_f"].shape == test_score.shape:
+        raise RuntimeError("the validation score was not distinguished from the test score")
     valid_features = np.zeros((4, 14), dtype=np.float32)
     valid_rep = np.zeros((4, 4), dtype=np.float32)
     valid_batch = {
@@ -131,6 +178,9 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
         y_valid=y_valid,
         s_valid=scheduled["s_mu_f"],
         valid_batch=valid_batch,
+        valid_sequences=valid_sequences,
+        score_sequences=scheduled["s_mu_f_sequences"],
+        batch_sequences=valid_sequences,
         fit_fold=fit_fold,
         mode="synthetic",
         max_epochs=2,
@@ -155,6 +205,30 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
             raise RuntimeError("the external sum was not s_μF + η r")
     if protocol["e_s"] != scheduled["e_s"] or not np.array_equal(protocol["s_mu_f"], scheduled["s_mu_f"]):
         raise RuntimeError("the residual arms did not share E_s and the base score")
+    if sum(item.get("kind") == "score_test" for item in calls) != 0:
+        raise RuntimeError("the test split was scored before eta was locked")
+    test_rows = outer_train.score_restored_test_split(trainers[0])
+    if test_rows["split"] != "test" or test_rows["score"].shape == scheduled["s_mu_f"].shape:
+        raise RuntimeError("test scoring was not separated from the validation score")
+    if np.array_equal(test_rows["sequences"], valid_sequences):
+        raise RuntimeError("test sequences were not distinguished from validation sequences")
+    y_test_rows = np.arange(test_rows["score"].shape[0], dtype=np.float64)
+    for arm in residual.ARMS:
+        fused_test = oof.fuse_test_after_eta(
+            eta_locked=True,
+            eta=protocol["arms"][arm]["eta"],
+            y_test=y_test_rows,
+            s_test=test_rows["score"],
+            residual_test=np.zeros(test_rows["score"].shape, dtype=np.float64),
+            label_sequences=test_rows["sequences"],
+            score_sequences=test_rows["sequences"],
+            residual_sequences=test_rows["sequences"],
+            mode="synthetic",
+        )
+        if fused_test["formal_metrics_computed"] or fused_test["formal_experiment"]:
+            raise RuntimeError("synthetic test fusion was reported as a formal result")
+        if fused_test["prediction"].shape != test_rows["score"].shape:
+            raise RuntimeError("test fusion did not stay on the test rows")
     y_test = np.arange(20, dtype=np.float64)
     sequences = np.array([f"s{index:02d}" for index in range(20)])
     baseline = np.stack([-y_test for _ in range(10)])

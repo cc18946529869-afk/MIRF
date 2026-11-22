@@ -16,6 +16,56 @@ BASELINE_PATIENCE = 300
 BASELINE_EVAL_FREQ = 1
 
 
+def _sequence_values(frame):
+    columns = getattr(frame, "columns", None)
+    if columns is not None and "sequence" not in columns:
+        raise ValueError("sample identity is sequence; the split has no sequence column")
+    if isinstance(frame, dict) and "sequence" not in frame:
+        raise ValueError("sample identity is sequence; the split has no sequence column")
+    try:
+        return frame["sequence"]
+    except Exception as exc:
+        raise ValueError("sample identity is sequence; the split has no sequence column") from exc
+
+
+def _rows_from_score(scored, frame):
+    """Predictions and sequences for the split that was actually requested."""
+    requested = _sequence_values(frame)
+    if isinstance(scored, dict) and "df" in scored:
+        oof.require_same_sequences(requested, _sequence_values(scored["df"]))
+        predictions = np.asarray(scored["df"]["prediction"], dtype=np.float64)
+    elif isinstance(scored, dict) and "predictions" in scored:
+        if "sequence" not in scored:
+            raise ValueError("sample identity is sequence; predictions were not paired with sequences")
+        oof.require_same_sequences(requested, scored["sequence"])
+        predictions = np.asarray(scored["predictions"], dtype=np.float64)
+    else:
+        raise ValueError("the restored score did not include predictions")
+    identity = oof.require_same_sequences(requested, requested)
+    if predictions.shape != identity.shape:
+        raise ValueError("scored predictions do not match the requested split")
+    return predictions, identity
+
+
+def score_restored_test_split(trainer) -> dict:
+    """Score the test split on the module that training already restored.
+
+    This is not an input to ``choose_eta``.
+    """
+    test_loader = getattr(trainer, "test_loader", None)
+    test_df = getattr(trainer, "test_df", None)
+    if test_loader is None or test_df is None:
+        raise RuntimeError("test scoring requires the test set to be passed explicitly")
+    scored = trainer.score_test(
+        test_loader,
+        test_df,
+        mode="ensemble",
+        save_prediction=False,
+    )
+    score, sequences = _rows_from_score(scored, test_df)
+    return {"score": score, "sequences": sequences, "split": "test"}
+
+
 def run_ten_outer_seeds(*args, **kwargs):
     """The formal ten-seed entry. It does not construct a trainer or a loop."""
     raise RuntimeError("formal training of the ten outer seeds is not started")
@@ -26,7 +76,8 @@ def execute_muformer_request(trainer, request: dict) -> dict:
 
     The full model restores best weights and reads ``E_s`` from ``best_epochs``,
     which ``Trainer`` fills only when ``is_best`` is true. A fold request keeps
-    the weights of epoch ``E_s`` and does not call ``score_restored``.
+    the weights of epoch ``E_s`` and does not score a split. The score returned
+    here is the outer validation split. The test split is a separate call.
     """
     fold = not bool(request["restore_best"])
     trainer.train(
@@ -43,14 +94,24 @@ def execute_muformer_request(trainer, request: dict) -> dict:
         recorded = list(getattr(trainer, "best_epochs", []) or [])
         if not recorded or recorded[-1] is None:
             raise RuntimeError("E_s is recorded only when is_best is true")
-        scored = trainer.score_restored(mode="ensemble", save_prediction=False)
-        if isinstance(scored, dict) and "predictions" in scored:
-            score = np.asarray(scored["predictions"], dtype=np.float64)
-        else:
-            score = np.asarray(scored["df"]["prediction"], dtype=np.float64)
+        valid_loader = getattr(trainer, "valid_loader", None)
+        valid_df = getattr(trainer, "valid_df", None)
+        if valid_loader is None or valid_df is None:
+            raise RuntimeError(
+                "validation scoring requires the outer validation set and does not fall back to the test set"
+            )
+        scored = trainer.score_validation(
+            valid_loader,
+            valid_df,
+            mode="ensemble",
+            save_prediction=False,
+        )
+        score, sequences = _rows_from_score(scored, valid_df)
         return {
             "e_s": int(recorded[-1]),
             "score": score,
+            "sequences": sequences,
+            "split": "validation",
             "epochs_run": int(recorded[-1]),
             "restore_best": True,
         }
@@ -103,6 +164,9 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
     if e_s < 1:
         raise RuntimeError("E_s must be a positive epoch")
     score = np.asarray(full_result["score"], dtype=np.float64)
+    sequences = np.asarray(full_result["sequences"])
+    if full_result.get("split") != "validation":
+        raise RuntimeError("the restored full model was not scored on the outer validation set")
     fold_results = []
     for fold in loaded_scale["folds"]:
         train_idx = np.asarray(fold["train_idx"], dtype=np.int64)
@@ -133,6 +197,8 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
         "outer_seed": int(outer_seed),
         "e_s": e_s,
         "s_mu_f": score,
+        "s_mu_f_sequences": sequences,
+        "s_mu_f_split": "validation",
         "baseline": score,
         "folds": fold_results,
         "formal_training_started": False,

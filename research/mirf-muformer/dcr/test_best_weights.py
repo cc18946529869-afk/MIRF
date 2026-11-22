@@ -7,8 +7,11 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader, Dataset
 
 SRC = Path(__file__).resolve().parents[3] / "Mu-Protein" / "mu-former" / "src"
 sys.path.insert(0, str(SRC))
@@ -22,6 +25,38 @@ class Score(nn.Module):
 
     def forward(self, x):
         return self.weight * x
+
+
+class _PairScore(nn.Module):
+    def __init__(self, weight: float):
+        super().__init__()
+        self.weight = nn.Parameter(torch.tensor([weight]))
+
+    def forward(self, x1, x2, x1_mask=None, x2_mask=None):
+        return self.weight * x1.reshape(x1.shape[0], -1)[:, 0]
+
+
+class _PairRows(Dataset):
+    def __init__(self, values, labels):
+        self.values = [float(value) for value in values]
+        self.labels = [float(value) for value in labels]
+
+    def __len__(self):
+        return len(self.values)
+
+    def __getitem__(self, index):
+        x = torch.tensor([self.values[index]])
+        rec1 = {
+            "x": x,
+            "mask": torch.tensor([1.0]),
+            "label_af": torch.tensor(self.labels[index]),
+        }
+        rec2 = {
+            "x": torch.zeros(1),
+            "mask": torch.tensor([1.0]),
+            "label_af": torch.tensor(0.0),
+        }
+        return rec1, rec2
 
 
 class BestWeightTests(unittest.TestCase):
@@ -121,9 +156,10 @@ class BestWeightTests(unittest.TestCase):
     def test_score_restored_does_not_load_a_checkpoint(self) -> None:
         import inspect
 
-        source = inspect.getsource(trainer.Trainer.score_restored)
-        self.assertNotIn("load_pretrained_model", source)
-        self.assertNotIn("checkpoint_dir", source)
+        for method in (trainer.Trainer.score_restored, trainer.Trainer.score_validation, trainer.Trainer.score_test):
+            source = inspect.getsource(method)
+            self.assertNotIn("load_pretrained_model", source)
+            self.assertNotIn("checkpoint_dir", source)
         holder = trainer.Trainer.__new__(trainer.Trainer)
 
         def boom(*args, **kwargs):
@@ -137,15 +173,67 @@ class BestWeightTests(unittest.TestCase):
 
         holder.load_pretrained_model = boom
         holder.test = fake_test
-        holder.score_restored(mode="ensemble", save_prediction=False)
+        with self.assertRaises(RuntimeError):
+            holder.score_restored(mode="ensemble", save_prediction=False)
+        self.assertEqual(seen, {})
+        loader = object()
+        frame = object()
+        holder.score_test(loader, frame, mode="ensemble", save_prediction=False)
         self.assertNotIn("checkpoint_dir", seen)
+        self.assertIs(seen["test_loader"], loader)
+        self.assertIs(seen["test_df"], frame)
         main_text = (SRC.parents[0] / "main.py").read_text()
         train_at = main_text.index("trainer.train(")
         after_train = main_text[train_at:]
-        score_at = after_train.index("trainer.score_restored(")
+        score_at = after_train.index("trainer.score_test(")
         between = after_train[:score_at]
+        self.assertNotIn("score_restored(", after_train)
+        self.assertNotIn("choose_eta", after_train)
         self.assertNotIn("checkpoint_dir", between)
-        self.assertNotIn("checkpoint_dir", after_train[score_at : score_at + 180])
+        call = after_train[score_at : score_at + 280]
+        self.assertNotIn("checkpoint_dir", call)
+        self.assertIn("trainer.test_loader", call)
+        self.assertIn("trainer.test_df", call)
+
+    def test_final_test_score_uses_the_restored_module(self) -> None:
+        module = _PairScore(3.0)
+        holder = trainer.Trainer.__new__(trainer.Trainer)
+        holder.device = torch.device("cpu")
+        holder.criterion = nn.MSELoss()
+        holder.models = [module]
+        loads = {"count": 0}
+
+        def boom(*args, **kwargs):
+            loads["count"] += 1
+            raise AssertionError("load_pretrained_model was called")
+
+        holder.load_pretrained_model = boom
+        sequences = np.array(["aa", "bb", "cc"])
+        frame = pd.DataFrame({"sequence": sequences, "score": [0.0, 1.0, 2.0]})
+        loader = DataLoader(_PairRows([1.0, 2.0, 3.0], [0.0, 1.0, 2.0]), batch_size=2)
+        result = holder.score_test(loader, frame, save_prediction=False, mode="ensemble")
+        self.assertEqual(loads["count"], 0)
+        self.assertIs(holder.models[0], module)
+        self.assertTrue(torch.equal(module.weight.detach().cpu(), torch.tensor([3.0])))
+        self.assertTrue(np.allclose(result["df"]["prediction"].to_numpy(), [3.0, 6.0, 9.0]))
+        self.assertTrue(np.array_equal(result["df"]["sequence"].to_numpy(), sequences))
+        with torch.no_grad():
+            module.weight.fill_(9.0)
+        again = holder.score_test(loader, frame, save_prediction=False, mode="ensemble")
+        self.assertIs(holder.models[0], module)
+        self.assertTrue(np.allclose(again["df"]["prediction"].to_numpy(), [9.0, 18.0, 27.0]))
+        self.assertEqual(loads["count"], 0)
+        short_sequences = np.array(["aa", "bb"])
+        short = pd.DataFrame({"sequence": short_sequences, "score": [0.0, 1.0]})
+        short_loader = DataLoader(_PairRows([1.0, 2.0], [0.0, 1.0]), batch_size=2)
+        valid = holder.score_validation(short_loader, short, save_prediction=False, mode="ensemble")
+        self.assertEqual(len(valid["df"]), 2)
+        self.assertTrue(np.allclose(valid["df"]["prediction"].to_numpy(), [9.0, 18.0]))
+        self.assertIs(holder.models[0], module)
+        with self.assertRaises(RuntimeError):
+            holder.score_validation(None, short, save_prediction=False, mode="ensemble")
+        with self.assertRaises(RuntimeError):
+            holder.score_restored(mode="ensemble", save_prediction=False)
 
 
 if __name__ == "__main__":

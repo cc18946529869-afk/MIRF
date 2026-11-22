@@ -12,6 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+import metrics
 import predict
 import residual
 
@@ -187,6 +188,144 @@ def _arm_batch(batch: dict[str, torch.Tensor], mask: torch.Tensor) -> dict[str, 
     return packed
 
 
+def _sequence_tuple(values) -> tuple:
+    """One sequence per row, in the given order. Identity is not a set."""
+    column = np.asarray(values)
+    if column.ndim != 1 or int(column.shape[0]) < 1:
+        raise ValueError("sample identity is sequence; the column is empty or not one-dimensional")
+    return tuple(str(value) for value in column.tolist())
+
+
+def require_same_sequences(*groups) -> np.ndarray:
+    """Reject columns that differ in length, sequence identity, or order.
+
+    Equal length is not alignment. The same sequences in another order are
+    not the same rows.
+    """
+    if len(groups) < 2:
+        raise ValueError("sequence alignment needs two sequence columns")
+    columns = [_sequence_tuple(group) for group in groups]
+    first = columns[0]
+    for column in columns[1:]:
+        if column != first:
+            raise ValueError(
+                "sample identity is sequence; the columns differ in length, identity, or order"
+            )
+    return np.asarray(first)
+
+
+def _batch_rows(batch: dict) -> int:
+    rows = None
+    for key in ("site", "source", "other", "values", "mask"):
+        count = int(batch[key].shape[0])
+        if rows is None:
+            rows = count
+        elif count != rows:
+            raise ValueError("the validation residual batch rows do not match each other")
+    if rows is None:
+        raise ValueError("the validation residual batch has no rows")
+    return rows
+
+
+def select_eta(y_valid, s_valid, residual, label_sequences, score_sequences, residual_sequences) -> float:
+    """Choose ``η`` from the outer validation rows only.
+
+    The arguments are the validation labels, the μFormer scores on those
+    rows, and the residual predictions on those rows. Test labels are not
+    an argument.
+    """
+    identity = require_same_sequences(label_sequences, score_sequences, residual_sequences)
+    labels = np.asarray(y_valid, dtype=np.float64)
+    score = np.asarray(s_valid, dtype=np.float64)
+    correction = np.asarray(residual, dtype=np.float64)
+    if labels.shape != identity.shape or score.shape != identity.shape or correction.shape != identity.shape:
+        raise ValueError("validation labels, μFormer scores, and residuals are not aligned to the sequences")
+    return predict.choose_eta(labels, score, correction)
+
+
+def fuse_test_after_eta(
+    *,
+    eta_locked: bool,
+    eta,
+    y_test,
+    s_test,
+    residual_test,
+    label_sequences,
+    score_sequences,
+    residual_sequences,
+    mode: str = "synthetic",
+) -> dict:
+    """Fusion metrics on the test rows, only after ``η`` is already locked.
+
+    ``mode`` other than ``synthetic`` is refused. This does not read an
+    experiment directory and does not decide that a model beat the baseline.
+    """
+    if mode != "synthetic":
+        raise RuntimeError("formal fusion metrics are not started")
+    if eta_locked is not True:
+        raise RuntimeError("test fusion metrics require eta to be locked on the validation set")
+    identity = require_same_sequences(label_sequences, score_sequences, residual_sequences)
+    labels = np.asarray(y_test, dtype=np.float64)
+    score = np.asarray(s_test, dtype=np.float64)
+    correction = np.asarray(residual_test, dtype=np.float64)
+    if labels.shape != identity.shape or score.shape != identity.shape or correction.shape != identity.shape:
+        raise ValueError("test labels, μFormer scores, and residuals are not aligned to the sequences")
+    prediction = predict.fuse(score, float(eta), correction)
+    k = metrics.top_fraction_k(int(labels.shape[0]))
+    y_min = float(np.min(labels))
+    y_max = float(np.max(labels))
+    point = {
+        name: metrics.metric_value(name, labels, prediction, identity, y_min, y_max, k)
+        for name in metrics.METRIC_NAMES
+    }
+    return {
+        "prediction": prediction,
+        "eta": float(eta),
+        "synthetic_point": point,
+        "formal_metrics_computed": False,
+        "formal_experiment": False,
+    }
+
+
+def lock_eta_and_fuse_test(
+    *,
+    y_valid,
+    s_valid,
+    residual_valid,
+    valid_label_sequences,
+    valid_score_sequences,
+    valid_residual_sequences,
+    y_test,
+    s_test,
+    residual_test,
+    test_label_sequences,
+    test_score_sequences,
+    test_residual_sequences,
+    mode: str = "synthetic",
+) -> dict:
+    """Lock ``η`` on the validation rows, then score fusion on the test rows."""
+    eta = select_eta(
+        y_valid,
+        s_valid,
+        residual_valid,
+        valid_label_sequences,
+        valid_score_sequences,
+        valid_residual_sequences,
+    )
+    fused = fuse_test_after_eta(
+        eta_locked=True,
+        eta=eta,
+        y_test=y_test,
+        s_test=s_test,
+        residual_test=residual_test,
+        label_sequences=test_label_sequences,
+        score_sequences=test_score_sequences,
+        residual_sequences=test_residual_sequences,
+        mode=mode,
+    )
+    return fused
+
+
 def run_seed_protocol(
     *,
     scale: str,
@@ -198,6 +337,9 @@ def run_seed_protocol(
     y_valid: np.ndarray,
     s_valid: np.ndarray,
     valid_batch: dict[str, torch.Tensor],
+    valid_sequences=None,
+    score_sequences=None,
+    batch_sequences=None,
     fit_fold,
     mode: str = "synthetic",
     max_epochs: int = RESIDUAL_DEFAULTS["max_epochs"],
@@ -226,8 +368,13 @@ def run_seed_protocol(
     y_rows = np.asarray(y_oof, dtype=np.float64)
     if y_rows.shape != (loaded_scale["n"],):
         raise ValueError("OOF labels do not match this scale's outer training rows")
-    if np.asarray(s_valid).shape != np.asarray(y_valid).shape:
+    if valid_sequences is None or score_sequences is None or batch_sequences is None:
+        raise ValueError("sample identity is sequence; validation rows were not identified")
+    identity = require_same_sequences(valid_sequences, score_sequences, batch_sequences)
+    if np.asarray(y_valid).shape != identity.shape or np.asarray(s_valid).shape != identity.shape:
         raise ValueError("the shared μFormer score does not match the validation labels")
+    if _batch_rows(valid_batch) != int(identity.shape[0]):
+        raise ValueError("the validation residual batch is not aligned to the validation sequences")
     folds = folds_for_seed(loaded_scale, e_s)
     oof_score = assemble_oof(loaded_scale["n"], folds, int(e_s), fit_fold)
     target = torch.as_tensor(y_rows - oof_score, dtype=torch.float32)
@@ -253,7 +400,7 @@ def run_seed_protocol(
         )
         valid_mask = residual.arm_mask(valid_batch["mask"], arm)
         correction = predict.residual_vector(fitted["model"], _arm_batch(valid_batch, valid_mask))
-        eta = predict.choose_eta(y_valid, s_valid, correction)
+        eta = select_eta(y_valid, s_valid, correction, valid_sequences, score_sequences, batch_sequences)
         train_r = predict.residual_vector(fitted["model"], _arm_batch(train_batch, mask))
         oof_residual = y_rows - oof_score
         arms[arm] = {
