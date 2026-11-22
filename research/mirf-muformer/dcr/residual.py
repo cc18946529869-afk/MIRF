@@ -8,17 +8,21 @@ a 64-wide GELU, dropout 0.1, and a zero-initialized scalar.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 
 import potts_features
+import sealed_config
 
-D_S = 64
-D_L = 32
-D_R = 32
-CONCAT_WIDTH = D_S + 2 * D_L + D_R
-HIDDEN = 64
-DROPOUT = 0.1
+_SEALED = sealed_config.require()
+D_S = _SEALED.d_s
+D_L = _SEALED.d_l
+D_R = _SEALED.d_r
+CONCAT_WIDTH = _SEALED.concat_width
+HIDDEN = _SEALED.hidden
+DROPOUT = _SEALED.dropout
 ARM_FULL = "full"
 ARM_SUM = "sum"
 ARM_NONE = "no_potts"
@@ -117,6 +121,23 @@ def arm_mask(observed: torch.Tensor | object, arm: str):
     raise ValueError(f"unknown residual arm {arm}")
 
 
+def assert_readout(model: nn.Module) -> None:
+    """The sealed readout is 64/32/32, concatenation 160, 64-wide GELU, dropout 0.1, zero output."""
+    cfg = sealed_config.require()
+    if model.site.out_features != cfg.d_s or model.lobe.out_features != cfg.d_l or model.dcr.out_features != cfg.d_r:
+        raise RuntimeError("the readout widths are not d_s=64, d_l=32, d_r=32")
+    if model.hidden.in_features != cfg.concat_width or cfg.concat_width != 160:
+        raise RuntimeError("the concatenation width is not 160")
+    if model.hidden.out_features != cfg.hidden or cfg.hidden != 64:
+        raise RuntimeError("the GELU layer is not 64-wide")
+    if not isinstance(model.activation, nn.GELU):
+        raise RuntimeError("the readout activation is not GELU")
+    if float(model.dropout.p) != cfg.dropout or cfg.dropout != 0.1:
+        raise RuntimeError("the readout dropout is not 0.1")
+    if float(model.output.weight.abs().sum()) != 0.0 or float(model.output.bias.abs().sum()) != 0.0:
+        raise RuntimeError("the readout output is not zero-initialized")
+
+
 def pack_observation(values, mask) -> torch.Tensor:
     """Concatenate ``[x odot m; m]``. Masked zeros stay distinguishable."""
     numeric = torch.as_tensor(values, dtype=torch.float32)
@@ -145,6 +166,7 @@ class ResidualPredictor(nn.Module):
         self.output = nn.Linear(HIDDEN, 1)
         nn.init.zeros_(self.output.weight)
         nn.init.zeros_(self.output.bias)
+        assert_readout(self)
 
     def project(
         self,
@@ -260,23 +282,26 @@ def fit_predictor(
     val_idx,
     *,
     embed_dim: int,
-    max_epochs: int = 300,
-    patience: int = 30,
-    batch_size: int = 64,
-    learning_rate: float = 1e-3,
-    weight_decay: float = 1e-4,
     outer_seed: int = 0,
     initial_state: dict[str, torch.Tensor] | None = None,
+    config: sealed_config.SealedExecution | None = None,
 ):
     """Select an epoch on the internal rows, then retrain from the same init.
 
     Both models load ``initial_state``. The shuffle streams of the two stages
     are seeded separately, so retraining does not continue the selection
     generator. Dropout masks are seeded by stage, epoch and batch index.
-    The output layer starts at zero both times. No learning-rate schedule is used.
+    The output layer starts at zero both times. Epochs, patience, batch size,
+    AdamW, and the learning rate come from the sealed config. No learning-rate
+    schedule is used. Early stopping reads validation MAE every epoch.
     """
-    if max_epochs < 1:
-        raise ValueError("max_epochs must be positive")
+    cfg = sealed_config.require(config)
+    sealed_config.assert_saved_soft_weight_audit(Path(__file__).resolve().parent / "features")
+    max_epochs = int(cfg.max_epochs)
+    patience = int(cfg.patience)
+    batch_size = int(cfg.batch_size)
+    if cfg.early_stop_metric != "mae" or cfg.eval_every_epoch is not True:
+        raise RuntimeError("residual early stopping evaluates MAE every epoch")
     train_rows = torch.as_tensor(train_idx, dtype=torch.long)
     val_rows = torch.as_tensor(val_idx, dtype=torch.long)
     all_rows = torch.arange(target.shape[0], dtype=torch.long)
@@ -299,8 +324,12 @@ def fit_predictor(
 
     model = ResidualPredictor(embed_dim)
     model.load_state_dict(initial_state)
+    assert_readout(model)
     selection_initial = _clone_state(model.state_dict())
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+    scheduler = None
+    sealed_config.assert_residual_optimizer(optimizer, cfg)
+    sealed_config.assert_no_scheduler(scheduler)
     best_epoch = None
     best_mae = None
     stall = 0
@@ -317,10 +346,14 @@ def fit_predictor(
 
     retrained = ResidualPredictor(embed_dim)
     retrained.load_state_dict(initial_state)
+    assert_readout(retrained)
     if float(retrained.output.weight.abs().sum()) != 0.0 or float(retrained.output.bias.abs().sum()) != 0.0:
         raise RuntimeError("the reinitialized output layer is not zero")
     retrain_initial = _clone_state(retrained.state_dict())
-    optimizer = torch.optim.AdamW(retrained.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(retrained.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+    scheduler = None
+    sealed_config.assert_residual_optimizer(optimizer, cfg)
+    sealed_config.assert_no_scheduler(scheduler)
     retrain_orders = []
     retrain_first_mask = []
     for epoch_number in range(1, int(best_epoch) + 1):

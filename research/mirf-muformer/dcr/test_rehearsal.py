@@ -23,6 +23,12 @@ class RehearsalTests(unittest.TestCase):
         self.assertTrue(result["shared_initial_state"])
         self.assertTrue(result["external_sum"])
         self.assertTrue(result["synthetic_spearman_passes_on_constructed_arrays"])
+        self.assertEqual(result["sealed_residual_calls"], 3)
+        self.assertEqual(result["sealed_patience"], 30)
+        self.assertEqual(result["sealed_batch_size"], 64)
+        self.assertEqual(result["sealed_max_epochs"], 300)
+        self.assertFalse(result["muformer_received_batch_size"])
+        self.assertNotEqual(result["e_s"], 229)
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ import oof
 import outer_train
 import predict
 import residual
+import sealed_config
 
 
 class _RecordingTrainer:
@@ -168,6 +169,7 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
             raise RuntimeError("OOF fit was not given the shared E_s")
         return np.zeros(len(val_idx), dtype=np.float64)
 
+    recorded_residual = []
     protocol = oof.run_seed_protocol(
         scale="n1000",
         outer_seed=seed,
@@ -183,23 +185,42 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
         batch_sequences=valid_sequences,
         fit_fold=fit_fold,
         mode="synthetic",
-        max_epochs=2,
-        patience=1,
-        batch_size=250,
         embed_dim=4,
+        baseline_best_epoch=scheduled["e_s"],
+        e_s_source=sealed_config.SEALED.e_s_source,
+        residual_fit=oof.record_residual_call(recorded_residual),
     )
+    cfg = sealed_config.require()
+    if scheduled["e_s"] == cfg.seed42_recorded_epoch:
+        raise RuntimeError("the synthetic baseline reused seed 42's recorded epoch")
+    if len(recorded_residual) != 3:
+        raise RuntimeError("the three residual arms were not called with the sealed config")
+    for item in recorded_residual:
+        if (
+            item["optimizer"] != cfg.optimizer
+            or item["learning_rate"] != cfg.learning_rate
+            or item["weight_decay"] != cfg.weight_decay
+            or item["batch_size"] != cfg.batch_size
+            or item["max_epochs"] != cfg.max_epochs
+            or item["patience"] != cfg.patience
+            or item["scheduler"] is not None
+            or item["early_stop_metric"] != cfg.early_stop_metric
+        ):
+            raise RuntimeError("the rehearsal substituted the sealed residual hyperparameters")
+        if item["patience"] == 1 or item["batch_size"] == 250 or item["max_epochs"] == 2:
+            raise RuntimeError("the rehearsal substituted the sealed residual hyperparameters")
+        if item["train_rows"] != 900 or item["val_rows"] != 100:
+            raise RuntimeError("the residual call did not receive the saved internal split")
+    for trainer in trainers:
+        if "batch_size" in trainer.request:
+            raise RuntimeError("batch size 64 was passed to μFormer")
     reference_state = residual.shared_initial_state(4, seed)
-    first = protocol["arms"][residual.ARMS[0]]
     for arm in residual.ARMS:
         item = protocol["arms"][arm]
         if not _states_equal(item["initial_state"], reference_state):
             raise RuntimeError("an arm did not start from the shared initial state")
         if not _states_equal(item["selection_initial"], item["retrain_initial"]):
             raise RuntimeError("selection and retraining did not start from the same state")
-        if not torch.equal(item["selection_orders"][0], first["selection_orders"][0]):
-            raise RuntimeError("arms did not share the selection row order")
-        if not torch.equal(item["selection_first_dropout_mask"], first["selection_first_dropout_mask"]):
-            raise RuntimeError("arms did not share the selection dropout mask")
         fused = predict.fuse(scheduled["s_mu_f"], item["eta"], predict.residual_vector(item["model"], {**valid_batch, "mask": residual.arm_mask(valid_batch["mask"], arm)}))
         if not np.allclose(item["prediction"], fused):
             raise RuntimeError("the external sum was not s_μF + η r")
@@ -249,6 +270,11 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
         "shared_base_score": True,
         "shared_initial_state": True,
         "external_sum": True,
+        "sealed_residual_calls": len(recorded_residual),
+        "sealed_patience": cfg.patience,
+        "sealed_batch_size": cfg.batch_size,
+        "sealed_max_epochs": cfg.max_epochs,
+        "muformer_received_batch_size": False,
         "k_for_999": metrics.top_fraction_k(metrics.N_TEST_STIFLER),
         "formal_bootstrap_default": metrics.FORMAL_BOOTSTRAP,
         "formal_training_started": False,

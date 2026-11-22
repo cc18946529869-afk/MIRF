@@ -154,6 +154,60 @@ class OuterTrainTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             outer_train.train_outer_models("n1000", oof.OUTER_SEEDS[1], full, _Factory(6), mode="synthetic")
         self.assertEqual(factory.trainers[0].scored_split, "validation")
+        for request in factory.requests:
+            self.assertNotIn("batch_size", request)
+            for key in ("encoder_lr", "decoder_lr", "weight_decay", "hidden", "dropout", "siamese", "warmup"):
+                self.assertNotIn(key, request)
+        self.assertNotEqual(result["e_s"], 229)
+        self.assertEqual([item["epochs_run"] for item in result["folds"]], [6, 6, 6, 6, 6])
+
+    def test_batch_size_64_and_seed_42_epoch_do_not_enter_muformer(self) -> None:
+        trainer = _Trainer({"restore_best": True}, 6)
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                trainer,
+                {
+                    "restore_best": True,
+                    "epochs": 2,
+                    "eval_freq": 1,
+                    "patience": 1,
+                    "batch_size": 64,
+                    "select_on_held_out_fold": False,
+                },
+            )
+        self.assertFalse(hasattr(trainer, "epochs"))
+        fold_trainer = _Trainer({"restore_best": False}, 6)
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                fold_trainer,
+                {
+                    "restore_best": False,
+                    "epochs": 229,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "train_idx": np.array([0, 1]),
+                    "select_on_held_out_fold": False,
+                    "baseline_best_epoch": 6,
+                    "e_s_source": "this_outer_seed_baseline",
+                },
+            )
+        self.assertFalse(hasattr(fold_trainer, "epochs"))
+        held_out = _Trainer({"restore_best": False}, 6)
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                held_out,
+                {
+                    "restore_best": False,
+                    "epochs": 6,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "train_idx": np.array([0, 1]),
+                    "select_on_held_out_fold": True,
+                    "baseline_best_epoch": 6,
+                    "e_s_source": "this_outer_seed_baseline",
+                },
+            )
+        self.assertFalse(hasattr(held_out, "epochs"))
 
     def test_validation_and_test_lengths_stay_separate_and_eta_uses_validation(self) -> None:
         trainer = _SplitTrainer()

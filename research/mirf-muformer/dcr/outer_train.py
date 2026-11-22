@@ -10,6 +10,7 @@ from __future__ import annotations
 import numpy as np
 
 import oof
+import sealed_config
 
 BASELINE_EPOCHS = 300
 BASELINE_PATIENCE = 300
@@ -80,16 +81,26 @@ def execute_muformer_request(trainer, request: dict) -> dict:
     here is the outer validation split. The test split is a separate call.
     """
     fold = not bool(request["restore_best"])
-    trainer.train(
-        epochs=int(request["epochs"]),
-        eval_freq=int(request["eval_freq"]),
-        patience=int(request["patience"]),
-        save_checkpoint=False,
-        resume_path=None,
-        restore_best=not fold,
-        train_row_index=None if not fold else np.asarray(request["train_idx"], dtype=np.int64),
-        drop_last=not fold,
-    )
+    if request.get("select_on_held_out_fold"):
+        raise RuntimeError("a fold model does not select its epoch on the held-out fold")
+    if fold:
+        sealed_config.assert_e_s(
+            request["epochs"],
+            request["baseline_best_epoch"],
+            request["e_s_source"],
+        )
+    train_call = {
+        "epochs": int(request["epochs"]),
+        "eval_freq": int(request["eval_freq"]),
+        "patience": int(request["patience"]),
+        "save_checkpoint": False,
+        "resume_path": None,
+        "restore_best": not fold,
+        "train_row_index": None if not fold else np.asarray(request["train_idx"], dtype=np.int64),
+        "drop_last": not fold,
+    }
+    sealed_config.assert_muformer_train_call(train_call, request)
+    trainer.train(**train_call)
     if request["restore_best"]:
         recorded = list(getattr(trainer, "best_epochs", []) or [])
         if not recorded or recorded[-1] is None:
@@ -143,6 +154,14 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
         raise ValueError("n=1000 and the full index were mixed")
     if int(outer_seed) not in oof.OUTER_SEEDS:
         raise ValueError("the outer seed is not in the locked list of ten")
+    if loaded_scale.get("indices_regenerated") is not False:
+        raise RuntimeError("precheck indices are read from dcr/precheck and are not regenerated")
+    if loaded_scale.get("precheck_dir_name") != "precheck" or loaded_scale.get("precheck_parent_name") != "dcr":
+        raise RuntimeError("precheck indices are read only from dcr/precheck and are not regenerated")
+    cfg = sealed_config.require()
+    if int(loaded_scale.get("kfold_seed", -1)) != cfg.kfold_seed or int(loaded_scale.get("residual_holdout_seed", -1)) != cfg.residual_holdout_seed:
+        raise RuntimeError("the loaded precheck indices are not tied to the sealed split seeds")
+    sealed_config.assert_saved_soft_weight_audit()
     n = int(loaded_scale["n"])
     if n != oof.EXPECTED_ROWS[scale]["n"]:
         raise ValueError("the loaded row count is not the count for this scale")
@@ -160,9 +179,7 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
         "select_on_held_out_fold": False,
     }
     full_result = execute_muformer_request(trainer_factory(full_request), full_request)
-    e_s = int(full_result["e_s"])
-    if e_s < 1:
-        raise RuntimeError("E_s must be a positive epoch")
+    e_s = sealed_config.assert_e_s(full_result["e_s"], full_result["e_s"], cfg.e_s_source, cfg)
     score = np.asarray(full_result["score"], dtype=np.float64)
     sequences = np.asarray(full_result["sequences"])
     if full_result.get("split") != "validation":
@@ -187,11 +204,18 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
             "eval_freq": BASELINE_EVAL_FREQ,
             "restore_best": False,
             "select_on_held_out_fold": False,
+            "baseline_best_epoch": e_s,
+            "e_s_source": cfg.e_s_source,
         }
         produced = execute_muformer_request(trainer_factory(request), request)
         if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
             raise RuntimeError("a fold model did not keep the weights from epoch E_s")
         fold_results.append(produced)
+    sealed_config.assert_folds_share_e_s(
+        e_s,
+        [item["epochs_run"] for item in fold_results],
+        held_out_selection=any(bool(item["restore_best"]) or bool(item["replaced_with_earlier_best"]) for item in fold_results),
+    )
     return {
         "scale": scale,
         "outer_seed": int(outer_seed),

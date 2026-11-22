@@ -6,6 +6,8 @@ import sys
 import unittest
 from pathlib import Path
 
+from dataclasses import replace
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -20,6 +22,7 @@ import lobes
 import oof
 import predict
 import residual
+import sealed_config
 
 PREP = DCR.parent / "prep"
 PRECHECK = DCR / "precheck"
@@ -34,13 +37,19 @@ class SplitTests(unittest.TestCase):
         self.assertEqual(loaded["n1000"]["n"], 1000)
         self.assertEqual(loaded["full"]["n"], 3497)
         self.assertFalse(np.array_equal(loaded["n1000"]["fold_id"], loaded["full"]["fold_id"][:1000]))
+        cfg = sealed_config.require()
+        self.assertEqual(cfg.kfold_seed, 20261121)
+        self.assertEqual(cfg.residual_holdout_seed, 20261122)
         for scale, count in (("n1000", 1000), ("full", 3497)):
-            expected = list(KFold(5, shuffle=True, random_state=20261121).split(np.arange(count)))
+            self.assertEqual(loaded[scale]["kfold_seed"], cfg.kfold_seed)
+            self.assertEqual(loaded[scale]["residual_holdout_seed"], cfg.residual_holdout_seed)
+            self.assertFalse(loaded[scale]["indices_regenerated"])
+            expected = list(KFold(cfg.kfold_splits, shuffle=cfg.kfold_shuffle, random_state=cfg.kfold_seed).split(np.arange(count)))
             for fold, (train_idx, val_idx) in enumerate(expected):
                 self.assertTrue(np.array_equal(loaded[scale]["folds"][fold]["train_idx"], train_idx))
                 self.assertTrue(np.array_equal(loaded[scale]["folds"][fold]["val_idx"], val_idx))
             train_idx, val_idx = train_test_split(
-                np.arange(count), test_size=0.1, shuffle=True, random_state=20261122, stratify=None
+                np.arange(count), test_size=cfg.residual_holdout_fraction, shuffle=True, random_state=cfg.residual_holdout_seed, stratify=None
             )
             self.assertTrue(np.array_equal(loaded[scale]["residual_train_idx"], train_idx))
             self.assertTrue(np.array_equal(loaded[scale]["residual_val_idx"], val_idx))
@@ -250,6 +259,7 @@ class ProtocolTests(unittest.TestCase):
             "values": torch.tensor(valid_features),
             "mask": torch.ones(4, 14),
         }
+        recorded = []
         result = oof.run_seed_protocol(
             scale="n1000",
             outer_seed=oof.OUTER_SEEDS[0],
@@ -265,11 +275,27 @@ class ProtocolTests(unittest.TestCase):
             batch_sequences=sequences,
             fit_fold=fit_fold,
             mode="synthetic",
-            max_epochs=2,
-            patience=1,
-            batch_size=250,
             embed_dim=4,
+            baseline_best_epoch=5,
+            e_s_source=sealed_config.SEALED.e_s_source,
+            residual_fit=oof.record_residual_call(recorded),
         )
+        cfg = sealed_config.require()
+        self.assertEqual(len(recorded), 3)
+        for item in recorded:
+            self.assertEqual(item["optimizer"], "AdamW")
+            self.assertEqual(item["learning_rate"], cfg.learning_rate)
+            self.assertEqual(item["weight_decay"], cfg.weight_decay)
+            self.assertEqual(item["batch_size"], 64)
+            self.assertEqual(item["max_epochs"], 300)
+            self.assertEqual(item["patience"], 30)
+            self.assertIsNone(item["scheduler"])
+            self.assertEqual(item["early_stop_metric"], "mae")
+            self.assertEqual(item["train_rows"], 900)
+            self.assertEqual(item["val_rows"], 100)
+            self.assertNotEqual(item["patience"], 1)
+            self.assertNotEqual(item["batch_size"], 250)
+            self.assertNotEqual(item["max_epochs"], 2)
         self.assertEqual(calls, [5, 5, 5, 5, 5])
         self.assertEqual(result["e_s"], 5)
         self.assertEqual(result["fold_epochs"], (5, 5, 5, 5, 5))
@@ -294,29 +320,153 @@ class ProtocolTests(unittest.TestCase):
         other_seed = residual.shared_initial_state(4, oof.OUTER_SEEDS[1])
         self.assertFalse(torch.equal(reference["site.weight"], other_seed["site.weight"]))
         self.assertEqual(float(reference["output.weight"].abs().sum()), 0.0)
-        first = result["arms"][residual.ARMS[0]]
         for arm in residual.ARMS:
             item = result["arms"][arm]
             for key in reference:
                 self.assertTrue(torch.equal(item["initial_state"][key], reference[key]))
                 self.assertTrue(torch.equal(item["selection_initial"][key], item["retrain_initial"][key]))
                 self.assertTrue(torch.equal(item["selection_initial"][key], reference[key]))
-            self.assertTrue(torch.equal(item["selection_orders"][0], first["selection_orders"][0]))
-            self.assertTrue(torch.equal(item["retrain_orders"][0], first["retrain_orders"][0]))
-            self.assertTrue(torch.equal(item["selection_first_dropout_mask"], first["selection_first_dropout_mask"]))
-            self.assertTrue(torch.equal(item["retrain_first_dropout_mask"], first["retrain_first_dropout_mask"]))
-        self.assertFalse(torch.equal(first["selection_first_dropout_mask"], first["retrain_first_dropout_mask"]))
-        selection = torch.Generator()
-        selection.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "selection"))
-        for expected in first["selection_orders"]:
-            replayed = residual.shuffled_row_order(first["selection_index_source"], selection)
-            self.assertTrue(torch.equal(replayed, expected))
-        continued = residual.shuffled_row_order(first["retrain_index_source"], selection)
-        retrain = torch.Generator()
-        retrain.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "retrain"))
-        replayed_retrain = residual.shuffled_row_order(first["retrain_index_source"], retrain)
-        self.assertTrue(torch.equal(replayed_retrain, first["retrain_orders"][0]))
-        self.assertFalse(torch.equal(continued, first["retrain_orders"][0]))
+
+    def test_three_arms_share_every_selection_and_retrain_order(self) -> None:
+        cfg = sealed_config.require()
+        n = 12
+        folds = []
+        start = 0
+        sizes = [n // 5 + (1 if fold < n % 5 else 0) for fold in range(5)]
+        rows = np.arange(n)
+        for fold, size in enumerate(sizes):
+            val_idx = rows[start : start + size]
+            start += size
+            train_idx = np.setdiff1d(rows, val_idx)
+            folds.append({"fold": fold, "train_idx": train_idx, "val_idx": val_idx})
+        loaded = {
+            "scale": "n1000",
+            "n": n,
+            "folds": folds,
+            "residual_train_idx": rows[:10],
+            "residual_val_idx": rows[10:],
+        }
+        y_oof = np.zeros(n, dtype=np.float64)
+        representation = np.zeros((n, 4), dtype=np.float32)
+        train_batch = {
+            "site": torch.tensor(representation),
+            "source": torch.tensor(representation),
+            "other": torch.tensor(representation),
+            "values": torch.zeros(n, 14),
+            "mask": torch.ones(n, 14),
+        }
+        sequences = np.array(["v0", "v1", "v2", "v3"])
+        y_valid = np.array([0.0, 1.0, 2.0, 3.0])
+        s_valid = np.array([0.1, 0.2, 0.3, 0.4])
+        valid_rep = np.zeros((4, 4), dtype=np.float32)
+        valid_batch = {
+            "site": torch.tensor(valid_rep),
+            "source": torch.tensor(valid_rep),
+            "other": torch.tensor(valid_rep),
+            "values": torch.zeros(4, 14),
+            "mask": torch.ones(4, 14),
+        }
+
+        def fit_fold(train_idx, val_idx, epochs):
+            self.assertEqual(int(epochs), 5)
+            return np.zeros(len(val_idx), dtype=np.float64)
+
+        result = oof.run_seed_protocol(
+            scale="n1000",
+            outer_seed=oof.OUTER_SEEDS[0],
+            e_s=5,
+            loaded_scale=loaded,
+            y_oof=y_oof,
+            train_batch=train_batch,
+            y_valid=y_valid,
+            s_valid=s_valid,
+            valid_batch=valid_batch,
+            valid_sequences=sequences,
+            score_sequences=sequences,
+            batch_sequences=sequences,
+            fit_fold=fit_fold,
+            mode="synthetic",
+            embed_dim=4,
+            baseline_best_epoch=5,
+            e_s_source=cfg.e_s_source,
+        )
+        arms = [result["arms"][arm] for arm in residual.ARMS]
+        self.assertEqual(len({len(item["selection_orders"]) for item in arms}), 1)
+        self.assertEqual(len({len(item["retrain_orders"]) for item in arms}), 1)
+        self.assertGreaterEqual(len(arms[0]["selection_orders"]), cfg.patience)
+        self.assertEqual(len(arms[0]["selection_orders"]), arms[0]["selection_epochs_run"])
+        self.assertEqual(len(arms[0]["retrain_orders"]), arms[0]["best_epoch"])
+        self.assertGreater(len(arms[0]["retrain_orders"]), 0)
+        for item in arms[1:]:
+            self.assertEqual(len(item["selection_orders"]), len(arms[0]["selection_orders"]))
+            self.assertEqual(len(item["retrain_orders"]), len(arms[0]["retrain_orders"]))
+            for left, right in zip(item["selection_orders"], arms[0]["selection_orders"]):
+                self.assertTrue(torch.equal(left, right))
+            for left, right in zip(item["retrain_orders"], arms[0]["retrain_orders"]):
+                self.assertTrue(torch.equal(left, right))
+            self.assertTrue(torch.equal(item["selection_first_dropout_mask"], arms[0]["selection_first_dropout_mask"]))
+            self.assertTrue(torch.equal(item["retrain_first_dropout_mask"], arms[0]["retrain_first_dropout_mask"]))
+        self.assertFalse(torch.equal(arms[0]["selection_first_dropout_mask"], arms[0]["retrain_first_dropout_mask"]))
+        for item in arms:
+            selection = torch.Generator()
+            selection.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "selection"))
+            for expected in item["selection_orders"]:
+                replayed = residual.shuffled_row_order(item["selection_index_source"], selection)
+                self.assertTrue(torch.equal(replayed, expected))
+            continued = residual.shuffled_row_order(item["retrain_index_source"], selection)
+            retrain = torch.Generator()
+            retrain.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "retrain"))
+            for expected in item["retrain_orders"]:
+                replayed = residual.shuffled_row_order(item["retrain_index_source"], retrain)
+                self.assertTrue(torch.equal(replayed, expected))
+            self.assertFalse(torch.equal(continued, item["retrain_orders"][0]))
+
+    def test_substituted_residual_config_is_refused(self) -> None:
+        bad = replace(sealed_config.SEALED, patience=1, batch_size=250, max_epochs=2)
+        with self.assertRaises(RuntimeError):
+            residual.fit_predictor(
+                {
+                    "site": torch.zeros(2, 4),
+                    "source": torch.zeros(2, 4),
+                    "other": torch.zeros(2, 4),
+                    "values": torch.zeros(2, 14),
+                    "mask": torch.ones(2, 14),
+                },
+                torch.zeros(2),
+                [0],
+                [1],
+                embed_dim=4,
+                config=bad,
+            )
+        other = torch.optim.SGD(torch.nn.Linear(1, 1).parameters(), lr=1e-3)
+        with self.assertRaises(RuntimeError):
+            sealed_config.assert_residual_optimizer(other)
+
+    def test_saved_soft_weight_audit_is_only_read(self) -> None:
+        features = DCR / "features"
+        watched = (
+            features / "soft_weight_coords_audit.json",
+            features / "blat_ecolx_stiffler_2015_soft_weight_coords.tsv",
+            features / "blat_ecolx_stiffler_2015_v0.1.tsv",
+        )
+        before = {path: path.stat().st_mtime_ns for path in watched}
+        audit = sealed_config.assert_saved_soft_weight_audit(features)
+        after = {path: path.stat().st_mtime_ns for path in watched}
+        self.assertEqual(before, after)
+        self.assertEqual(audit["coordinate_set"], "soft_weight_keeps_82_and_182")
+        self.assertTrue(audit["positions_82_and_182_in_coordinate_set"])
+        self.assertFalse(audit["used_in_coord_equals_not_mismatched"])
+        positions = {int(item["ref_pos"]) for item in audit["mismatches"] if item["in_soft_weight_coordinate_set"]}
+        self.assertIn(82, positions)
+        self.assertIn(182, positions)
+        source = Path(sealed_config.__file__).read_text()
+        self.assertNotIn("in_coord = ~mismatched", source)
+        self.assertNotIn("write_soft_weight_table", source)
+        self.assertNotIn("residual_geometry", source)
+
+    def test_execution_files_do_not_hardcode_seed_42_epoch(self) -> None:
+        for name in ("outer_train.py", "oof.py", "residual.py", "rehearsal.py"):
+            self.assertNotIn("229", (DCR / name).read_text())
 
     def test_same_length_different_sequences_are_rejected(self) -> None:
         loaded = oof.load_scale(PRECHECK, "n1000")

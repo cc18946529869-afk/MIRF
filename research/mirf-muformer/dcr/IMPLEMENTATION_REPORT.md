@@ -1,37 +1,27 @@
 # DCR 残差分支实现报告
 
-2026-11-22。分支 `research/dcr-residual-implementation-20261121`。正式十种子训练没有启动，也没有放行。没有对真实实验输出计算融合指标，没有适应度提升的结果，也没有写成已经超过 baseline。
+2026-11-22。分支 `research/dcr-residual-implementation-20261121`。正式十种子训练没有启动，也没有放行。没有真实适应度结果，没有对真实实验输出计算融合指标，也没有写成已经超过 baseline。
 
-## 这一步
+## 参数传递
 
-只修验证集和测试集的评分隔离。没有改数学分解，没有改七项参数，没有新增模型结构，没有改 `Muformer.forward`、损失函数和原有优化器，没有启用 `torch.load`。
+封口七项从 `sealed_config.SEALED` 进入 `outer_train.train_outer_models`、`oof.run_seed_protocol` 和 `residual.fit_predictor`。三处执行前都调用 `require`。配置和封口取值不一致就拒绝。
 
-恢复最佳权重之后，验证评分显式使用外层验证集。`execute_muformer_request` 把 `valid_loader` 和 `valid_df` 交给 `score_validation`。两者缺一就拒绝，不会退回 `self.test_loader` 和 `self.test_df`。
+- OOF 的 `KFold` 种子是 `20261121`，内部 10% 的种子是 `20261122`。预检只读 `dcr/precheck/`，核对目录名和文件修改时间，不重新生成索引。
+- \(E_s\) 是该外层种子自己的 baseline 最佳轮。五个折模型共用这一轮。来源必须是 `this_outer_seed_baseline`。种子 42 的 229 不是默认轮数，也没有写进这三处执行文件。折请求若把 229 当成另一轮 baseline 的 \(E_s\)，或者 `select_on_held_out_fold` 为真，就在调用 `train` 之前拒绝。
+- 残差执行层使用并断言 AdamW、学习率 \(1\times10^{-3}\)、weight decay \(1\times10^{-4}\)、批大小 64、最多 300 轮、调度器为 `None`、早停指标 MAE、每轮评估、patience 30。调用方不能改成 patience 1、batch size 250 或 max epochs 2。
+- 批大小 64 不进入 μFormer 的请求，也不传给 `trainer.train`。比较配置的批大小 16、两组学习率、weight decay 0、hidden 256、dropout 0.2、siamese、warmup 10 不在这一步的请求里。
+- 读出仍是 \(d_s=64,d_l=32,d_r=32\)、拼接 160、64 维 GELU、dropout 0.1、输出零初始化。执行时断言这些值。
+- 特征表只读已经生成的 `features/soft_weight_coords_audit.json`。策略是 `soft_weight_keeps_82_and_182`，参考位置 82 与 182 在坐标集内，审计记录没有把错配补集当作坐标集。这一检查不调用 `in_coord = ~mismatched`，不写 v0.1，不重算特征表。
 
-测试评分是另一次调用。`main.py` 在 `train` 返回后调用 `score_test(trainer.test_loader, trainer.test_df)`。合成日程里的测试评分在 `score_restored_test_split`。这两处都不传 `checkpoint_dir`，都不调用 `load_pretrained_model`，用的是训练结束时已经装回最佳权重的同一个模块。返回的测试分数不交给 `choose_eta`。
+没有改 Potts 分解、14 维、残差网络结构、七项取值、μFormer 的评分损失和优化器、评分隔离。没有重拟合，没有重跑 Bootstrap，没有新增 \(R_J\) 前置。`run_ten_outer_seeds` 仍直接拒绝。
 
-`choose_eta` 只收到验证集标签、该验证集上的 μFormer 分数和残差预测。入口是 `oof.select_eta`，参数是 `y_valid`、`s_valid` 和验证集上的残差。它没有测试集标签这个参数。
+## 合成测试
 
-样本身份是 `sequence`。`require_same_sequences` 按顺序比较序列。长度相同但序列不同会拒绝；序列相同但顺序不同也会拒绝。
+参数传递和这一节分开。正式配置没有被缩短。
 
-η 锁定之后，`fuse_test_after_eta` 才在测试集上计算融合指标。`mode` 不是 `synthetic` 时拒绝。返回值里 `formal_metrics_computed` 和 `formal_experiment` 都是假。这条路径不读真实实验输出。
-
-`run_ten_outer_seeds` 仍直接拒绝。`train_outer_models` 和 `run_seed_protocol` 在 `mode` 不是 `synthetic` 时仍拒绝。
-
-## 分支上已经有的状态
-
-这些是后来的提交已经写进代码的事实，用来替换本报告早先写过的「10 个测试」「PMLM 尚未加载」「软权重特征表尚未重算」。
-
-- 三条残差臂共用同一份初始参数和同一套样本顺序。选轮和最终重训使用分开的随机数流。
-- 软权重特征表是 `dcr/features/blat_ecolx_stiffler_2015_soft_weight_coords.tsv`，表头加 4996 行数据。`soft_weight_coords_audit.json` 的 `passed` 为真，参考位置 82、182 留在软权重坐标集。`blat_ecolx_stiffler_2015_v0.1.tsv` 未改。
-- `pmlm_650m.pt` 做了一次冻结推理核验。`features/pmlm_650m_frozen_inference.json` 的 `passed` 为真，`embed_dim` 是 1280，输出形状是 288×1×1280，`requires_grad` 为假，`prob_calls` 是 0，没有读 `fc_reduce`。这不是训练，也没有下载新权重。
-- 折模型的训练行号进入 `Trainer.train` 实际迭代的 batch，尾批不丢。
-- 评价指标在 `dcr/metrics.py`：Spearman 三句、Pearson、NDCG@10%、Top-10% Recall、RMSE，以及配对 Bootstrap。默认 10000 次。`formal_experiment` 固定为假。没有拿它去报真实十种子的提升。
-- 端到端预演在 `rehearsal.py`，只用合成数据。
-
-`Muformer.forward` 的评分、MAE 损失、Adam 和原来的学习率调度没有改。`torch.load` 仍是注释。没有重拟合 Potts，没有重跑 Bootstrap。\(R_J=0.4581354189599478\)，`action` 仍是 `parameter_unstable`。
-
-## 测试
+- 三臂每一轮选轮顺序和每一轮重训顺序，在 12 行小型合成数据上由真实的 `fit_predictor` 跑出。超参数仍是封口值。三臂在共同轮次上的顺序相同，每一臂的全部选轮顺序和全部重训顺序都能由该阶段自己的随机数流重放。
+- n=1000 的协议检查和 `rehearsal.rehearse` 用记录调用的替身。替身记下的是封口配置：AdamW、学习率 \(1\times10^{-3}\)、weight decay \(1\times10^{-4}\)、批大小 64、最多 300 轮、无调度器、MAE、patience 30，以及预检里的 900 与 100 行。不再把 patience 1、batch size 250、max epochs 2 传进执行。
+- 预检目录的修改时间在读取后不变。软权重审计、软权重表和 v0.1 的修改时间在核验后不变。
 
 解释器 `/home/cc233/miniforge3/envs/nsf310/bin/python`。工作目录 `research/mirf-muformer/dcr`。
 
@@ -39,15 +29,17 @@
 env -u PYTHONPATH /home/cc233/miniforge3/envs/nsf310/bin/python -m unittest test_best_weights.py test_residual_protocol.py test_outer_train.py test_rehearsal.py test_metrics.py
 ```
 
-Ran 25 tests in 2.965s，OK。
-
-这次新增的四项：
-
-- `test_validation_and_test_lengths_stay_separate_and_eta_uses_validation`：ok。验证集 4 行、测试集 6 行，η 只用验证集。
-- `test_same_length_different_sequences_are_rejected`：ok。长度相同但 sequence 不同，以及顺序不同，都拒绝。
-- `test_choose_eta_does_not_read_test_labels`：ok。
-- `test_final_test_score_uses_the_restored_module`：ok。最终测试评分走恢复后的同一个模块。
+Ran 30 tests in 2.493s，OK。
 
 ## 正式训练
 
-正式十种子训练仍是 NO-GO。`run_ten_outer_seeds` 在构造训练器之前拒绝。用户另说可以，才进入正式训练。
+正式十种子训练仍是 NO-GO。`run_ten_outer_seeds` 在构造训练器之前拒绝。没有真实适应度结果。用户另说可以，才进入正式训练。
+
+## 分支上已经有的状态
+
+这些是这一步之前已经写进代码、这一步没有改掉的事实。
+
+- 验证评分显式使用外层验证集。测试评分单独调用，并且只在 \(\eta\) 锁定之后计算融合指标。`choose_eta` 不接收测试集标签。
+- 三条残差臂共用同一份初始参数和同一套样本顺序。选轮和最终重训使用分开的随机数流。
+- 软权重特征表是 `dcr/features/blat_ecolx_stiffler_2015_soft_weight_coords.tsv`，表头加 4996 行数据。`blat_ecolx_stiffler_2015_v0.1.tsv` 未改。
+- `Muformer.forward` 的评分、MAE 损失、Adam 和原来的学习率调度没有改。`torch.load` 仍是注释。\(R_J=0.4581354189599478\)，`action` 仍是 `parameter_unstable`。

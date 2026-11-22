@@ -15,6 +15,7 @@ import torch
 import metrics
 import predict
 import residual
+import sealed_config
 
 OUTER_SEEDS = (
     1975576344,
@@ -45,12 +46,16 @@ EXPECTED_ROWS = {
         "residual_val": 350,
     },
 }
+_SEALED = sealed_config.require()
 RESIDUAL_DEFAULTS = {
-    "max_epochs": 300,
-    "patience": 30,
-    "batch_size": 64,
-    "learning_rate": 1e-3,
-    "weight_decay": 1e-4,
+    "max_epochs": _SEALED.max_epochs,
+    "patience": _SEALED.patience,
+    "batch_size": _SEALED.batch_size,
+    "learning_rate": _SEALED.learning_rate,
+    "weight_decay": _SEALED.weight_decay,
+    "optimizer": _SEALED.optimizer,
+    "scheduler": _SEALED.scheduler,
+    "early_stop_metric": _SEALED.early_stop_metric,
 }
 
 
@@ -87,7 +92,8 @@ def load_scale(precheck: Path, scale: str) -> dict:
     """Load one scale's saved indices. n=1000 and the full set stay separate."""
     if scale not in EXPECTED_ROWS:
         raise ValueError("scale must be n1000 or full")
-    directory = Path(precheck)
+    directory = sealed_config.assert_precheck_path(precheck)
+    before = sealed_config.precheck_snapshot(directory)
     expected = EXPECTED_ROWS[scale]
     folds = []
     covered = np.zeros(expected["n"], dtype=bool)
@@ -121,6 +127,7 @@ def load_scale(precheck: Path, scale: str) -> dict:
         raise ValueError(f"{scale} internal 10 percent split does not have the sealed sizes")
     if _as_set(residual_train) & _as_set(residual_val) or _as_set(residual_train) | _as_set(residual_val) != set(range(expected["n"])):
         raise ValueError(f"{scale} internal split is not a partition of the outer training rows")
+    sealed_config.assert_precheck_unchanged(before, sealed_config.precheck_snapshot(directory))
     return {
         "scale": scale,
         "n": expected["n"],
@@ -128,13 +135,21 @@ def load_scale(precheck: Path, scale: str) -> dict:
         "fold_id": fold_id,
         "residual_train_idx": residual_train,
         "residual_val_idx": residual_val,
+        "precheck_dir_name": directory.name,
+        "precheck_parent_name": directory.parent.name,
+        "indices_regenerated": False,
+        "kfold_seed": _SEALED.kfold_seed,
+        "residual_holdout_seed": _SEALED.residual_holdout_seed,
     }
 
 
 def load_precheck(precheck: Path) -> dict[str, dict]:
     """Read both sealed scales after checking hashes. Files are not rewritten."""
-    verify_precheck_hashes(precheck)
-    loaded = {scale: load_scale(precheck, scale) for scale in SCALES}
+    directory = sealed_config.assert_precheck_path(precheck)
+    before = sealed_config.precheck_snapshot(directory)
+    verify_precheck_hashes(directory)
+    loaded = {scale: load_scale(directory, scale) for scale in SCALES}
+    sealed_config.assert_precheck_unchanged(before, sealed_config.precheck_snapshot(directory))
     if loaded["n1000"]["n"] == loaded["full"]["n"]:
         raise ValueError("n=1000 and the full training set were not kept separate")
     if np.array_equal(loaded["n1000"]["fold_id"], loaded["full"]["fold_id"][: loaded["n1000"]["n"]]):
@@ -342,20 +357,22 @@ def run_seed_protocol(
     batch_sequences=None,
     fit_fold,
     mode: str = "synthetic",
-    max_epochs: int = RESIDUAL_DEFAULTS["max_epochs"],
-    patience: int = RESIDUAL_DEFAULTS["patience"],
-    batch_size: int = RESIDUAL_DEFAULTS["batch_size"],
-    learning_rate: float = RESIDUAL_DEFAULTS["learning_rate"],
-    weight_decay: float = RESIDUAL_DEFAULTS["weight_decay"],
     seed: int = 0,
     embed_dim: int,
+    baseline_best_epoch: int | None = None,
+    e_s_source: str | None = None,
+    residual_fit=None,
+    config: sealed_config.SealedExecution | None = None,
 ) -> dict:
     """Run OOF assembly and three residual arms on arrays already in memory.
 
     ``s_valid`` and ``e_s`` are shared by the baseline and the three residual
-    arms. Each arm has its own predictor and its own ``η``. The three arms
-    share one initial state and the shuffle stream of ``outer_seed``. ``seed``
-    is not an arm offset. Formal test metrics are not computed.
+    arms. ``e_s`` must be this outer seed's own baseline best epoch. Each arm
+    has its own predictor and its own ``η``. The three arms share one initial
+    state and the shuffle stream of ``outer_seed``. ``seed`` is not an arm
+    offset. Residual hyperparameters come from the sealed config. Formal test
+    metrics are not computed. ``residual_fit`` records a call in a short test;
+    the default is ``residual.fit_predictor``.
     """
     if mode != "synthetic":
         raise RuntimeError("formal training and formal fusion metrics are not started in this step")
@@ -375,28 +392,35 @@ def run_seed_protocol(
         raise ValueError("the shared μFormer score does not match the validation labels")
     if _batch_rows(valid_batch) != int(identity.shape[0]):
         raise ValueError("the validation residual batch is not aligned to the validation sequences")
+    cfg = sealed_config.require(config)
+    sealed_config.assert_saved_soft_weight_audit()
+    if baseline_best_epoch is None or e_s_source is None:
+        sealed_config.assert_e_s(e_s, e_s, "", cfg)
+    e_s = sealed_config.assert_e_s(e_s, baseline_best_epoch, e_s_source, cfg)
     folds = folds_for_seed(loaded_scale, e_s)
+    sealed_config.assert_folds_share_e_s(
+        e_s,
+        [fold["epochs"] for fold in folds],
+        held_out_selection=False,
+    )
     oof_score = assemble_oof(loaded_scale["n"], folds, int(e_s), fit_fold)
     target = torch.as_tensor(y_rows - oof_score, dtype=torch.float32)
     observed = train_batch["mask"]
     initial_state = residual.shared_initial_state(embed_dim, int(outer_seed))
     del seed
+    fit = residual.fit_predictor if residual_fit is None else residual_fit
     arms = {}
     for arm in residual.ARMS:
         mask = residual.arm_mask(observed, arm)
-        fitted = residual.fit_predictor(
+        fitted = fit(
             _arm_batch(train_batch, mask),
             target,
             loaded_scale["residual_train_idx"],
             loaded_scale["residual_val_idx"],
             embed_dim=embed_dim,
-            max_epochs=max_epochs,
-            patience=patience,
-            batch_size=batch_size,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
             outer_seed=int(outer_seed),
             initial_state=initial_state,
+            config=cfg,
         )
         valid_mask = residual.arm_mask(valid_batch["mask"], arm)
         correction = predict.residual_vector(fitted["model"], _arm_batch(valid_batch, valid_mask))
@@ -435,3 +459,60 @@ def run_seed_protocol(
         "arms": arms,
         "formal_metrics_computed": False,
     }
+
+
+def record_residual_call(records: list):
+    """Return a fit stand-in that records the sealed call and does not train.
+
+    The recorded hyperparameters are the sealed config. This does not replace
+    them with a shorter schedule. Row-order checks call ``residual.fit_predictor``.
+    """
+
+    def fit(batch, target, train_idx, val_idx, *, embed_dim, outer_seed, initial_state, config):
+        del batch
+        cfg = sealed_config.require(config)
+        train_rows = np.asarray(train_idx)
+        val_rows = np.asarray(val_idx)
+        records.append(
+            {
+                "optimizer": cfg.optimizer,
+                "learning_rate": cfg.learning_rate,
+                "weight_decay": cfg.weight_decay,
+                "batch_size": cfg.batch_size,
+                "max_epochs": cfg.max_epochs,
+                "patience": cfg.patience,
+                "scheduler": cfg.scheduler,
+                "early_stop_metric": cfg.early_stop_metric,
+                "train_rows": int(train_rows.shape[0]),
+                "val_rows": int(val_rows.shape[0]),
+                "outer_seed": int(outer_seed),
+            }
+        )
+        state = {key: value.detach().cpu().clone() for key, value in initial_state.items()}
+        model = residual.ResidualPredictor(embed_dim)
+        model.load_state_dict(state)
+        model.eval()
+        selection = torch.arange(int(train_rows.shape[0]), dtype=torch.long)
+        retrain = torch.arange(int(target.shape[0]), dtype=torch.long)
+        mask = torch.ones(1, 1)
+        return {
+            "model": model,
+            "best_epoch": 1,
+            "best_mae": 0.0,
+            "selection_epochs_run": 1,
+            "retrain_epochs_run": 1,
+            "retrain_rows": int(target.shape[0]),
+            "selection_train_rows": int(train_rows.shape[0]),
+            "outer_seed": int(outer_seed),
+            "initial_state": state,
+            "selection_initial": {key: value.clone() for key, value in state.items()},
+            "retrain_initial": {key: value.clone() for key, value in state.items()},
+            "selection_orders": [selection],
+            "retrain_orders": [retrain],
+            "selection_index_source": torch.as_tensor(train_rows, dtype=torch.long),
+            "retrain_index_source": retrain.clone(),
+            "selection_first_dropout_mask": mask,
+            "retrain_first_dropout_mask": mask.clone(),
+        }
+
+    return fit
