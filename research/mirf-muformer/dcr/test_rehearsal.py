@@ -27,7 +27,16 @@ class RehearsalTests(unittest.TestCase):
         self.assertEqual(result["sealed_patience"], 30)
         self.assertEqual(result["sealed_batch_size"], 64)
         self.assertEqual(result["sealed_max_epochs"], 300)
-        self.assertFalse(result["muformer_received_batch_size"])
+        self.assertEqual(result["muformer_batch_size"], 16)
+        self.assertEqual(result["residual_batch_size"], 64)
+        self.assertNotEqual(result["muformer_batch_size"], result["residual_batch_size"])
+        self.assertEqual(result["muformer_hidden_size"], 256)
+        self.assertEqual(result["muformer_dropout"], 0.2)
+        self.assertEqual(result["muformer_decoder_name"], "siamese")
+        self.assertEqual(result["muformer_encoder_lr"], 1e-5)
+        self.assertEqual(result["muformer_decoder_lr"], 1e-4)
+        self.assertEqual(result["muformer_weight_decay"], 0)
+        self.assertEqual(result["muformer_warmup_epochs"], 10)
         self.assertNotEqual(result["e_s"], 229)
 
 

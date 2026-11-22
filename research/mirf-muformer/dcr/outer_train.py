@@ -8,6 +8,8 @@ Completed epochs and restored-weight flags are read from the trainer record.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import numpy as np
 
 import oof
@@ -167,6 +169,74 @@ def _recorded_fold_rows(trainer, request: dict) -> np.ndarray:
     return rows
 
 
+def muformer_standin_state(config: dict) -> dict:
+    """Fields ``Trainer.__init__`` and ``init_model`` would write for this config.
+
+    This does not call ``Trainer`` or ``init_model``, and it does not build Adam.
+    """
+    checked = sealed_config.assert_muformer_config(config)
+    weight_decay = checked["weight_decay"]
+    return {
+        "batch_size": checked["batch_size"],
+        "hidden_size": checked["hidden"],
+        "dropout": checked["dropout"],
+        "decoder_name": checked["decoder_name"],
+        "encoder_lr": checked["encoder_lr"],
+        "decoder_lr": checked["decoder_lr"],
+        "weight_decay": weight_decay,
+        "warmup_epochs": checked["warmup_epochs"],
+        "adam_groups": (
+            {"lr": checked["encoder_lr"], "weight_decay": weight_decay},
+            {"lr": checked["decoder_lr"], "weight_decay": weight_decay},
+        ),
+    }
+
+
+def apply_muformer_standin(trainer, config: dict) -> None:
+    """Write the μFormer constructor fields onto a stand-in trainer."""
+    state = muformer_standin_state(config)
+    trainer.batch_size = state["batch_size"]
+    trainer.hidden_size = state["hidden_size"]
+    trainer.dropout = state["dropout"]
+    trainer.decoder_name = state["decoder_name"]
+    trainer.args = SimpleNamespace(
+        encoder_lr=state["encoder_lr"],
+        decoder_lr=state["decoder_lr"],
+        weight_decay=state["weight_decay"],
+        warmup_epochs=state["warmup_epochs"],
+    )
+    trainer.adam_groups = state["adam_groups"]
+
+
+def _assert_trainer_carries_muformer_config(trainer, request: dict) -> None:
+    """The comparison configuration has to be on the trainer, not only in the request."""
+    if "muformer_config" not in request:
+        return
+    state = muformer_standin_state(request["muformer_config"])
+    args = getattr(trainer, "args", None)
+    if (
+        getattr(trainer, "batch_size", None) != state["batch_size"]
+        or getattr(trainer, "hidden_size", None) != state["hidden_size"]
+        or getattr(trainer, "dropout", None) != state["dropout"]
+        or getattr(trainer, "decoder_name", None) != state["decoder_name"]
+        or args is None
+        or getattr(args, "encoder_lr", None) != state["encoder_lr"]
+        or getattr(args, "decoder_lr", None) != state["decoder_lr"]
+        or getattr(args, "weight_decay", None) != state["weight_decay"]
+        or getattr(args, "warmup_epochs", None) != state["warmup_epochs"]
+        or getattr(trainer, "adam_groups", None) != state["adam_groups"]
+    ):
+        raise RuntimeError("μFormer constructor fields are not on the trainer before train")
+
+
+def _comparison_request_fields() -> dict:
+    """Nested comparison namespaces. The request top level has no ``batch_size``."""
+    return {
+        "muformer_config": sealed_config.assert_muformer_config(sealed_config.muformer_config()),
+        "residual_config": sealed_config.assert_residual_config(sealed_config.residual_config()),
+    }
+
+
 def execute_muformer_request(trainer, request: dict) -> dict:
     """Call ``train`` on one request.
 
@@ -197,6 +267,7 @@ def execute_muformer_request(trainer, request: dict) -> dict:
         "drop_last": not fold,
     }
     sealed_config.assert_muformer_train_call(train_call, request)
+    _assert_trainer_carries_muformer_config(trainer, request)
     trainer.train(**train_call)
     if request["restore_best"]:
         record = _require_full_record(trainer)
@@ -275,6 +346,7 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
         "restore_best": True,
         "select_on_held_out_fold": False,
     }
+    full_request.update(_comparison_request_fields())
     full_result = execute_muformer_request(trainer_factory(full_request), full_request)
     e_s = sealed_config.assert_e_s(full_result["e_s"], full_result["e_s"], cfg.e_s_source, cfg)
     score = np.asarray(full_result["score"], dtype=np.float64)
@@ -304,6 +376,11 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
             "baseline_best_epoch": e_s,
             "e_s_source": cfg.e_s_source,
         }
+        request.update(_comparison_request_fields())
+        if request["muformer_config"] != full_request["muformer_config"]:
+            raise RuntimeError("a fold model's muformer_config is not the full model's muformer_config")
+        if request["residual_config"] != full_request["residual_config"]:
+            raise RuntimeError("a fold model's residual_config is not the full model's residual_config")
         produced = execute_muformer_request(trainer_factory(request), request)
         if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
             raise RuntimeError("a fold model did not keep the weights from epoch E_s")

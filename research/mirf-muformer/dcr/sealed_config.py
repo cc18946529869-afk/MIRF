@@ -58,10 +58,23 @@ MUFORMER_EXCLUDED_KEYS = frozenset({
     "decoder_lr",
     "weight_decay",
     "hidden",
+    "hidden_size",
     "dropout",
     "siamese",
+    "decoder_name",
     "warmup",
+    "warmup_epochs",
 })
+MUFORMER_CONFIG = {
+    "batch_size": 16,
+    "encoder_lr": 1e-5,
+    "decoder_lr": 1e-4,
+    "weight_decay": 0.0,
+    "hidden": 256,
+    "dropout": 0.2,
+    "decoder_name": "siamese",
+    "warmup_epochs": 10,
+}
 
 SOFT_WEIGHT_AUDIT = "soft_weight_coords_audit.json"
 SOFT_WEIGHT_TABLE = "blat_ecolx_stiffler_2015_soft_weight_coords.tsv"
@@ -137,14 +150,74 @@ def assert_no_scheduler(scheduler) -> None:
         raise RuntimeError("residual training does not use a learning-rate scheduler")
 
 
+def muformer_config() -> dict:
+    """The locked μFormer comparison configuration, as its own namespace."""
+    return dict(MUFORMER_CONFIG)
+
+
+def assert_muformer_config(config: dict) -> dict:
+    """Refuse a μFormer comparison config that is not the locked one."""
+    expected = MUFORMER_CONFIG
+    if (
+        not isinstance(config, dict)
+        or set(config) != set(expected)
+        or any(config[key] != expected[key] for key in expected)
+    ):
+        raise RuntimeError("muformer_config does not match the comparison configuration")
+    if (
+        config["batch_size"] == SEALED.batch_size
+        or config["hidden"] == SEALED.hidden
+        or config["dropout"] == SEALED.dropout
+    ):
+        raise RuntimeError("muformer_config was mixed with the residual batch size or the residual readout")
+    return dict(expected)
+
+
+def residual_config(config: SealedExecution | None = None) -> dict:
+    """Residual hyperparameters that are not the μFormer comparison configuration.
+
+    The readout width and dropout stay on the sealed execution config.
+    """
+    cfg = require(config)
+    return {
+        "batch_size": int(cfg.batch_size),
+        "optimizer": cfg.optimizer,
+        "learning_rate": cfg.learning_rate,
+        "weight_decay": cfg.weight_decay,
+        "max_epochs": int(cfg.max_epochs),
+        "patience": int(cfg.patience),
+    }
+
+
+def assert_residual_config(config: dict) -> dict:
+    """Refuse a residual namespace that is not the sealed residual hyperparameters."""
+    expected = residual_config()
+    if (
+        not isinstance(config, dict)
+        or set(config) != set(expected)
+        or any(config[key] != expected[key] for key in expected)
+    ):
+        raise RuntimeError("residual_config does not match the sealed residual hyperparameters")
+    return dict(expected)
+
+
 def assert_muformer_train_call(call: dict, request: dict) -> None:
-    """Batch size 64 and the comparison configuration do not enter μFormer."""
+    """``train`` keeps its original arguments.
+
+    The request top level still refuses ``batch_size`` and the comparison-configuration
+    keys. A nested ``muformer_config`` may remain after it has been validated.
+    """
     if set(call) != MUFORMER_TRAIN_KEYS:
         raise RuntimeError("the μFormer train call does not match the sealed argument set")
-    if MUFORMER_EXCLUDED_KEYS & set(call) or MUFORMER_EXCLUDED_KEYS & set(request):
-        raise RuntimeError("batch size 64 and the comparison configuration are not passed to μFormer")
-    if "batch_size" in call or "batch_size" in request:
-        raise RuntimeError("batch size 64 is not passed to μFormer")
+    top_level = set(request) - {"muformer_config", "residual_config"}
+    if MUFORMER_EXCLUDED_KEYS & set(call) or MUFORMER_EXCLUDED_KEYS & top_level:
+        raise RuntimeError("batch size and the comparison configuration are not top-level μFormer train arguments")
+    if "batch_size" in call or "batch_size" in top_level:
+        raise RuntimeError("batch size is not a top-level μFormer train argument")
+    if "muformer_config" in request:
+        assert_muformer_config(request["muformer_config"])
+    if "residual_config" in request:
+        assert_residual_config(request["residual_config"])
 
 
 def assert_precheck_path(precheck: Path) -> Path:

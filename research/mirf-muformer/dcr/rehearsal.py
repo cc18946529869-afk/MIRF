@@ -44,6 +44,7 @@ class _RecordingTrainer:
             "sequence": np.asarray(test_sequences),
             "score": np.arange(len(test_sequences), dtype=np.float64),
         })
+        outer_train.apply_muformer_standin(self, request["muformer_config"])
 
     def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
             train_row_index=None, drop_last=True):
@@ -51,15 +52,27 @@ class _RecordingTrainer:
             recorded = np.asarray(train_row_index, dtype=np.int64).copy()
         else:
             recorded = np.asarray(self.request["train_idx"], dtype=np.int64).copy()
+        train_arguments = {
+            "epochs": int(epochs),
+            "eval_freq": int(eval_freq),
+            "patience": int(patience),
+            "save_checkpoint": save_checkpoint,
+            "resume_path": resume_path,
+            "restore_best": bool(restore_best),
+            "train_row_index": None if train_row_index is None else np.asarray(train_row_index, dtype=np.int64).copy(),
+            "drop_last": bool(drop_last),
+        }
         self.calls.append(
             {
                 "kind": self.request["kind"],
                 "fold": self.request["fold"],
                 "epochs": int(epochs),
+                "patience": int(patience),
                 "restore_best": bool(restore_best),
                 "train_idx": recorded,
                 "drop_last": bool(drop_last),
                 "select_on_held_out_fold": bool(self.request["select_on_held_out_fold"]),
+                "train_arguments": train_arguments,
             }
         )
         if train_row_index is None:
@@ -145,8 +158,19 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
     if scheduled["formal_training_started"] or scheduled["e_s"] != 4:
         raise RuntimeError("the synthetic schedule did not keep the injected E_s")
     fold_calls = [item for item in calls if item.get("kind") == "fold"]
+    full_calls = [item for item in calls if item.get("kind") == "full"]
     if len(fold_calls) != 5:
         raise RuntimeError("the synthetic schedule did not record five fold calls")
+    if (
+        len(full_calls) != 1
+        or full_calls[0]["epochs"] != outer_train.BASELINE_EPOCHS
+        or full_calls[0]["patience"] != outer_train.BASELINE_PATIENCE
+        or not full_calls[0]["restore_best"]
+    ):
+        raise RuntimeError("the full model train call is not epochs 300, patience 300, and restore_best")
+    for item in full_calls + fold_calls:
+        if set(item["train_arguments"]) != sealed_config.MUFORMER_TRAIN_KEYS:
+            raise RuntimeError("train received a parameter outside the original set")
     for fold, call in zip(scale["folds"], fold_calls):
         if call["epochs"] != 4 or call["restore_best"] or call["select_on_held_out_fold"] or call["drop_last"]:
             raise RuntimeError("a fold call did not use the fixed E_s without held-out selection")
@@ -229,9 +253,31 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
             raise RuntimeError("the rehearsal substituted the sealed residual hyperparameters")
         if item["train_rows"] != 900 or item["val_rows"] != 100:
             raise RuntimeError("the residual call did not receive the saved internal split")
+    muformer_configs = []
     for trainer in trainers:
-        if "batch_size" in trainer.request:
-            raise RuntimeError("batch size 64 was passed to μFormer")
+        muformer = sealed_config.assert_muformer_config(trainer.request["muformer_config"])
+        residual_cfg = sealed_config.assert_residual_config(trainer.request["residual_config"])
+        muformer_configs.append(muformer)
+        if muformer["batch_size"] != 16 or residual_cfg["batch_size"] != 64:
+            raise RuntimeError("the μFormer batch size 16 and the residual batch size 64 were mixed")
+        if (
+            trainer.batch_size != muformer["batch_size"]
+            or trainer.hidden_size != muformer["hidden"]
+            or trainer.dropout != muformer["dropout"]
+            or trainer.decoder_name != muformer["decoder_name"]
+            or trainer.args.encoder_lr != muformer["encoder_lr"]
+            or trainer.args.decoder_lr != muformer["decoder_lr"]
+            or trainer.args.weight_decay != muformer["weight_decay"]
+            or trainer.args.warmup_epochs != muformer["warmup_epochs"]
+            or trainer.batch_size == residual_cfg["batch_size"]
+            or trainer.hidden_size == cfg.hidden
+            or trainer.dropout == cfg.dropout
+            or "hidden" in residual_cfg
+            or "dropout" in residual_cfg
+        ):
+            raise RuntimeError("the stand-in did not keep the μFormer constructor fields apart from the residual readout")
+    if any(item != muformer_configs[0] for item in muformer_configs):
+        raise RuntimeError("the full model and the fold models do not share one muformer_config")
     reference_state = residual.shared_initial_state(4, seed)
     for arm in residual.ARMS:
         item = protocol["arms"][arm]
@@ -292,7 +338,15 @@ def rehearse(precheck: Path, *, outer_seed: int | None = None, mode: str = "synt
         "sealed_patience": cfg.patience,
         "sealed_batch_size": cfg.batch_size,
         "sealed_max_epochs": cfg.max_epochs,
-        "muformer_received_batch_size": False,
+        "muformer_batch_size": int(trainers[0].batch_size),
+        "residual_batch_size": int(trainers[0].request["residual_config"]["batch_size"]),
+        "muformer_hidden_size": int(trainers[0].hidden_size),
+        "muformer_dropout": trainers[0].dropout,
+        "muformer_decoder_name": trainers[0].decoder_name,
+        "muformer_encoder_lr": trainers[0].args.encoder_lr,
+        "muformer_decoder_lr": trainers[0].args.decoder_lr,
+        "muformer_weight_decay": trainers[0].args.weight_decay,
+        "muformer_warmup_epochs": int(trainers[0].args.warmup_epochs),
         "k_for_999": metrics.top_fraction_k(metrics.N_TEST_STIFLER),
         "formal_bootstrap_default": metrics.FORMAL_BOOTSTRAP,
         "formal_training_started": False,

@@ -15,6 +15,7 @@ import torch.nn as nn
 import oof
 import outer_train
 import predict
+import sealed_config
 
 SRC = Path(__file__).resolve().parents[3] / "Mu-Protein" / "mu-former" / "src"
 sys.path.insert(0, str(SRC))
@@ -30,6 +31,7 @@ class _Factory:
 
     def __call__(self, request):
         trainer = _Trainer(request, self.e_s)
+        outer_train.apply_muformer_standin(trainer, request["muformer_config"])
         self.requests.append(request)
         self.trainers.append(trainer)
         return trainer
@@ -54,6 +56,16 @@ class _Trainer:
         self.restore_best = bool(restore_best)
         self.train_row_index = None if train_row_index is None else np.asarray(train_row_index, dtype=np.int64).copy()
         self.drop_last = bool(drop_last)
+        self.train_arguments = {
+            "epochs": int(epochs),
+            "eval_freq": int(eval_freq),
+            "patience": int(patience),
+            "save_checkpoint": save_checkpoint,
+            "resume_path": resume_path,
+            "restore_best": bool(restore_best),
+            "train_row_index": self.train_row_index,
+            "drop_last": bool(drop_last),
+        }
         self.epochs_completed = [int(epochs)]
         if restore_best:
             self.best_epochs.append(self.e_s)
@@ -213,6 +225,114 @@ class OuterTrainTests(unittest.TestCase):
                 self.assertNotIn(key, request)
         self.assertNotEqual(result["e_s"], 229)
         self.assertEqual([item["epochs_run"] for item in result["folds"]], [6, 6, 6, 6, 6])
+
+    def test_nested_comparison_configs_reach_the_standin(self) -> None:
+        loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
+        factory = _Factory(6)
+        result = outer_train.train_outer_models("n1000", oof.OUTER_SEEDS[1], loaded, factory, mode="synthetic")
+        self.assertEqual(len(factory.requests), 6)
+        self.assertEqual(len(factory.trainers), 6)
+        muformer_configs = [request["muformer_config"] for request in factory.requests]
+        residual_configs = [request["residual_config"] for request in factory.requests]
+        self.assertEqual(muformer_configs, [muformer_configs[0]] * 6)
+        self.assertEqual(residual_configs, [residual_configs[0]] * 6)
+        self.assertEqual(muformer_configs[0]["batch_size"], 16)
+        self.assertEqual(muformer_configs[0]["encoder_lr"], 1e-5)
+        self.assertEqual(muformer_configs[0]["decoder_lr"], 1e-4)
+        self.assertEqual(muformer_configs[0]["weight_decay"], 0)
+        self.assertEqual(muformer_configs[0]["hidden"], 256)
+        self.assertEqual(muformer_configs[0]["dropout"], 0.2)
+        self.assertEqual(muformer_configs[0]["decoder_name"], "siamese")
+        self.assertEqual(muformer_configs[0]["warmup_epochs"], 10)
+        self.assertEqual(residual_configs[0]["batch_size"], 64)
+        self.assertEqual(residual_configs[0]["optimizer"], "AdamW")
+        self.assertEqual(residual_configs[0]["learning_rate"], 1e-3)
+        self.assertEqual(residual_configs[0]["weight_decay"], 1e-4)
+        self.assertEqual(residual_configs[0]["max_epochs"], 300)
+        self.assertEqual(residual_configs[0]["patience"], 30)
+        self.assertNotIn("hidden", residual_configs[0])
+        self.assertNotIn("dropout", residual_configs[0])
+        self.assertEqual(sealed_config.SEALED.hidden, 64)
+        self.assertEqual(sealed_config.SEALED.dropout, 0.1)
+        full = factory.trainers[0]
+        self.assertEqual(set(full.train_arguments), sealed_config.MUFORMER_TRAIN_KEYS)
+        self.assertEqual(full.train_arguments["epochs"], 300)
+        self.assertEqual(full.train_arguments["patience"], 300)
+        self.assertTrue(full.train_arguments["restore_best"])
+        self.assertNotIn("batch_size", full.train_arguments)
+        for trainer, request in zip(factory.trainers, factory.requests):
+            self.assertNotIn("batch_size", request)
+            for key in sealed_config.MUFORMER_EXCLUDED_KEYS:
+                self.assertNotIn(key, request)
+            self.assertEqual(trainer.batch_size, 16)
+            self.assertEqual(trainer.hidden_size, 256)
+            self.assertEqual(trainer.dropout, 0.2)
+            self.assertEqual(trainer.decoder_name, "siamese")
+            self.assertEqual(trainer.args.encoder_lr, 1e-5)
+            self.assertEqual(trainer.args.decoder_lr, 1e-4)
+            self.assertEqual(trainer.args.weight_decay, 0)
+            self.assertEqual(trainer.args.warmup_epochs, 10)
+            self.assertEqual(
+                trainer.adam_groups,
+                (
+                    {"lr": 1e-5, "weight_decay": 0},
+                    {"lr": 1e-4, "weight_decay": 0},
+                ),
+            )
+            self.assertNotEqual(trainer.batch_size, request["residual_config"]["batch_size"])
+            self.assertNotEqual(trainer.hidden_size, sealed_config.SEALED.hidden)
+            self.assertNotEqual(trainer.dropout, sealed_config.SEALED.dropout)
+            self.assertEqual(set(trainer.train_arguments), sealed_config.MUFORMER_TRAIN_KEYS)
+        for trainer in factory.trainers[1:]:
+            self.assertEqual(trainer.train_arguments["epochs"], result["e_s"])
+            self.assertNotEqual(trainer.train_arguments["epochs"], 300)
+            self.assertFalse(trainer.train_arguments["restore_best"])
+            self.assertEqual(trainer.epochs_completed, [result["e_s"]])
+            self.assertEqual(trainer.best_epoch_per_model, [None])
+            self.assertEqual(trainer.restored_best_weights, [False])
+            self.assertEqual(trainer.restored_earlier_weights, [False])
+        bare = _Trainer({"restore_best": True}, 6)
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                bare,
+                {
+                    "restore_best": True,
+                    "epochs": 300,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "select_on_held_out_fold": False,
+                    "muformer_config": sealed_config.muformer_config(),
+                    "residual_config": sealed_config.residual_config(),
+                },
+            )
+        self.assertFalse(hasattr(bare, "epochs"))
+        mixed = sealed_config.muformer_config()
+        mixed["batch_size"] = 64
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                full,
+                {
+                    "restore_best": True,
+                    "epochs": 300,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "select_on_held_out_fold": False,
+                    "muformer_config": mixed,
+                },
+            )
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                full,
+                {
+                    "restore_best": True,
+                    "epochs": 300,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "select_on_held_out_fold": False,
+                    "batch_size": 16,
+                    "muformer_config": sealed_config.muformer_config(),
+                },
+            )
 
     def test_epochs_run_is_the_recorded_completed_count(self) -> None:
         trainer = _RecordedCompletionTrainer(completed=17, best_epoch=6)
