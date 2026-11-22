@@ -1,0 +1,74 @@
+{
+  "table": "/data/cc233_data/work_dir/MIRF-dcr-residual-implementation-20261121/research/mirf-muformer/dcr/features/blat_ecolx_stiffler_2015_soft_weight_coords.tsv",
+  "rows": 4996,
+  "unique_sequences": 4996,
+  "split_rows": {
+    "train": 3497,
+    "valid": 500,
+    "test": 999
+  },
+  "feature_names": [
+    "r_mean",
+    "delta_e",
+    "std_r_mean",
+    "std_delta_e",
+    "r_source",
+    "std_r_source",
+    "r_other",
+    "r_contact",
+    "r_remote",
+    "r_unknown",
+    "std_r_other",
+    "std_r_contact",
+    "std_r_remote",
+    "std_r_unknown"
+  ],
+  "mask_names": [
+    "mask_01",
+    "mask_02",
+    "mask_03",
+    "mask_04",
+    "mask_05",
+    "mask_06",
+    "mask_07",
+    "mask_08",
+    "mask_09",
+    "mask_10",
+    "mask_11",
+    "mask_12",
+    "mask_13",
+    "mask_14"
+  ],
+  "n1000_train": {
+    "path": "/home/cc233/data/cc233_data/work_dir/Muformer_DPFunc/new-Mu-Protein-main/data/dms/BLAT_ECOLX_Stiffler_2015_n1000/BLAT_ECOLX_Stiffler_2015_n1000_train.tsv",
+    "split": "train",
+    "rows": 1000,
+    "unique": 1000,
+    "found_in_split": 1000
+  },
+  "full_train": {
+    "path": "/home/cc233/data/cc233_data/work_dir/MIRF/proteingym_v0.1_split/subs/BLAT_ECOLX_Stiffler_2015_train.tsv",
+    "split": "train",
+    "rows": 3497,
+    "unique": 3497,
+    "found_in_split": 3497
+  },
+  "valid": {
+    "path": "/home/cc233/data/cc233_data/work_dir/MIRF/proteingym_v0.1_split/subs/BLAT_ECOLX_Stiffler_2015_valid.tsv",
+    "split": "valid",
+    "rows": 500,
+    "unique": 500,
+    "found_in_split": 500
+  },
+  "test": {
+    "path": "/home/cc233/data/cc233_data/work_dir/MIRF/proteingym_v0.1_split/subs/BLAT_ECOLX_Stiffler_2015_test.tsv",
+    "split": "test",
+    "rows": 999,
+    "unique": 999,
+    "found_in_split": 999
+  },
+  "labels_come_from": "training TSV score column",
+  "lookup_key": "sequence",
+  "masked_rows": 0,
+  "joined_into_a_training_batch_by_this_report": false
+}

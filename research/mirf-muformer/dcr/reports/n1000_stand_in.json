@@ -1,0 +1,38 @@
+{
+  "muformer_trained": false,
+  "formal_experiment": false,
+  "oof_model": "linear_soft_weight_features",
+  "pmlm_weights_used": false,
+  "rows": 1000,
+  "valid_rows": 500,
+  "test_rows": 999,
+  "feature_shape": [
+    1000,
+    14
+  ],
+  "source_lengths": [
+    112,
+    151
+  ],
+  "oof_coverage": 1000,
+  "arms": [
+    "full",
+    "sum",
+    "no_potts"
+  ],
+  "shared_init": true,
+  "shared_first_order": true,
+  "best_epochs": {
+    "full": 90,
+    "sum": 90,
+    "no_potts": 14
+  },
+  "eta": 0.0,
+  "test_point": {
+    "spearman": 0.7073395571648678,
+    "pearson": 0.6820924659981675,
+    "ndcg": 0.9476991245176337,
+    "recall": 0.39,
+    "rmse": 0.8537394423486253
+  }
+}

@@ -16,6 +16,18 @@ import torch
 import torch.nn as nn
 
 
+def _per_row_indices(index, batch: int, device) -> list[torch.Tensor]:
+    """One 1-d token index per batch row. Lengths may differ."""
+    if isinstance(index, (list, tuple)):
+        if len(index) != batch:
+            raise ValueError("each sequence needs its own lobe token indices")
+        return [torch.as_tensor(item, dtype=torch.long, device=device).view(-1) for item in index]
+    tensor = torch.as_tensor(index, dtype=torch.long, device=device)
+    if tensor.ndim != 2 or int(tensor.shape[0]) != batch:
+        raise ValueError("each sequence needs its own lobe token indices")
+    return [tensor[row] for row in range(batch)]
+
+
 class FrozenPmlm(nn.Module):
     """Hold an independent encoder and read its last block output."""
 
@@ -27,6 +39,7 @@ class FrozenPmlm(nn.Module):
         self.encoder.eval()
         for parameter in self.encoder.parameters():
             parameter.requires_grad_(False)
+        self.eval()
 
     def train(self, mode: bool = True):
         super().train(False)
@@ -45,27 +58,35 @@ class FrozenPmlm(nn.Module):
     def representations(
         self,
         tokens: torch.Tensor,
-        site_ref_pos: int,
-        source_ref_positions: torch.Tensor,
-        other_ref_positions: torch.Tensor,
+        site_token_index: torch.Tensor,
+        source_token_index: torch.Tensor,
+        other_token_index: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Site vector and the two lobe means on the variant sequence.
+        """Per-sequence site vector and lobe means.
 
-        ``site_ref_pos`` is both the 1-based reference position and the token
-        index. The caller supplies lobe positions that already exclude the
-        signal peptide, ``<s>`` and the end token.
+        ``hidden`` is arranged as time, batch, channel. ``site_token_index``
+        has one token index per batch row. Source and other indices are one
+        vector per row, because the two lobes have different lengths. A single
+        integer is not applied to every row.
         """
         hidden = self.forward(tokens)
-        site_index = int(site_ref_pos)
-        if site_index <= 0 or site_index >= hidden.shape[0]:
-            raise ValueError("the site token index is outside the frozen sequence")
-        source_index = torch.as_tensor(source_ref_positions, dtype=torch.long, device=hidden.device)
-        other_index = torch.as_tensor(other_ref_positions, dtype=torch.long, device=hidden.device)
-        if torch.any(source_index <= 0) or torch.any(other_index <= 0):
-            raise ValueError("a lobe average includes <s> or a non-positive index")
-        site = hidden[site_index]
-        source = hidden.index_select(0, source_index).mean(dim=0)
-        other = hidden.index_select(0, other_index).mean(dim=0)
+        batch = int(hidden.shape[1])
+        site_index = torch.as_tensor(site_token_index, dtype=torch.long, device=hidden.device)
+        if site_index.ndim != 1 or int(site_index.shape[0]) != batch:
+            raise ValueError("each sequence needs its own site token index")
+        source_rows = _per_row_indices(source_token_index, batch, hidden.device)
+        other_rows = _per_row_indices(other_token_index, batch, hidden.device)
+        if (
+            torch.any(site_index <= 0)
+            or torch.any(site_index >= hidden.shape[0])
+            or any(torch.any(item <= 0) or torch.any(item >= hidden.shape[0]) for item in source_rows)
+            or any(torch.any(item <= 0) or torch.any(item >= hidden.shape[0]) for item in other_rows)
+        ):
+            raise ValueError("a token index includes <s>, a non-positive index, or the end of the sequence")
+        rows = torch.arange(batch, device=hidden.device)
+        site = hidden[site_index, rows]
+        source = torch.stack([hidden[index, row].mean(dim=0) for row, index in zip(rows, source_rows)])
+        other = torch.stack([hidden[index, row].mean(dim=0) for row, index in zip(rows, other_rows)])
         return site, source, other
 
 

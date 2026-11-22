@@ -124,13 +124,18 @@ class FrozenTests(unittest.TestCase):
         tokens = torch.zeros(2, 288, dtype=torch.long)
         site, source, other_lobe = frozen.representations(
             tokens,
-            82,
-            torch.tensor([60, 82, 210]),
-            torch.tensor([24, 286]),
+            torch.tensor([82, 24]),
+            torch.tensor([[60, 82, 210], [24, 40, 50]]),
+            torch.tensor([[24, 286], [82, 100]]),
         )
-        self.assertTrue(torch.equal(site, torch.full((2, 4), 82.0)))
-        self.assertTrue(torch.allclose(source, torch.full((2, 4), (60 + 82 + 210) / 3)))
-        self.assertTrue(torch.allclose(other_lobe, torch.full((2, 4), (24 + 286) / 2)))
+        self.assertTrue(torch.equal(site[0], torch.full((4,), 82.0)))
+        self.assertTrue(torch.equal(site[1], torch.full((4,), 24.0)))
+        self.assertTrue(torch.allclose(source[0], torch.full((4,), (60 + 82 + 210) / 3)))
+        self.assertTrue(torch.allclose(source[1], torch.full((4,), (24 + 40 + 50) / 3)))
+        self.assertTrue(torch.allclose(other_lobe[0], torch.full((4,), (24 + 286) / 2)))
+        self.assertTrue(torch.allclose(other_lobe[1], torch.full((4,), (82 + 100) / 2)))
+        with self.assertRaises(ValueError):
+            frozen.representations(tokens, torch.tensor(82), torch.tensor([[60, 82]]), torch.tensor([[24, 286]]))
 
 
 class PredictorTests(unittest.TestCase):

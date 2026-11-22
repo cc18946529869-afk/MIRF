@@ -91,9 +91,9 @@ def verify_frozen_pmlm(checkpoint: Path, domain_map: Path, destination: Path, se
                 raise RuntimeError("a lobe average includes token 0")
             site, source_mean, other_mean = model.representations(
                 tokens,
-                ref_pos,
-                torch.as_tensor(source),
-                torch.as_tensor(other),
+                torch.tensor([ref_pos]),
+                torch.as_tensor(source, dtype=torch.long).view(1, -1),
+                torch.as_tensor(other, dtype=torch.long).view(1, -1),
             )
             source_index = torch.as_tensor(source, dtype=torch.long)
             other_index = torch.as_tensor(other, dtype=torch.long)

@@ -1,0 +1,51 @@
+{
+  "scale": "n1000",
+  "outer_seed": 1975576344,
+  "training_started": false,
+  "muformer_called": false,
+  "oof_predictions_computed": false,
+  "arms_trained": false,
+  "arms": [
+    "full",
+    "sum",
+    "no_potts"
+  ],
+  "rows": 1000,
+  "feature_shape": [
+    1000,
+    14
+  ],
+  "mask_shape": [
+    1000,
+    14
+  ],
+  "folds": 5,
+  "full_epochs": 300,
+  "full_patience": 300,
+  "full_restore_best": true,
+  "fold_epochs": [
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "fold_restore_best": [
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "sealed_batch_size": 64,
+  "comparison_batch_size": 16,
+  "residual_config": {
+    "batch_size": 64,
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 30
+  },
+  "ten_seed_entry_called": false
+}

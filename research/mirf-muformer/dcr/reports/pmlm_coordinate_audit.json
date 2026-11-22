@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "rows": 4996,
+  "checked_rows": 4996,
+  "full_length": 286,
+  "mature_length": 263,
+  "mature_start": 24,
+  "mature_pos_equals_ref_pos_minus_23": true,
+  "checked_positions": [
+    24,
+    82,
+    182,
+    286
+  ],
+  "token_index_equals_reference_position": true,
+  "special_token_offset": "<s> occupies index 0; residue r is token r",
+  "source_lengths": [
+    112,
+    151
+  ],
+  "distinct_source_index_sets": 2,
+  "source_and_other_shared_across_rows": false,
+  "unmappable_policy": "a length other than 286, a mismatched residue, or a non-mature site is refused",
+  "failures": [],
+  "embeddings_stored": false
+}

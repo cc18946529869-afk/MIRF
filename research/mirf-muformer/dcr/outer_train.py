@@ -306,16 +306,10 @@ def _complement(n: int, val_idx: np.ndarray) -> set[int]:
     return set(range(int(n))) - set(int(value) for value in val_idx.tolist())
 
 
-def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory, mode: str = "formal") -> dict:
-    """Train one full outer model, then five fold models on the sealed indices.
-
-    ``mode`` other than ``synthetic`` raises before the factory is called.
-    n=1000 indices are not read from the full-file split.
-    """
-    if mode != "synthetic":
-        raise RuntimeError("formal training of the ten outer seeds is not started")
+def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory) -> dict:
+    """Train one full model and five fold models. The caller decides whether this may run."""
     if trainer_factory is None:
-        raise RuntimeError("formal training of the ten outer seeds is not started")
+        raise RuntimeError("real single-seed μFormer training is not started")
     if scale not in oof.SCALES:
         raise ValueError("scale must be n1000 or full")
     if loaded_scale.get("scale") != scale:
@@ -381,15 +375,35 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
             raise RuntimeError("a fold model's muformer_config is not the full model's muformer_config")
         if request["residual_config"] != full_request["residual_config"]:
             raise RuntimeError("a fold model's residual_config is not the full model's residual_config")
-        produced = execute_muformer_request(trainer_factory(request), request)
+        trainer = trainer_factory(request)
+        produced = execute_muformer_request(trainer, request)
         if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
             raise RuntimeError("a fold model did not keep the weights from epoch E_s")
+        predict_held_out = getattr(trainer, "predict_held_out", None)
+        if predict_held_out is not None:
+            prediction = np.asarray(predict_held_out(val_idx), dtype=np.float64)
+            if prediction.shape != (int(val_idx.shape[0]),):
+                raise ValueError("a fold prediction does not have one value for each held-out row")
+            produced["held_out_prediction"] = prediction
         fold_results.append(produced)
     sealed_config.assert_folds_share_e_s(
         e_s,
         [item["epochs_run"] for item in fold_results],
         held_out_selection=any(bool(item["restore_best"]) or bool(item["replaced_with_earlier_best"]) for item in fold_results),
     )
+    supplied = [item.get("held_out_prediction") for item in fold_results]
+    oof_predictions = None
+    if any(item is not None for item in supplied):
+        if any(item is None for item in supplied):
+            raise RuntimeError("at least one fold did not return a held-out prediction")
+        oof_predictions = np.full(n, np.nan, dtype=np.float64)
+        for fold, prediction in zip(loaded_scale["folds"], supplied):
+            val_idx = np.asarray(fold["val_idx"], dtype=np.int64)
+            if np.isfinite(oof_predictions[val_idx]).any():
+                raise ValueError("a training row received two OOF predictions")
+            oof_predictions[val_idx] = prediction
+        if not bool(np.isfinite(oof_predictions).all()):
+            raise ValueError("at least one training row has no OOF prediction")
     return {
         "scale": scale,
         "outer_seed": int(outer_seed),
@@ -399,7 +413,22 @@ def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_
         "s_mu_f_split": "validation",
         "baseline": score,
         "folds": fold_results,
+        "oof_predictions": oof_predictions,
+        "oof_predictions_computed": oof_predictions is not None,
         "formal_training_started": False,
         "arms_share_e_s": True,
         "arms_share_base_score": True,
     }
+
+
+def train_outer_models(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory, mode: str = "formal") -> dict:
+    """Train one full outer model, then five fold models on the sealed indices.
+
+    ``mode`` other than ``synthetic`` raises before the factory is called.
+    n=1000 indices are not read from the full-file split.
+    """
+    if mode != "synthetic":
+        raise RuntimeError("formal training of the ten outer seeds is not started")
+    if trainer_factory is None:
+        raise RuntimeError("formal training of the ten outer seeds is not started")
+    return train_one_outer_seed(scale, outer_seed, loaded_scale, trainer_factory)
