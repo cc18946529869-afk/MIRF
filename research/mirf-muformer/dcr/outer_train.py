@@ -3,6 +3,7 @@
 The default call refuses the ten-seed formal run. A synthetic test passes a
 factory that records row indices and epoch counts. Fold models train for the
 full model's ``E_s`` and do not reload an earlier held-out best state.
+Completed epochs and restored-weight flags are read from the trainer record.
 """
 
 from __future__ import annotations
@@ -72,13 +73,109 @@ def run_ten_outer_seeds(*args, **kwargs):
     raise RuntimeError("formal training of the ten outer seeds is not started")
 
 
+def _listed(trainer, name: str):
+    value = getattr(trainer, name, None)
+    if value is None:
+        return None
+    return list(value)
+
+
+def _check_model_record(record: dict) -> None:
+    """The four recorded facts have to agree with each other."""
+    completed = int(record["epochs_completed"])
+    best_epoch = record["best_epoch"]
+    restored_best = bool(record["restored_best_weights"])
+    restored_earlier = bool(record["restored_earlier_weights"])
+    if completed < 1:
+        raise RuntimeError("the trainer did not record a completed epoch")
+    if restored_earlier and not restored_best:
+        raise RuntimeError("earlier weights were restored without restoring the best weights")
+    if not restored_best:
+        if best_epoch is not None:
+            raise RuntimeError("a fold model selected a best epoch on the held-out fold")
+        return
+    if best_epoch is None:
+        raise RuntimeError("E_s is recorded only when is_best is true")
+    best_epoch = int(best_epoch)
+    if best_epoch < 1 or best_epoch > completed:
+        raise RuntimeError("the best epoch is outside the completed epochs")
+    if restored_earlier != (best_epoch < completed):
+        raise RuntimeError(
+            "whether earlier weights were restored does not match the best epoch and the completed epochs"
+        )
+
+
+def _model_records(trainer) -> list[dict]:
+    completed = _listed(trainer, "epochs_completed")
+    best_epochs = _listed(trainer, "best_epoch_per_model")
+    restored_best = _listed(trainer, "restored_best_weights")
+    restored_earlier = _listed(trainer, "restored_earlier_weights")
+    if completed is None or best_epochs is None or restored_best is None or restored_earlier is None:
+        raise RuntimeError("the trainer did not record completed epochs, the best epoch, and restored weights")
+    if not completed or not (len(completed) == len(best_epochs) == len(restored_best) == len(restored_earlier)):
+        raise RuntimeError("the trainer record of completed epochs, best epoch, and restored weights is incomplete")
+    records = []
+    for done, best_epoch, did_restore, did_replace in zip(completed, best_epochs, restored_best, restored_earlier):
+        records.append(
+            {
+                "epochs_completed": int(done),
+                "best_epoch": None if best_epoch is None else int(best_epoch),
+                "restored_best_weights": bool(did_restore),
+                "restored_earlier_weights": bool(did_replace),
+            }
+        )
+    return records
+
+
+def _require_full_record(trainer) -> dict:
+    records = _model_records(trainer)
+    saved_best = [item for item in list(getattr(trainer, "best_epochs", []) or [])]
+    if len(saved_best) != len(records):
+        raise RuntimeError("the best epoch was not recorded once for each model")
+    for saved, record in zip(saved_best, records):
+        _check_model_record(record)
+        if saved is None or record["best_epoch"] is None or int(saved) != int(record["best_epoch"]):
+            raise RuntimeError("E_s is recorded only when is_best is true")
+        if not record["restored_best_weights"]:
+            raise RuntimeError("the full model did not restore its best weights")
+    return records[-1]
+
+
+def _require_fold_record(trainer, request: dict) -> dict:
+    records = _model_records(trainer)
+    if list(getattr(trainer, "best_epochs", []) or []):
+        raise RuntimeError("a fold model kept a held-out best epoch")
+    for record in records:
+        _check_model_record(record)
+        if record["best_epoch"] is not None or record["restored_best_weights"] or record["restored_earlier_weights"]:
+            raise RuntimeError("a fold model restored or selected weights on the held-out fold")
+        if int(record["epochs_completed"]) != int(request["epochs"]):
+            raise RuntimeError("a fold model did not complete this seed's E_s epochs")
+    return records[-1]
+
+
+def _recorded_fold_rows(trainer, request: dict) -> np.ndarray:
+    stored = getattr(trainer, "_train_row_index", None)
+    if stored is None:
+        stored = getattr(trainer, "train_row_index", None)
+    if stored is None:
+        raise RuntimeError("the trainer did not record the fold training rows")
+    rows = np.asarray(stored, dtype=np.int64)
+    requested = np.asarray(request["train_idx"], dtype=np.int64)
+    if rows.shape != requested.shape or not np.array_equal(rows, requested):
+        raise RuntimeError("the recorded fold training rows are not this fold's training rows")
+    return rows
+
+
 def execute_muformer_request(trainer, request: dict) -> dict:
     """Call ``train`` on one request.
 
-    The full model restores best weights and reads ``E_s`` from ``best_epochs``,
-    which ``Trainer`` fills only when ``is_best`` is true. A fold request keeps
-    the weights of epoch ``E_s`` and does not score a split. The score returned
-    here is the outer validation split. The test split is a separate call.
+    The full model restores best weights and reads ``E_s`` from the best epoch
+    recorded only when ``is_best`` is true. Completed epochs and the two
+    restoration flags are read from the trainer, not copied from the request.
+    A fold request keeps the weights of epoch ``E_s`` and does not score a
+    split. The score returned here is the outer validation split. The test
+    split is a separate call.
     """
     fold = not bool(request["restore_best"])
     if request.get("select_on_held_out_fold"):
@@ -102,9 +199,7 @@ def execute_muformer_request(trainer, request: dict) -> dict:
     sealed_config.assert_muformer_train_call(train_call, request)
     trainer.train(**train_call)
     if request["restore_best"]:
-        recorded = list(getattr(trainer, "best_epochs", []) or [])
-        if not recorded or recorded[-1] is None:
-            raise RuntimeError("E_s is recorded only when is_best is true")
+        record = _require_full_record(trainer)
         valid_loader = getattr(trainer, "valid_loader", None)
         valid_df = getattr(trainer, "valid_df", None)
         if valid_loader is None or valid_df is None:
@@ -119,18 +214,20 @@ def execute_muformer_request(trainer, request: dict) -> dict:
         )
         score, sequences = _rows_from_score(scored, valid_df)
         return {
-            "e_s": int(recorded[-1]),
+            "e_s": int(record["best_epoch"]),
             "score": score,
             "sequences": sequences,
             "split": "validation",
-            "epochs_run": int(recorded[-1]),
-            "restore_best": True,
+            "epochs_run": int(record["epochs_completed"]),
+            "restore_best": bool(record["restored_best_weights"]),
+            "replaced_with_earlier_best": bool(record["restored_earlier_weights"]),
         }
+    record = _require_fold_record(trainer, request)
     return {
-        "epochs_run": int(request["epochs"]),
-        "restore_best": False,
-        "train_idx": np.asarray(request["train_idx"], dtype=np.int64),
-        "replaced_with_earlier_best": False,
+        "epochs_run": int(record["epochs_completed"]),
+        "restore_best": bool(record["restored_best_weights"]),
+        "train_idx": _recorded_fold_rows(trainer, request),
+        "replaced_with_earlier_best": bool(record["restored_earlier_weights"]),
     }
 
 

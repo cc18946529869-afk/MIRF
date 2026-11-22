@@ -26,6 +26,11 @@ class _RecordingTrainer:
         self.request = request
         self.calls = calls
         self.best_epochs = []
+        self.epochs_completed = []
+        self.best_epoch_per_model = []
+        self.restored_best_weights = []
+        self.restored_earlier_weights = []
+        self._train_row_index = None
         self._e_s = int(e_s)
         self._valid_score = np.asarray(valid_score, dtype=np.float64)
         self._test_score = np.asarray(test_score, dtype=np.float64)
@@ -57,10 +62,23 @@ class _RecordingTrainer:
                 "select_on_held_out_fold": bool(self.request["select_on_held_out_fold"]),
             }
         )
+        if train_row_index is None:
+            self._train_row_index = None
+        else:
+            self._train_row_index = np.asarray(train_row_index, dtype=np.int64).copy()
         if restore_best:
             self.best_epochs.append(self._e_s)
+            self.epochs_completed.append(int(self._e_s))
+            self.best_epoch_per_model.append(int(self._e_s))
+            self.restored_best_weights.append(True)
+            self.restored_earlier_weights.append(False)
         elif self.best_epochs:
             raise RuntimeError("fold training kept a held-out best epoch")
+        else:
+            self.epochs_completed.append(int(epochs))
+            self.best_epoch_per_model.append(None)
+            self.restored_best_weights.append(False)
+            self.restored_earlier_weights.append(False)
 
     def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
         if valid_loader is None or valid_df is None:

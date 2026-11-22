@@ -461,6 +461,10 @@ class Trainer(object):
             train_row_index=None, drop_last=True):  
         
         self.best_epochs = []
+        self.epochs_completed = []
+        self.best_epoch_per_model = []
+        self.restored_best_weights = []
+        self.restored_earlier_weights = []
         if train_row_index is None:
             self._train_row_index = None
         else:
@@ -484,11 +488,13 @@ class Trainer(object):
             scheduler = self._init_scheduler(optimizer, epochs, steps_per_epoch, warmup_epochs) 
 
             record = BestEpochWeights()
+            completed_epoch = start_epoch - 1
 
             for epoch in range(start_epoch, epochs + 1):
                 time_start = time.time()
 
-                train_loss = self._train_epoch(model_idx, model, optimizer, scheduler, train_loader, epoch)  
+                train_loss = self._train_epoch(model_idx, model, optimizer, scheduler, train_loader, epoch)
+                completed_epoch = epoch
 
                 # Fold models train exactly ``epochs`` steps and keep those weights.
                 # They do not score the held-out fold and do not reload an earlier best state.
@@ -508,9 +514,20 @@ class Trainer(object):
                     self._handle_early_stop(epoch, model_idx, record.best_model_state, record.best_optimizer_state_dict, record.best_epoch, record.best_val_results, stopper, save_checkpoint)  
                     break
 
+            best_epoch = None
+            restored_best = False
+            restored_earlier = False
             if restore_best:
                 restore_best_model_state(model, record.best_model_state)
-                self.best_epochs.append(record.best_epoch)
+                best_epoch = record.best_epoch
+                # This list changes only when an is_best state is restored.
+                self.best_epochs.append(best_epoch)
+                restored_best = True
+                restored_earlier = best_epoch is not None and int(best_epoch) < int(completed_epoch)
+            self.epochs_completed.append(int(completed_epoch))
+            self.best_epoch_per_model.append(None if best_epoch is None else int(best_epoch))
+            self.restored_best_weights.append(bool(restored_best))
+            self.restored_earlier_weights.append(bool(restored_earlier))
 
         self._finalize_training()  
 

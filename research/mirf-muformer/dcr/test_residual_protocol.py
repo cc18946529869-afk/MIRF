@@ -421,6 +421,93 @@ class ProtocolTests(unittest.TestCase):
                 self.assertTrue(torch.equal(replayed, expected))
             self.assertFalse(torch.equal(continued, item["retrain_orders"][0]))
 
+    def test_retrain_order_has_every_round_when_the_best_epoch_is_after_one(self) -> None:
+        cfg = sealed_config.require()
+        n = 12
+        folds = []
+        start = 0
+        sizes = [n // 5 + (1 if fold < n % 5 else 0) for fold in range(5)]
+        rows = np.arange(n)
+        for fold, size in enumerate(sizes):
+            val_idx = rows[start : start + size]
+            start += size
+            train_idx = np.setdiff1d(rows, val_idx)
+            folds.append({"fold": fold, "train_idx": train_idx, "val_idx": val_idx})
+        representation = np.linspace(-0.5, 0.5, n * 4, dtype=np.float32).reshape(n, 4)
+        loaded = {
+            "scale": "n1000",
+            "n": n,
+            "folds": folds,
+            "residual_train_idx": rows[:10],
+            "residual_val_idx": rows[10:],
+        }
+        y_oof = np.ones(n, dtype=np.float64)
+        train_batch = {
+            "site": torch.tensor(representation),
+            "source": torch.tensor(representation),
+            "other": torch.tensor(representation),
+            "values": torch.zeros(n, 14),
+            "mask": torch.ones(n, 14),
+        }
+        sequences = np.array(["v0", "v1", "v2", "v3"])
+        y_valid = np.array([0.0, 1.0, 2.0, 3.0])
+        s_valid = np.array([0.1, 0.2, 0.3, 0.4])
+        valid_rep = np.zeros((4, 4), dtype=np.float32)
+        valid_batch = {
+            "site": torch.tensor(valid_rep),
+            "source": torch.tensor(valid_rep),
+            "other": torch.tensor(valid_rep),
+            "values": torch.zeros(4, 14),
+            "mask": torch.ones(4, 14),
+        }
+
+        def fit_fold(train_idx, val_idx, epochs):
+            self.assertEqual(int(epochs), 5)
+            return np.zeros(len(val_idx), dtype=np.float64)
+
+        result = oof.run_seed_protocol(
+            scale="n1000",
+            outer_seed=oof.OUTER_SEEDS[0],
+            e_s=5,
+            loaded_scale=loaded,
+            y_oof=y_oof,
+            train_batch=train_batch,
+            y_valid=y_valid,
+            s_valid=s_valid,
+            valid_batch=valid_batch,
+            valid_sequences=sequences,
+            score_sequences=sequences,
+            batch_sequences=sequences,
+            fit_fold=fit_fold,
+            mode="synthetic",
+            embed_dim=4,
+            baseline_best_epoch=5,
+            e_s_source=cfg.e_s_source,
+        )
+        arms = [result["arms"][arm] for arm in residual.ARMS]
+        self.assertGreater(min(item["best_epoch"] for item in arms), 1)
+        for item in arms:
+            self.assertGreater(item["best_epoch"], 1)
+            self.assertEqual(len(item["retrain_orders"]), item["best_epoch"])
+            self.assertEqual(len(item["retrain_orders"]), item["retrain_epochs_run"])
+            retrain = torch.Generator()
+            retrain.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "retrain"))
+            for expected in item["retrain_orders"]:
+                replayed = residual.shuffled_row_order(item["retrain_index_source"], retrain)
+                self.assertTrue(torch.equal(replayed, expected))
+            selection = torch.Generator()
+            selection.manual_seed(residual.stream_seed(oof.OUTER_SEEDS[0], "selection"))
+            from_selection = residual.shuffled_row_order(item["retrain_index_source"], selection)
+            self.assertFalse(torch.equal(from_selection, item["retrain_orders"][0]))
+        shared = min(len(item["retrain_orders"]) for item in arms)
+        self.assertGreater(shared, 1)
+        self.assertTrue(
+            any(not torch.equal(arms[0]["retrain_orders"][0], later) for later in arms[0]["retrain_orders"][1:shared])
+        )
+        for index in range(shared):
+            for item in arms[1:]:
+                self.assertTrue(torch.equal(item["retrain_orders"][index], arms[0]["retrain_orders"][index]))
+
     def test_substituted_residual_config_is_refused(self) -> None:
         bad = replace(sealed_config.SEALED, patience=1, batch_size=250, max_epochs=2)
         with self.assertRaises(RuntimeError):

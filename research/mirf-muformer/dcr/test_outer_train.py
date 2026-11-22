@@ -54,8 +54,16 @@ class _Trainer:
         self.restore_best = bool(restore_best)
         self.train_row_index = None if train_row_index is None else np.asarray(train_row_index, dtype=np.int64).copy()
         self.drop_last = bool(drop_last)
+        self.epochs_completed = [int(epochs)]
         if restore_best:
             self.best_epochs.append(self.e_s)
+            self.best_epoch_per_model = [int(self.e_s)]
+            self.restored_best_weights = [True]
+            self.restored_earlier_weights = [int(self.e_s) < int(epochs)]
+        else:
+            self.best_epoch_per_model = [None]
+            self.restored_best_weights = [False]
+            self.restored_earlier_weights = [False]
 
     def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
         if valid_loader is None or valid_df is None:
@@ -93,8 +101,16 @@ class _SplitTrainer:
 
     def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
             train_row_index=None, drop_last=True):
+        self.epochs_completed = [int(epochs)]
         if restore_best:
             self.best_epochs.append(2)
+            self.best_epoch_per_model = [2]
+            self.restored_best_weights = [True]
+            self.restored_earlier_weights = [2 < int(epochs)]
+        else:
+            self.best_epoch_per_model = [None]
+            self.restored_best_weights = [False]
+            self.restored_earlier_weights = [False]
 
     def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
         if valid_loader is not self.valid_loader:
@@ -114,6 +130,43 @@ class _SplitTrainer:
         self.test_calls.append(test_loader)
         frame = test_df.copy()
         frame["prediction"] = self.test_score
+        return {"df": frame}
+
+
+class _RecordedCompletionTrainer:
+    """The completed epoch it writes is not the epochs argument it receives."""
+
+    def __init__(self, completed: int, best_epoch: int):
+        self.completed = int(completed)
+        self.best_epoch = int(best_epoch)
+        self.best_epochs = []
+        self.received_epochs = None
+        self.valid_sequences = np.array(["v0", "v1", "v2", "v3"])
+        self.valid_df = pd.DataFrame({"sequence": self.valid_sequences, "score": np.zeros(4)})
+        self.valid_loader = ("validation",)
+        self.train_row_index = None
+
+    def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
+            train_row_index=None, drop_last=True):
+        self.received_epochs = int(epochs)
+        self.epochs_completed = [self.completed]
+        self.train_row_index = None if train_row_index is None else np.asarray(train_row_index, dtype=np.int64).copy()
+        if restore_best:
+            self.best_epochs = [self.best_epoch]
+            self.best_epoch_per_model = [self.best_epoch]
+            self.restored_best_weights = [True]
+            self.restored_earlier_weights = [self.best_epoch < self.completed]
+        else:
+            self.best_epochs = []
+            self.best_epoch_per_model = [None]
+            self.restored_best_weights = [False]
+            self.restored_earlier_weights = [False]
+
+    def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
+        if valid_loader is not self.valid_loader:
+            raise AssertionError("validation scoring did not receive the validation loader")
+        frame = valid_df.copy()
+        frame["prediction"] = np.zeros(len(valid_df), dtype=np.float64)
         return {"df": frame}
 
 
@@ -160,6 +213,35 @@ class OuterTrainTests(unittest.TestCase):
                 self.assertNotIn(key, request)
         self.assertNotEqual(result["e_s"], 229)
         self.assertEqual([item["epochs_run"] for item in result["folds"]], [6, 6, 6, 6, 6])
+
+    def test_epochs_run_is_the_recorded_completed_count(self) -> None:
+        trainer = _RecordedCompletionTrainer(completed=17, best_epoch=6)
+        produced = outer_train.execute_muformer_request(
+            trainer,
+            {"restore_best": True, "epochs": 300, "eval_freq": 1, "patience": 300},
+        )
+        self.assertEqual(trainer.received_epochs, 300)
+        self.assertEqual(trainer.epochs_completed, [17])
+        self.assertEqual(produced["epochs_run"], 17)
+        self.assertNotEqual(produced["epochs_run"], trainer.received_epochs)
+        self.assertEqual(produced["e_s"], 6)
+        fold = _RecordedCompletionTrainer(completed=17, best_epoch=6)
+        with self.assertRaises(RuntimeError):
+            outer_train.execute_muformer_request(
+                fold,
+                {
+                    "restore_best": False,
+                    "epochs": 6,
+                    "eval_freq": 1,
+                    "patience": 300,
+                    "train_idx": np.array([0, 1], dtype=np.int64),
+                    "select_on_held_out_fold": False,
+                    "baseline_best_epoch": 6,
+                    "e_s_source": "this_outer_seed_baseline",
+                },
+            )
+        self.assertEqual(fold.received_epochs, 6)
+        self.assertEqual(fold.epochs_completed, [17])
 
     def test_batch_size_64_and_seed_42_epoch_do_not_enter_muformer(self) -> None:
         trainer = _Trainer({"restore_best": True}, 6)
