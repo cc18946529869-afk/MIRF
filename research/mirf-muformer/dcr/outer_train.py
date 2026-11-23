@@ -306,7 +306,7 @@ def _complement(n: int, val_idx: np.ndarray) -> set[int]:
     return set(range(int(n))) - set(int(value) for value in val_idx.tolist())
 
 
-def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory) -> dict:
+def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory, training_sequences=None) -> dict:
     """Train one full model and five fold models. The caller decides whether this may run."""
     if trainer_factory is None:
         raise RuntimeError("real single-seed μFormer training is not started")
@@ -327,6 +327,8 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
     n = int(loaded_scale["n"])
     if n != oof.EXPECTED_ROWS[scale]["n"]:
         raise ValueError("the loaded row count is not the count for this scale")
+    if training_sequences is not None and len(training_sequences) != n:
+        raise ValueError("training sequences do not match this scale")
     full_request = {
         "kind": "full",
         "scale": scale,
@@ -379,12 +381,25 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
         produced = execute_muformer_request(trainer, request)
         if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
             raise RuntimeError("a fold model did not keep the weights from epoch E_s")
-        predict_held_out = getattr(trainer, "predict_held_out", None)
-        if predict_held_out is not None:
-            prediction = np.asarray(predict_held_out(val_idx), dtype=np.float64)
+        if training_sequences is None:
+            predict_held_out = getattr(trainer, "predict_held_out", None)
+            if predict_held_out is not None:
+                prediction = np.asarray(predict_held_out(val_idx), dtype=np.float64)
+                if prediction.shape != (int(val_idx.shape[0]),):
+                    raise ValueError("a fold prediction does not have one value for each held-out row")
+                produced["held_out_prediction"] = prediction
+        else:
+            if not hasattr(trainer, "predict_rows"):
+                raise RuntimeError("fold OOF prediction requires Trainer.predict_rows")
+            held_sequences = [str(training_sequences[int(item)]) for item in val_idx.tolist()]
+            predicted = trainer.predict_rows(held_sequences, val_idx)
+            if list(predicted["sequence"]) != held_sequences:
+                raise ValueError("held-out prediction sequences are not the requested rows")
+            prediction = np.asarray(predicted["prediction"], dtype=np.float64)
             if prediction.shape != (int(val_idx.shape[0]),):
                 raise ValueError("a fold prediction does not have one value for each held-out row")
             produced["held_out_prediction"] = prediction
+            produced["held_out_sequence"] = list(predicted["sequence"])
         fold_results.append(produced)
     sealed_config.assert_folds_share_e_s(
         e_s,
@@ -415,6 +430,10 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
         "folds": fold_results,
         "oof_predictions": oof_predictions,
         "oof_predictions_computed": oof_predictions is not None,
+        "training_started": True,
+        "muformer_train_called": True,
+        # This call entered train(). formal_training_started stays false because
+        # it records the ten-seed experiment, which this function does not start.
         "formal_training_started": False,
         "arms_share_e_s": True,
         "arms_share_base_score": True,

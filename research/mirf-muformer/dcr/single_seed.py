@@ -34,19 +34,15 @@ def oof_residual(scores, predictions, label_sequences, prediction_sequences) -> 
 
 
 def run_single_outer_seed(scale: str, outer_seed: int, *, start_training: bool = False, trainer_factory=None, loaded_scale: dict | None = None) -> dict:
-    """One outer seed. Training runs only when a factory is passed explicitly.
+    """Read one seed. This function does not train.
 
-    The default call does not construct ``Trainer``. ``run_ten_outer_seeds``
-    is not used. A missing factory still refuses, so this round does not
-    start the real μFormer.
+    ``start_training=True`` is refused for every scale and seed, including
+    when a factory is passed. The executable entry is
+    ``designated_seed.run_designated_single_seed``.
     """
-    if not start_training:
-        if trainer_factory is not None:
-            raise RuntimeError("a trainer factory is not called before training is explicitly started")
-        return prepare_single_outer_seed(scale, outer_seed)
-    if trainer_factory is None or loaded_scale is None:
-        raise RuntimeError("real single-seed μFormer training is not started")
-    return outer_train.train_one_outer_seed(scale, int(outer_seed), loaded_scale, trainer_factory)
+    if start_training or trainer_factory is not None or loaded_scale is not None:
+        raise RuntimeError("real single-seed μFormer training is not started from this function")
+    return prepare_single_outer_seed(scale, outer_seed)
 
 
 def prepare_single_outer_seed(scale: str, outer_seed: int, *, start_training: bool = False) -> dict:

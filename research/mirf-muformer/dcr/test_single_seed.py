@@ -46,14 +46,21 @@ class SingleSeedTests(unittest.TestCase):
             single_seed.prepare_single_outer_seed("n1000", oof.OUTER_SEEDS[0], start_training=True)
         with self.assertRaises(RuntimeError):
             single_seed.run_single_outer_seed("n1000", oof.OUTER_SEEDS[0], start_training=True)
+        with self.assertRaises(RuntimeError):
+            single_seed.run_single_outer_seed(
+                "full",
+                oof.OUTER_SEEDS[0],
+                start_training=True,
+                trainer_factory=test_outer_train._Factory(4),
+                loaded_scale=oof.load_scale(Path(__file__).resolve().parent / "precheck", "full"),
+            )
         factory = test_outer_train._Factory(4)
         loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
-        trained = single_seed.run_single_outer_seed(
+        trained = outer_train.train_one_outer_seed(
             "n1000",
             oof.OUTER_SEEDS[0],
-            start_training=True,
-            trainer_factory=factory,
-            loaded_scale=loaded,
+            loaded,
+            factory,
         )
         self.assertEqual(trained["e_s"], 4)
         self.assertEqual(len(factory.requests), 6)
@@ -63,6 +70,8 @@ class SingleSeedTests(unittest.TestCase):
             self.assertEqual(request["epochs"], 4)
             self.assertFalse(request["restore_best"])
         self.assertFalse(trained["formal_training_started"])
+        self.assertTrue(trained["training_started"])
+        self.assertTrue(trained["muformer_train_called"])
         self.assertFalse(trained["oof_predictions_computed"])
 
     def test_held_out_predictions_cover_every_training_row_once(self) -> None:
@@ -76,12 +85,11 @@ class SingleSeedTests(unittest.TestCase):
                 trainer.predict_held_out = predict_held_out
                 return trainer
 
-        trained = single_seed.run_single_outer_seed(
+        trained = outer_train.train_one_outer_seed(
             "n1000",
             oof.OUTER_SEEDS[0],
-            start_training=True,
-            trainer_factory=_PredictingFactory(4),
-            loaded_scale=loaded,
+            loaded,
+            _PredictingFactory(4),
         )
         self.assertTrue(trained["oof_predictions_computed"])
         self.assertEqual(trained["oof_predictions"].shape, (1000,))

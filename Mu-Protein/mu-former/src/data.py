@@ -470,3 +470,24 @@ class PairedDataset(object):
             if restricted:
                 self.train_df = original_train
 
+    def loader_for_sequences(self, sequences, batch_size, num_workers=0):
+        """Score an explicit sequence list. This does not replace the stored splits."""
+        if not hasattr(self, "native_sequence"):
+            raise RuntimeError("row prediction requires the wild-type fasta")
+        ordered = [str(sequence) for sequence in sequences]
+        if not ordered:
+            raise ValueError("row prediction needs at least one sequence")
+        frame = pd.DataFrame({"sequence": ordered})
+        original = self.test_df
+        self.test_df = frame
+        try:
+            return self.get_dataloader(
+                "test",
+                batch_size=int(batch_size),
+                return_df=True,
+                num_workers=int(num_workers),
+                shuffle=False,
+            )
+        finally:
+            self.test_df = original
+

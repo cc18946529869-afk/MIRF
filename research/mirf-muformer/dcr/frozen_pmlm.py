@@ -93,7 +93,9 @@ class FrozenPmlm(nn.Module):
 def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
     """Load ``pmlm`` weights the way ``Trainer`` does, as a separate module.
 
-    Tests do not call this. Formal training is a later step.
+    ``run_designated_single_seed`` and the small-batch test call this.
+    ``embed_sequences`` receives the loaded module. Formal μFormer training
+    is a later step.
     """
     from fairseq import checkpoint_utils
 
@@ -107,3 +109,77 @@ def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
         arg_overrides={"data": str(tokendict)},
     )
     return FrozenPmlm(models[0])
+
+
+def _sha256(path: Path) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        while True:
+            block = handle.read(1024 * 1024)
+            if not block:
+                break
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def embed_sequences(model: FrozenPmlm, sequences, feature_index, *, checkpoint: Path, batch_size: int = 2) -> dict:
+    """Read frozen 1280-d vectors for explicit sequences.
+
+    The tensors stay in memory. The returned metadata records the checkpoint
+    hash and the sequence identity, and it does not contain the vectors.
+    """
+    import hashlib
+
+    import pmlm_coords
+
+    ordered = [str(sequence) for sequence in sequences]
+    if not ordered:
+        raise ValueError("frozen PMLM embedding needs at least one sequence")
+    if int(batch_size) < 1:
+        raise ValueError("batch size must be positive")
+    dictionary = pmlm_coords.load_dictionary()
+    sites = []
+    sources = []
+    others = []
+    for start in range(0, len(ordered), int(batch_size)):
+        chunk = ordered[start : start + int(batch_size)]
+        tokens = torch.stack([pmlm_coords.encode_sequence(dictionary, sequence) for sequence in chunk])
+        site_index = []
+        source_index = []
+        other_index = []
+        for sequence in chunk:
+            ref_pos = feature_index.row(sequence)["ref_pos"]
+            site_index.append(pmlm_coords.token_index_for_reference(dictionary, sequence, ref_pos))
+            source, other = pmlm_coords.per_row_lobe_indices(pmlm_coords.DOMAIN_MAP, ref_pos)
+            source_index.append(torch.as_tensor(source, dtype=torch.long))
+            other_index.append(torch.as_tensor(other, dtype=torch.long))
+        site, source, other = model.representations(
+            tokens,
+            torch.tensor(site_index, dtype=torch.long),
+            source_index,
+            other_index,
+        )
+        if int(site.shape[-1]) != 1280 or int(source.shape[-1]) != 1280 or int(other.shape[-1]) != 1280:
+            raise RuntimeError("frozen PMLM representations are not 1280-dimensional")
+        sites.append(site.detach().cpu())
+        sources.append(source.detach().cpu())
+        others.append(other.detach().cpu())
+    identity = hashlib.sha256("\n".join(ordered).encode()).hexdigest()
+    return {
+        "site": torch.cat(sites, dim=0),
+        "source": torch.cat(sources, dim=0),
+        "other": torch.cat(others, dim=0),
+        "sequence": ordered,
+        "metadata": {
+            "checkpoint_sha256": _sha256(checkpoint),
+            "sequence_sha256": identity,
+            "rows": len(ordered),
+            "hidden": 1280,
+            "coordinate_map_version": "blat_ref_pos_is_token_after_bos_v1",
+            "embeddings_stored": False,
+            "lm_head_called": False,
+            "fc_reduce_called": False,
+        },
+    }

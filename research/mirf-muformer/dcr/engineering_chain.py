@@ -4,7 +4,7 @@ The 14 feature columns are the saved soft-weight table. The fold predictions
 are a linear fit on those columns. They are not μFormer OOF predictions.
 Site and lobe vectors come from each row's own token indices applied to a
 position table, not from ``pmlm_650m.pt``. ``run_single_outer_seed`` refuses
-``start_training=True`` unless both a factory and a loaded precheck are passed.
+``start_training=True``. The executable entry is ``designated_seed``.
 """
 
 from __future__ import annotations

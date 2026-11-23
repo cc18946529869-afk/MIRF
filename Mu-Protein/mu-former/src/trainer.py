@@ -686,6 +686,33 @@ class Trainer(object):
             mode=mode,
         )
 
+    def predict_rows(self, sequences, row_index):
+        """Predict explicit rows with the weights already on this trainer.
+
+        The call does not train, does not restore another checkpoint, and does
+        not use the returned correlation to choose an epoch. ``row_index`` is
+        the caller's row identity. The sequences are scored in that order.
+        """
+        ordered = [str(sequence) for sequence in sequences]
+        index = np.asarray(row_index, dtype=np.int64)
+        if index.ndim != 1 or index.shape != (len(ordered),):
+            raise ValueError("row_index does not match the requested sequences")
+        completed_before = list(self.epochs_completed) if hasattr(self, "epochs_completed") else None
+        best_before = list(self.best_epochs) if hasattr(self, "best_epochs") else None
+        loader, frame = self.dataset.loader_for_sequences(ordered, self.batch_size, num_workers=0)
+        scored = self.test(test_loader=loader, test_df=frame, save_prediction=False, mode="ensemble")
+        if completed_before is not None and list(self.epochs_completed) != completed_before:
+            raise RuntimeError("row prediction changed the completed-epoch record")
+        if best_before is not None and list(self.best_epochs) != best_before:
+            raise RuntimeError("row prediction selected an epoch")
+        returned = [str(sequence) for sequence in scored["df"]["sequence"].tolist()]
+        if returned != ordered:
+            raise ValueError("prediction order does not match the requested sequences")
+        prediction = np.asarray(scored["df"]["prediction"], dtype=np.float64)
+        if prediction.shape != index.shape:
+            raise ValueError("prediction length does not match the requested rows")
+        return {"prediction": prediction, "sequence": returned, "row_index": index.copy()}
+
     def score_test(self, test_loader, test_df, save_prediction=False, mode='ensemble'):
         """Score the test split on the already restored module.
 
