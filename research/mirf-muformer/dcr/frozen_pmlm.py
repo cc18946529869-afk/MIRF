@@ -118,12 +118,18 @@ def bound_checkpoint_sha256(model, checkpoint: Path) -> str:
     return recorded
 
 
-def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
+def load_independent_pretrained(
+    checkpoint_path: str,
+    *,
+    expected_sha256: str | None = None,
+    expected_identity: tuple | None = None,
+) -> FrozenPmlm:
     """Load ``pmlm`` weights the way ``Trainer`` does, as a separate module.
 
     ``run_designated_single_seed`` and the small-batch test call this.
     ``embed_sequences`` receives the loaded module. Formal μFormer training
-    is a later step.
+    is a later step. An expected identity is the experiment seal. A different
+    file is refused before its hash can replace that seal.
     """
     from fairseq import checkpoint_utils
 
@@ -133,7 +139,11 @@ def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
         sys.path.insert(0, source)
     importlib.import_module("protein")
     identity = file_identity(checkpoint_path)
+    if expected_identity is not None and tuple(expected_identity) != identity:
+        raise RuntimeError("the PMLM checkpoint does not match the identity sealed for this experiment")
     digest = _sha256(checkpoint_path)
+    if expected_sha256 is not None and digest != expected_sha256:
+        raise RuntimeError("the PMLM checkpoint does not match the identity sealed for this experiment")
     if file_identity(checkpoint_path) != identity:
         raise RuntimeError("the PMLM checkpoint changed while its sha256 was being read")
     models, _args, _task = checkpoint_utils.load_model_ensemble_and_task(

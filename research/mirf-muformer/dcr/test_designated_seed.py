@@ -409,6 +409,9 @@ class DesignatedEntryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             experiment_store.open_run(root, resume=False, schedule_only=False)
+            checkpoint = root / "standin-pmlm.pt"
+            checkpoint.write_bytes(b"checkpoint-A")
+            experiment_store.seal_pmlm_checkpoint(root, checkpoint)
             holder = test_experiment_store._Holder(test_experiment_store._Factory())
             experiment_store.write_full(root, holder, {
                 "e_s": 4,
@@ -438,6 +441,8 @@ class DesignatedEntryTests(unittest.TestCase):
                 raise RuntimeError("stopped before embeddings")
 
             with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "CHECKPOINT", checkpoint
+            ), patch.object(
                 designated_seed, "production_trainer_factory", factory
             ), patch.object(designated_seed.frozen_pmlm, "load_independent_pretrained", stop):
                 with self.assertRaises(RuntimeError) as caught:
@@ -451,6 +456,137 @@ class DesignatedEntryTests(unittest.TestCase):
             self.assertEqual(counter.trains, 0)
             self.assertEqual(counter.builds, 1)
             self.assertTrue(experiment_store.recorded_training(root)["muformer_train_called"])
+
+    def _run_until_checkpoint_replacement(self, *, replace_after=None, interrupt_at=None, resume: bool = False) -> None:
+        """A stand-in walks the six construction points. Replacing the file must not rewrite the seal."""
+        original = b"checkpoint-A"
+        digest = __import__("hashlib").sha256(original).hexdigest()
+
+        class _Script:
+            def __init__(self) -> None:
+                self.builds = 0
+                self.frozen = 0
+
+            def __call__(self, request, output_dir=None):
+                self.builds += 1
+                return _Trainer(request, self)
+
+        class _Trainer:
+            def __init__(self, request, script) -> None:
+                self.request = request
+                self.script = script
+                self.models = [torch.nn.Linear(1, 1)]
+                self.valid_df = {"sequence": np.array(["valid-a", "valid-b"])}
+                self.valid_loader = ("validation",)
+                outer_train.apply_muformer_standin(self, request["muformer_config"])
+
+            def get_bare_model(self, net):
+                return net
+
+            def train(self, epochs, eval_freq, patience, save_checkpoint, resume_path, restore_best=True,
+                    train_row_index=None, drop_last=True):
+                self.epochs_completed = [int(epochs)]
+                self.train_row_index = None if train_row_index is None else np.asarray(train_row_index, dtype=np.int64).copy()
+                if restore_best:
+                    self.best_epochs = [4]
+                    self.best_epoch_per_model = [4]
+                    self.restored_best_weights = [True]
+                    self.restored_earlier_weights = [4 < int(epochs)]
+                else:
+                    self.best_epochs = []
+                    self.best_epoch_per_model = [None]
+                    self.restored_best_weights = [False]
+                    self.restored_earlier_weights = [False]
+                key = ("full", None) if self.request["kind"] == "full" else ("fold", int(self.request["fold"]))
+                if interrupt_at == key:
+                    raise RuntimeError("interrupted before the next model")
+                if replace_after == key:
+                    checkpoint.write_bytes(original + b"-B")
+
+            def predict_rows(self, sequences, row_index):
+                index = np.asarray(row_index, dtype=np.int64)
+                return {
+                    "prediction": index.astype(np.float64),
+                    "sequence": [str(item) for item in sequences],
+                    "row_index": index,
+                }
+
+            def score_validation(self, valid_loader, valid_df, save_prediction=False, mode="ensemble"):
+                return {
+                    "predictions": np.array([1.0, 2.0]),
+                    "sequence": np.array(["valid-a", "valid-b"]),
+                }
+
+        def frozen(*args, **kwargs):
+            script.frozen += 1
+            raise AssertionError("the frozen PMLM was loaded from a different checkpoint")
+
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as checkpoint_dir:
+            root = Path(directory)
+            checkpoint = Path(checkpoint_dir) / "pmlm.pt"
+            script = _Script()
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "CHECKPOINT", checkpoint
+            ), patch.object(
+                designated_seed, "production_trainer_factory", script
+            ), patch.object(designated_seed.frozen_pmlm, "load_independent_pretrained", frozen):
+                if resume:
+                    checkpoint.write_bytes(original)
+                    with self.assertRaises(RuntimeError) as first:
+                        designated_seed.run_designated_single_seed(
+                            execute=True,
+                            compute_embeddings=True,
+                            output_dir=root,
+                        )
+                    self.assertIn("interrupted", str(first.exception))
+                    sealed = dict(experiment_store.read_marker(root)["pmlm_checkpoint"])
+                    self.assertEqual(sealed["sha256"], digest)
+                    checkpoint.write_bytes(original + b"-B")
+                    script.builds = 0
+                    with self.assertRaises(RuntimeError) as caught:
+                        designated_seed.run_designated_single_seed(
+                            execute=True,
+                            compute_embeddings=True,
+                            output_dir=root,
+                            resume=True,
+                        )
+                    self.assertEqual(script.builds, 0)
+                else:
+                    checkpoint.write_bytes(original)
+                    with self.assertRaises(RuntimeError) as caught:
+                        designated_seed.run_designated_single_seed(
+                            execute=True,
+                            compute_embeddings=True,
+                            output_dir=root,
+                        )
+                    sealed = dict(experiment_store.read_marker(root)["pmlm_checkpoint"])
+                self.assertIn("sealed", str(caught.exception))
+                self.assertEqual(script.frozen, 0)
+                self.assertEqual(experiment_store.read_marker(root)["pmlm_checkpoint"], sealed)
+                self.assertEqual(sealed["sha256"], digest)
+                self.assertEqual(sealed["size"], len(original))
+                self.assertNotEqual(experiment_store.read_marker(root)["status"], "complete")
+                self.assertTrue(experiment_store.weights_path(root, "full").is_file())
+                self.assertTrue((root / "muformer" / "full.json").is_file())
+                if replace_after == ("full", None) or interrupt_at == ("fold", 0):
+                    self.assertFalse(experiment_store.weights_path(root, "fold_0").exists())
+                if replace_after == ("fold", 1):
+                    self.assertTrue(experiment_store.weights_path(root, "fold_1").is_file())
+                    self.assertFalse(experiment_store.weights_path(root, "fold_2").exists())
+                if replace_after == ("fold", 4):
+                    self.assertTrue(experiment_store.weights_path(root, "fold_4").is_file())
+
+    def test_checkpoint_replaced_after_the_full_model_is_refused(self) -> None:
+        self._run_until_checkpoint_replacement(replace_after=("full", None))
+
+    def test_checkpoint_replaced_before_the_third_fold_is_refused(self) -> None:
+        self._run_until_checkpoint_replacement(replace_after=("fold", 1))
+
+    def test_checkpoint_replaced_before_the_frozen_pmlm_is_refused(self) -> None:
+        self._run_until_checkpoint_replacement(replace_after=("fold", 4))
+
+    def test_checkpoint_replaced_on_resume_is_refused(self) -> None:
+        self._run_until_checkpoint_replacement(interrupt_at=("fold", 0), resume=True)
 
     def test_interrupted_report_resume_writes_json_and_markdown(self) -> None:
         prepared = single_seed.prepare_single_outer_seed("n1000", 1975576344)

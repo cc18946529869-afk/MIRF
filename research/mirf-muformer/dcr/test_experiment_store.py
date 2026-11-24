@@ -105,6 +105,7 @@ def write_consistent_run(root: Path, sequences, e_s: int = 4) -> None:
     if len(names) != 1000:
         raise ValueError("a consistent run has 1000 training sequences")
     experiment_store.open_run(root, resume=False, schedule_only=False)
+    experiment_store.seal_pmlm_checkpoint(root, experiment_store._checkpoint_path())
     holder = _Holder(_Factory())
     experiment_store.write_full(root, holder, {
         "e_s": int(e_s),

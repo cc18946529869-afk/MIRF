@@ -438,12 +438,20 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
     loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", DESIGNATED_SCALE)
     keepers = {}
     upstream = trainer_factory
+    if not schedule_only:
+        experiment_store.seal_pmlm_checkpoint(directory, CHECKPOINT)
 
     def factory(request):
-        if upstream is None:
-            created = production_trainer_factory(request, output_dir=directory)
-        else:
-            created = upstream(request)
+        if not schedule_only:
+            experiment_store.seal_pmlm_checkpoint(directory, CHECKPOINT)
+        try:
+            if upstream is None:
+                created = production_trainer_factory(request, output_dir=directory)
+            else:
+                created = upstream(request)
+        finally:
+            if not schedule_only:
+                experiment_store.seal_pmlm_checkpoint(directory, CHECKPOINT)
         if request.get("kind") == "full":
             keepers["full"] = created
         return created
@@ -492,7 +500,18 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
         raise RuntimeError("residual arms require one OOF prediction per training row")
     progress["stage"] = "embeddings"
     index = feature_align.FeatureIndex(feature_align.table_path())
-    model = frozen_pmlm.load_independent_pretrained(str(CHECKPOINT))
+    sealed = experiment_store.seal_pmlm_checkpoint(directory, CHECKPOINT)
+    model = frozen_pmlm.load_independent_pretrained(
+        str(CHECKPOINT),
+        expected_sha256=sealed["sha256"],
+        expected_identity=(
+            int(sealed["device"]),
+            int(sealed["inode"]),
+            int(sealed["size"]),
+            int(sealed["mtime_ns"]),
+            int(sealed["ctime_ns"]),
+        ),
+    )
     if model.training or any(bool(parameter.requires_grad) for parameter in model.parameters()):
         raise RuntimeError("the PMLM used by the residual arms is not frozen")
     train_embedded = frozen_pmlm.embed_sequences(
@@ -508,6 +527,10 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
     test_embedded = frozen_pmlm.embed_sequences(
         model, test_aligned["sequence"], index, checkpoint=CHECKPOINT, batch_size=2,
     )
+    sealed_hash = experiment_store.seal_pmlm_checkpoint(directory, CHECKPOINT)["sha256"]
+    for meta in (train_embedded["metadata"], valid_embedded["metadata"], test_embedded["metadata"]):
+        if meta.get("checkpoint_sha256") != sealed_hash:
+            raise RuntimeError("the frozen PMLM hash is not the hash sealed for this experiment")
     experiment_store.write_embedding_identity(
         directory,
         train_embedded["metadata"],

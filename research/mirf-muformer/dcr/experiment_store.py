@@ -629,16 +629,89 @@ def sha256_cached(path: Path, slot: dict) -> str:
     return digest
 
 
-def _checkpoint_sha256() -> str:
-    """SHA256 of the frozen PMLM file. A replaced file is hashed again."""
-    return sha256_cached(_checkpoint_path(), _CHECKPOINT_CACHE)
+_PMLM_STAT_FIELDS = ("device", "inode", "size", "mtime_ns", "ctime_ns")
 
 
-def pmlm_split_record(sequences) -> dict:
+def pmlm_file_stat(path: Path) -> dict:
+    """Device, inode, size, mtime, and ctime. This does not hash the file."""
+    stat = Path(path).resolve().stat()
+    return {
+        "device": int(stat.st_dev),
+        "inode": int(stat.st_ino),
+        "size": int(stat.st_size),
+        "mtime_ns": int(stat.st_mtime_ns),
+        "ctime_ns": int(stat.st_ctime_ns),
+    }
+
+
+def _sealed_pmlm(record: dict) -> dict | None:
+    saved = record.get("pmlm_checkpoint")
+    if saved is None:
+        return None
+    if not isinstance(saved, dict):
+        raise RuntimeError("the sealed PMLM identity is not a record")
+    digest = saved.get("sha256")
+    if not isinstance(digest, str) or len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+        raise RuntimeError("the sealed PMLM identity has no sha256")
+    for key in _PMLM_STAT_FIELDS:
+        value = saved.get(key)
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise RuntimeError("the sealed PMLM identity is incomplete")
+    return saved
+
+
+def _muformer_files_present(directory: Path) -> bool:
+    folder = Path(directory) / "muformer"
+    if not folder.is_dir():
+        return False
+    return any(path.is_file() for path in folder.iterdir())
+
+
+def _require_same_pmlm(saved: dict, checkpoint: Path) -> None:
+    """The file must still be the sealed one. A different file is not hashed into the marker."""
+    before = pmlm_file_stat(checkpoint)
+    for key in _PMLM_STAT_FIELDS:
+        if saved[key] != before[key]:
+            raise RuntimeError("the PMLM checkpoint does not match the identity sealed for this experiment")
+    digest = sha256_cached(checkpoint, _CHECKPOINT_CACHE)
+    after = pmlm_file_stat(checkpoint)
+    if before != after or digest != saved["sha256"]:
+        raise RuntimeError("the PMLM checkpoint does not match the identity sealed for this experiment")
+
+
+def seal_pmlm_checkpoint(directory: Path, checkpoint: Path) -> dict:
+    """Write the checkpoint identity once. Later calls only compare it.
+
+    A mismatch raises and leaves the saved identity in place. Weights that
+    already exist cannot receive a newly computed identity.
+    """
+    path = marker_path(directory)
+    record = _read_json(path)
+    saved = _sealed_pmlm(record)
+    if saved is None:
+        if _muformer_files_present(directory):
+            raise RuntimeError("μFormer weights exist without a sealed PMLM identity")
+        before = pmlm_file_stat(checkpoint)
+        digest = sha256_cached(checkpoint, _CHECKPOINT_CACHE)
+        after = pmlm_file_stat(checkpoint)
+        if before != after:
+            raise RuntimeError("the PMLM checkpoint changed while its identity was being read")
+        sealed = dict(before)
+        sealed["sha256"] = digest
+        record["pmlm_checkpoint"] = sealed
+        _write_json(path, record)
+        return sealed
+    _require_same_pmlm(saved, checkpoint)
+    return saved
+
+
+def pmlm_split_record(sequences, checkpoint_sha256: str) -> dict:
     """Identity fields written for one embedded split. Vectors are not included."""
+    if not isinstance(checkpoint_sha256, str) or len(checkpoint_sha256) != 64:
+        raise RuntimeError("the sealed PMLM sha256 is missing")
     names = [str(item) for item in sequences]
     return {
-        "checkpoint_sha256": _checkpoint_sha256(),
+        "checkpoint_sha256": checkpoint_sha256,
         "sequence_sha256": sequence_sha256(names),
         "rows": len(names),
         "hidden": PMLM_HIDDEN,
@@ -662,12 +735,14 @@ def _designated_split_sequences() -> tuple[list[str], list[str]]:
 
 def write_checked_pmlm_identity(directory: Path, train_sequences) -> None:
     """Write the three split identities for the sequences this run embeds."""
+    sealed = seal_pmlm_checkpoint(directory, _checkpoint_path())
+    digest = sealed["sha256"]
     valid_sequences, test_sequences = _designated_split_sequences()
     write_embedding_identity(
         directory,
-        pmlm_split_record(train_sequences),
-        pmlm_split_record(valid_sequences),
-        pmlm_split_record(test_sequences),
+        pmlm_split_record(train_sequences, digest),
+        pmlm_split_record(valid_sequences, digest),
+        pmlm_split_record(test_sequences, digest),
     )
 
 
@@ -678,11 +753,13 @@ def _require_pmlm_identity(directory: Path, train_sequences) -> None:
     saved = _read_json(path)
     if saved.get("embeddings_stored") is not False:
         raise RuntimeError("the PMLM identity record stores embeddings")
+    sealed = seal_pmlm_checkpoint(directory, _checkpoint_path())
+    digest = sealed["sha256"]
     valid_sequences, test_sequences = _designated_split_sequences()
     expected = {
-        "train": pmlm_split_record(train_sequences),
-        "valid": pmlm_split_record(valid_sequences),
-        "test": pmlm_split_record(test_sequences),
+        "train": pmlm_split_record(train_sequences, digest),
+        "valid": pmlm_split_record(valid_sequences, digest),
+        "test": pmlm_split_record(test_sequences, digest),
     }
     for split, wanted in expected.items():
         if not _json_equal(saved.get(split), wanted):
