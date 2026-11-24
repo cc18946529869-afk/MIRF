@@ -29,6 +29,9 @@ ARM_RESULT_FIELDS = ("eta", "best_epoch", "metrics", "point", "n_bootstrap", "sp
 _HELD_LOCKS: dict[str, object] = {}
 FULL_NAME = "full"
 FOLD_COUNT = 5
+PMLM_HIDDEN = 1280
+PMLM_COORDINATE_MAP = "blat_ref_pos_is_token_after_bos_v1"
+_CHECKPOINT_DIGEST: tuple | None = None
 
 
 def sequence_sha256(sequences) -> str:
@@ -368,6 +371,8 @@ def write_full(directory: Path, trainer, result: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in np.asarray(result["sequences"]).tolist()]
     score, score_sha256 = _checked_vector(result["score"])
+    if len(score) != len(sequences):
+        raise ValueError("the validation score does not match the validation sequences")
     _commit_pair(
         _weights_path(directory, FULL_NAME),
         _record_path(directory, FULL_NAME),
@@ -403,6 +408,8 @@ def read_full(directory: Path) -> dict | None:
     if record["split"] != "validation":
         raise RuntimeError("the saved full model was not scored on the validation split")
     score = _require_saved_vector(record["score"], record.get("score_sha256"), "validation score")
+    if int(score.shape[0]) != len(sequences):
+        raise RuntimeError("the saved validation score does not match the validation sequences")
     return {
         "e_s": int(record["e_s"]),
         "epochs_run": int(record["epochs_run"]),
@@ -437,6 +444,16 @@ def write_fold(directory: Path, trainer, fold: int, produced: dict) -> None:
     remember_muformer_trained(directory)
 
 
+def _saved_full_epoch(directory: Path) -> int | None:
+    path = _record_path(directory, FULL_NAME)
+    if not path.is_file():
+        return None
+    recorded = _read_json(path).get("e_s")
+    if isinstance(recorded, bool) or not isinstance(recorded, int):
+        raise RuntimeError("the saved full model does not record E_s")
+    return int(recorded)
+
+
 def read_fold(directory: Path, fold: int) -> dict | None:
     directory = Path(directory)
     name = f"fold_{int(fold)}"
@@ -445,6 +462,16 @@ def read_fold(directory: Path, fold: int) -> dict | None:
     record = _read_committed(weights, record_path)
     if record is None:
         return None
+    if int(record.get("fold", -1)) != int(fold):
+        raise RuntimeError(f"fold {int(fold)} record is not this fold")
+    if record.get("restore_best") is not False or record.get("replaced_with_earlier_best") is not False:
+        raise RuntimeError(f"fold {int(fold)} did not keep the weights from epoch E_s")
+    epochs = record.get("epochs_run")
+    if isinstance(epochs, bool) or not isinstance(epochs, int) or int(epochs) < 1:
+        raise RuntimeError(f"fold {int(fold)} does not record its training epoch")
+    full_epoch = _saved_full_epoch(directory)
+    if full_epoch is not None and int(epochs) != full_epoch:
+        raise RuntimeError(f"fold {int(fold)} was not trained for E_s")
     sequences = [str(item) for item in record["held_out_sequence"]]
     if sequence_sha256(sequences) != record["sequence_sha256"]:
         raise RuntimeError(f"fold {int(fold)} sequences do not match their sha256")
@@ -491,6 +518,126 @@ def read_oof(directory: Path, sequences) -> dict:
     if values.shape != (len(names),):
         raise RuntimeError("the saved OOF predictions are not this training sequence list")
     return record
+
+
+def _require_folds_match_oof(directory: Path, sequences, e_s: int) -> None:
+    """The five fold predictions are the frozen partition and the saved OOF."""
+    import oof
+
+    names = [str(item) for item in sequences]
+    if len(names) != DESIGNATED_OOF_ROWS:
+        raise RuntimeError("the training sequences are not the designated 1000 rows")
+    loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", DESIGNATED_SCALE)
+    if int(loaded["n"]) != DESIGNATED_OOF_ROWS or len(loaded["folds"]) != FOLD_COUNT:
+        raise RuntimeError("the frozen OOF partition is not five folds of 1000 rows")
+    assembled = np.full(DESIGNATED_OOF_ROWS, np.nan, dtype=np.float64)
+    occupied = np.zeros(DESIGNATED_OOF_ROWS, dtype=bool)
+    for spec in loaded["folds"]:
+        fold = int(spec["fold"])
+        saved = read_fold(directory, fold)
+        if saved is None:
+            raise RuntimeError(f"fold {fold} is not saved")
+        if int(saved["epochs_run"]) != int(e_s):
+            raise RuntimeError(f"fold {fold} was not trained for E_s")
+        val_idx = np.asarray(spec["val_idx"], dtype=np.int64)
+        if val_idx.ndim != 1 or int(val_idx.size) == 0:
+            raise RuntimeError(f"fold {fold} has no frozen validation index")
+        if bool(np.any(val_idx < 0)) or bool(np.any(val_idx >= DESIGNATED_OOF_ROWS)):
+            raise RuntimeError(f"fold {fold} validation index is outside the training rows")
+        if len(set(int(item) for item in val_idx.tolist())) != int(val_idx.size):
+            raise RuntimeError(f"fold {fold} validation index repeats a row")
+        prediction = np.asarray(saved["held_out_prediction"], dtype=np.float64)
+        if prediction.shape != val_idx.shape:
+            raise RuntimeError(f"fold {fold} prediction does not match the frozen validation index")
+        expected = [names[int(item)] for item in val_idx.tolist()]
+        if list(saved["held_out_sequence"]) != expected:
+            raise RuntimeError(f"fold {fold} sequences are not the frozen validation rows")
+        if bool(occupied[val_idx].any()):
+            raise RuntimeError("the five folds overlap")
+        occupied[val_idx] = True
+        assembled[val_idx] = prediction
+    if not bool(occupied.all()):
+        raise RuntimeError("the five folds do not cover every training row")
+    oof_record = read_oof(directory, names)
+    saved_oof = _require_saved_vector(
+        oof_record["predictions"],
+        oof_record.get("predictions_sha256"),
+        "OOF predictions",
+    )
+    if not np.array_equal(assembled, saved_oof):
+        raise RuntimeError("the saved OOF predictions are not the assembled fold predictions")
+
+
+def _checkpoint_path() -> Path:
+    return Path(__file__).resolve().parents[3] / "Mu-Protein" / "pretrained" / "pmlm_650m.pt"
+
+
+def _checkpoint_sha256() -> str:
+    """SHA256 of the frozen PMLM file. A replaced file is hashed again."""
+    global _CHECKPOINT_DIGEST
+    path = _checkpoint_path().resolve()
+    stat = path.stat()
+    key = (str(path), int(stat.st_size), int(stat.st_mtime_ns))
+    if _CHECKPOINT_DIGEST is not None and _CHECKPOINT_DIGEST[0] == key:
+        return _CHECKPOINT_DIGEST[1]
+    digest = file_sha256(path)
+    _CHECKPOINT_DIGEST = (key, digest)
+    return digest
+
+
+def pmlm_split_record(sequences) -> dict:
+    """Identity fields written for one embedded split. Vectors are not included."""
+    names = [str(item) for item in sequences]
+    return {
+        "checkpoint_sha256": _checkpoint_sha256(),
+        "sequence_sha256": sequence_sha256(names),
+        "rows": len(names),
+        "hidden": PMLM_HIDDEN,
+        "coordinate_map_version": PMLM_COORDINATE_MAP,
+        "embeddings_stored": False,
+        "lm_head_called": False,
+        "fc_reduce_called": False,
+    }
+
+
+def _designated_split_sequences() -> tuple[list[str], list[str]]:
+    import feature_align
+    import potts_features
+
+    valid_tsv = potts_features.MAIN_SPLITS / "BLAT_ECOLX_Stiffler_2015_valid.tsv"
+    test_tsv = potts_features.MAIN_SPLITS / "BLAT_ECOLX_Stiffler_2015_test.tsv"
+    valid_sequences, _valid_scores = feature_align.read_scored_tsv(valid_tsv)
+    test_sequences, _test_scores = feature_align.read_scored_tsv(test_tsv)
+    return valid_sequences, test_sequences
+
+
+def write_checked_pmlm_identity(directory: Path, train_sequences) -> None:
+    """Write the three split identities for the sequences this run embeds."""
+    valid_sequences, test_sequences = _designated_split_sequences()
+    write_embedding_identity(
+        directory,
+        pmlm_split_record(train_sequences),
+        pmlm_split_record(valid_sequences),
+        pmlm_split_record(test_sequences),
+    )
+
+
+def _require_pmlm_identity(directory: Path, train_sequences) -> None:
+    path = Path(directory) / "pmlm_identity.json"
+    if not path.is_file():
+        raise RuntimeError("the PMLM identity record is missing")
+    saved = _read_json(path)
+    if saved.get("embeddings_stored") is not False:
+        raise RuntimeError("the PMLM identity record stores embeddings")
+    valid_sequences, test_sequences = _designated_split_sequences()
+    expected = {
+        "train": pmlm_split_record(train_sequences),
+        "valid": pmlm_split_record(valid_sequences),
+        "test": pmlm_split_record(test_sequences),
+    }
+    for split, wanted in expected.items():
+        if not _json_equal(saved.get(split), wanted):
+            raise RuntimeError(f"the PMLM {split} identity does not match this experiment")
 
 
 def write_embedding_identity(directory: Path, train_meta: dict, valid_meta: dict, test_meta: dict) -> None:
@@ -701,9 +848,8 @@ def report_ready(directory: Path, sequences) -> bool:
             return False
         if int(report.get("oof_rows", -1)) != DESIGNATED_OOF_ROWS or int(report["oof_rows"]) != int(oof_record["rows"]):
             return False
-        for fold in range(FOLD_COUNT):
-            if read_fold(directory, fold) is None:
-                return False
+        _require_folds_match_oof(directory, names, int(full["e_s"]))
+        _require_pmlm_identity(directory, names)
         if not arms_ready(directory):
             return False
         return report_matches_arms(report, read_arms(directory))

@@ -429,52 +429,11 @@ class DesignatedEntryTests(unittest.TestCase):
     def test_interrupted_report_resume_writes_json_and_markdown(self) -> None:
         prepared = single_seed.prepare_single_outer_seed("n1000", 1975576344)
         sequences = list(prepared["sequence"])
-        names = ("spearman", "pearson", "ndcg", "recall", "rmse")
-        scored = {name: {"mean_delta": 0.1, "ci_low": -0.2, "ci_high": 0.4} for name in names}
-        point = {name: 0.5 for name in names}
-        arms = ("full", "sum", "no_potts")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            experiment_store.open_run(root, resume=False, schedule_only=False)
-            holder = test_experiment_store._Holder(test_experiment_store._Factory())
-            experiment_store.write_full(root, holder, {
-                "e_s": 4,
-                "epochs_run": 4,
-                "restore_best": True,
-                "replaced_with_earlier_best": False,
-                "split": "validation",
-                "score": np.array([1.0]),
-                "sequences": np.array(["valid-a"]),
-            })
-            experiment_store.write_oof(
-                root,
-                np.zeros(len(sequences)),
-                sequences,
-                4,
-                schedule_only=False,
-                weights_saved=True,
-            )
-            for fold in range(5):
-                experiment_store.write_fold(root, holder, fold, {
-                    "epochs_run": 4,
-                    "restore_best": False,
-                    "replaced_with_earlier_best": False,
-                    "held_out_prediction": np.array([float(fold)]),
-                    "held_out_sequence": [f"held-{fold}"],
-                })
-            experiment_store.write_arms(root, {
-                "arms": list(arms),
-                "etas": {arm: 0.0 for arm in arms},
-                "best_epochs": {arm: 1 for arm in arms},
-                "n_bootstrap": {arm: 10000 for arm in arms},
-                "spearman_passes": {arm: False for arm in arms},
-                "metrics": {arm: scored for arm in arms},
-                "point": {arm: {"baseline": point, "fused": point} for arm in arms},
-                "state_dict": {arm: {"weight": torch.zeros(1)} for arm in arms},
-                "shared_init": True,
-                "shared_first_order": True,
-            })
+            test_experiment_store.write_consistent_run(root, sequences)
             (root / "single_seed_report.json").write_text('{"scale": "n1000"}')
+            (root / "single_seed_report.md").unlink()
             self.assertFalse((root / "single_seed_report.md").exists())
             self.assertFalse(experiment_store.report_ready(root, sequences))
 
@@ -584,6 +543,57 @@ class DesignatedEntryTests(unittest.TestCase):
             path.write_text(json.dumps(record))
             (root / "single_seed_report.md").write_text(experiment_store._report_markdown(record))
 
+        def change_fold_epochs(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["epochs_run"] = int(record["epochs_run"]) - 1
+            path.write_text(json.dumps(record))
+
+        def change_fold_restore_best(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["restore_best"] = True
+            path.write_text(json.dumps(record))
+
+        def shorten_fold_prediction(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["held_out_prediction"] = record["held_out_prediction"][:2]
+            record["held_out_prediction_sha256"] = experiment_store.vector_sha256(record["held_out_prediction"])
+            path.write_text(json.dumps(record))
+
+        def change_fold_sequences(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["held_out_sequence"] = [f"not-training-{index}" for index in range(len(record["held_out_sequence"]))]
+            record["sequence_sha256"] = experiment_store.sequence_sha256(record["held_out_sequence"])
+            path.write_text(json.dumps(record))
+
+        def overlap_fold_sequences(root: Path) -> None:
+            first = json.loads((root / "muformer" / "fold_0.json").read_text())
+            path = root / "muformer" / "fold_1.json"
+            record = json.loads(path.read_text())
+            record["held_out_sequence"] = list(first["held_out_sequence"])
+            record["sequence_sha256"] = experiment_store.sequence_sha256(record["held_out_sequence"])
+            path.write_text(json.dumps(record))
+
+        def change_oof_but_keep_its_hash(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["predictions"][0] = float(record["predictions"][0]) + 1.0
+            record["predictions_sha256"] = experiment_store.vector_sha256(record["predictions"])
+            path.write_text(json.dumps(record))
+
+        def delete_pmlm_identity(root: Path) -> None:
+            (root / "pmlm_identity.json").unlink()
+
+        def shorten_full_score(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["score"] = record["score"][:-1]
+            record["score_sha256"] = experiment_store.vector_sha256(record["score"])
+            path.write_text(json.dumps(record))
+
         for mutate in (
             change_full_weights,
             change_oof_sequence_sha,
@@ -599,6 +609,14 @@ class DesignatedEntryTests(unittest.TestCase):
             change_arm_metrics,
             change_report_metric_and_markdown,
             change_report_oof_rows,
+            change_fold_epochs,
+            change_fold_restore_best,
+            shorten_fold_prediction,
+            change_fold_sequences,
+            overlap_fold_sequences,
+            change_oof_but_keep_its_hash,
+            delete_pmlm_identity,
+            shorten_full_score,
         ):
             with tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
