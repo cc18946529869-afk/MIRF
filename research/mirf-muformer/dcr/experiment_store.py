@@ -8,6 +8,7 @@ writes the weights after that return. It does not call the commented
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 from pathlib import Path
@@ -18,6 +19,11 @@ import torch
 import metrics
 
 MARKER_NAME = "designated_run.json"
+LOCK_NAME = ".run.lock"
+EXPERIMENT_ID = "n1000-1975576344"
+DESIGNATED_SCALE = "n1000"
+DESIGNATED_SEED = 1975576344
+_HELD_LOCKS: dict[str, object] = {}
 FULL_NAME = "full"
 FOLD_COUNT = 5
 
@@ -74,30 +80,68 @@ def read_marker(output_dir: Path) -> dict:
     return _read_json(marker_path(output_dir))
 
 
-def open_run(output_dir: Path, *, resume: bool, schedule_only: bool) -> dict:
-    """Create the run marker, or continue an incomplete directory.
+def _inside_repository(path: Path) -> bool:
+    current = path.resolve()
+    for parent in (current, *current.parents):
+        if (parent / ".git").exists():
+            return True
+    return False
 
-    A finished directory is refused. An incomplete directory is refused until
-    ``resume=True``. ``resume=True`` does not create a new run.
-    """
-    directory = Path(output_dir)
-    directory.mkdir(parents=True, exist_ok=True)
+
+def _acquire_lock(directory: Path):
+    key = str(directory.resolve())
+    held = _HELD_LOCKS.get(key)
+    if held is not None and not held.closed:
+        return held
+    handle = (directory / LOCK_NAME).open("a+")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        handle.close()
+        raise RuntimeError("another process already holds this designated run directory")
+    _HELD_LOCKS[key] = handle
+    return handle
+
+
+def _release_lock(directory: Path) -> None:
+    key = str(directory.resolve())
+    handle = _HELD_LOCKS.pop(key, None)
+    if handle is not None and not handle.closed:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        handle.close()
+
+
+def _require_identity(record: dict) -> None:
+    if record.get("experiment_id") != EXPERIMENT_ID:
+        raise RuntimeError("this directory belongs to a different experiment")
+    if record.get("scale") != DESIGNATED_SCALE or int(record.get("outer_seed")) != DESIGNATED_SEED:
+        raise RuntimeError("this directory belongs to a different scale or outer seed")
+
+
+def _open_locked(directory: Path, *, resume: bool, schedule_only: bool) -> dict:
     path = marker_path(directory)
+    entries = [item for item in directory.iterdir() if item.name != LOCK_NAME]
     if not path.exists():
         if resume:
             raise RuntimeError("resume requires an incomplete designated run in this directory")
+        if entries:
+            raise RuntimeError("a new designated run requires an empty directory")
         record = {
-            "scale": "n1000",
-            "outer_seed": 1975576344,
+            "experiment_id": EXPERIMENT_ID,
+            "scale": DESIGNATED_SCALE,
+            "outer_seed": DESIGNATED_SEED,
             "status": "running",
             "stage": "starting",
             "completed_stages": [],
             "schedule_only": bool(schedule_only),
+            "training_started": False,
+            "muformer_train_called": False,
             "error": None,
         }
         _write_json(path, record)
         return record
     record = _read_json(path)
+    _require_identity(record)
     if record.get("status") == "complete":
         raise RuntimeError("the designated single-seed run already finished in this directory")
     if not resume:
@@ -110,6 +154,45 @@ def open_run(output_dir: Path, *, resume: bool, schedule_only: bool) -> dict:
     record["error"] = None
     _write_json(path, record)
     return record
+
+
+def open_run(output_dir: Path, *, resume: bool, schedule_only: bool) -> dict:
+    """Create the run marker, or continue an incomplete directory.
+
+    A new run must be an empty directory outside any git repository. A
+    directory that already holds another experiment's files is refused, and
+    the marker is not created. Resume checks the scale, seed, and experiment
+    id. The process that enters keeps an exclusive lock until it fails to
+    enter or the process exits.
+    """
+    directory = Path(output_dir).resolve()
+    if _inside_repository(directory):
+        raise RuntimeError("the designated run directory must be outside the repository")
+    directory.mkdir(parents=True, exist_ok=True)
+    _acquire_lock(directory)
+    try:
+        return _open_locked(directory, resume=resume, schedule_only=schedule_only)
+    except Exception:
+        _release_lock(directory)
+        raise
+
+
+def recorded_training(output_dir: Path) -> dict:
+    """Training flags stored for the whole experiment, not the latest process."""
+    record = read_marker(output_dir)
+    return {
+        "training_started": bool(record.get("training_started")),
+        "muformer_train_called": bool(record.get("muformer_train_called")),
+    }
+
+
+def remember_muformer_trained(output_dir: Path) -> None:
+    """Record that this experiment called μFormer ``train``. Later resumes keep it."""
+    path = marker_path(output_dir)
+    record = _read_json(path)
+    record["training_started"] = True
+    record["muformer_train_called"] = True
+    _write_json(path, record)
 
 
 def note_stage(output_dir: Path, stage: str, **fields) -> None:
@@ -197,21 +280,74 @@ def _vector(values) -> list[float]:
     return [float(item) for item in array.tolist()]
 
 
+def _discard_pair(weights: Path, record_path: Path) -> None:
+    for path in (
+        weights,
+        record_path,
+        weights.with_name(weights.name + ".partial"),
+        record_path.with_name(record_path.name + ".partial"),
+        weights.with_name(weights.name + ".tmp"),
+        record_path.with_name(record_path.name + ".tmp"),
+    ):
+        if path.is_file():
+            path.unlink()
+
+
+def _commit_pair(weights: Path, record_path: Path, state: dict, payload: dict) -> None:
+    """Write the weight file and its JSON, then publish the pair.
+
+    A crash before both names are in place leaves a partial pair. ``read``
+    removes that pair so the model can be trained again.
+    """
+    weights.parent.mkdir(parents=True, exist_ok=True)
+    partial_weights = weights.with_name(weights.name + ".partial")
+    partial_record = record_path.with_name(record_path.name + ".partial")
+    torch.save(state, partial_weights)
+    body = dict(payload)
+    body["weight_sha256"] = file_sha256(partial_weights)
+    _write_json(partial_record, body)
+    partial_weights.replace(weights)
+    partial_record.replace(record_path)
+
+
+def _read_committed(weights: Path, record_path: Path) -> dict | None:
+    both = weights.is_file() and record_path.is_file()
+    debris = any(
+        path.exists()
+        for path in (
+            weights,
+            record_path,
+            weights.with_name(weights.name + ".partial"),
+            record_path.with_name(record_path.name + ".partial"),
+        )
+    )
+    if both:
+        return _read_json(record_path)
+    if not debris:
+        return None
+    _discard_pair(weights, record_path)
+    return None
+
+
 def write_full(directory: Path, trainer, result: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in np.asarray(result["sequences"]).tolist()]
-    digest = save_weights(_weights_path(directory, FULL_NAME), module_state(trainer))
-    _write_json(_record_path(directory, FULL_NAME), {
-        "e_s": int(result["e_s"]),
-        "epochs_run": int(result["epochs_run"]),
-        "restore_best": bool(result["restore_best"]),
-        "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
-        "split": str(result["split"]),
-        "score": _vector(result["score"]),
-        "sequences": sequences,
-        "sequence_sha256": sequence_sha256(sequences),
-        "weight_sha256": digest,
-    })
+    _commit_pair(
+        _weights_path(directory, FULL_NAME),
+        _record_path(directory, FULL_NAME),
+        module_state(trainer),
+        {
+            "e_s": int(result["e_s"]),
+            "epochs_run": int(result["epochs_run"]),
+            "restore_best": bool(result["restore_best"]),
+            "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
+            "split": str(result["split"]),
+            "score": _vector(result["score"]),
+            "sequences": sequences,
+            "sequence_sha256": sequence_sha256(sequences),
+        },
+    )
+    remember_muformer_trained(directory)
     note_stage(directory, "full_model", e_s=int(result["e_s"]))
 
 
@@ -219,11 +355,9 @@ def read_full(directory: Path) -> dict | None:
     directory = Path(directory)
     weights = _weights_path(directory, FULL_NAME)
     record_path = _record_path(directory, FULL_NAME)
-    if not weights.exists() and not record_path.exists():
+    record = _read_committed(weights, record_path)
+    if record is None:
         return None
-    if not weights.is_file() or not record_path.is_file():
-        raise RuntimeError("the full-model checkpoint is incomplete")
-    record = _read_json(record_path)
     sequences = [str(item) for item in record["sequences"]]
     if sequence_sha256(sequences) != record["sequence_sha256"]:
         raise RuntimeError("the saved validation sequences do not match their sha256")
@@ -246,17 +380,21 @@ def write_fold(directory: Path, trainer, fold: int, produced: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in produced["held_out_sequence"]]
     name = f"fold_{int(fold)}"
-    digest = save_weights(_weights_path(directory, name), module_state(trainer))
-    _write_json(_record_path(directory, name), {
-        "fold": int(fold),
-        "epochs_run": int(produced["epochs_run"]),
-        "restore_best": bool(produced["restore_best"]),
-        "replaced_with_earlier_best": bool(produced["replaced_with_earlier_best"]),
-        "held_out_prediction": _vector(produced["held_out_prediction"]),
-        "held_out_sequence": sequences,
-        "sequence_sha256": sequence_sha256(sequences),
-        "weight_sha256": digest,
-    })
+    _commit_pair(
+        _weights_path(directory, name),
+        _record_path(directory, name),
+        module_state(trainer),
+        {
+            "fold": int(fold),
+            "epochs_run": int(produced["epochs_run"]),
+            "restore_best": bool(produced["restore_best"]),
+            "replaced_with_earlier_best": bool(produced["replaced_with_earlier_best"]),
+            "held_out_prediction": _vector(produced["held_out_prediction"]),
+            "held_out_sequence": sequences,
+            "sequence_sha256": sequence_sha256(sequences),
+        },
+    )
+    remember_muformer_trained(directory)
 
 
 def read_fold(directory: Path, fold: int) -> dict | None:
@@ -264,11 +402,9 @@ def read_fold(directory: Path, fold: int) -> dict | None:
     name = f"fold_{int(fold)}"
     weights = _weights_path(directory, name)
     record_path = _record_path(directory, name)
-    if not weights.exists() and not record_path.exists():
+    record = _read_committed(weights, record_path)
+    if record is None:
         return None
-    if not weights.is_file() or not record_path.is_file():
-        raise RuntimeError(f"fold {int(fold)} checkpoint is incomplete")
-    record = _read_json(record_path)
     sequences = [str(item) for item in record["held_out_sequence"]]
     if sequence_sha256(sequences) != record["sequence_sha256"]:
         raise RuntimeError(f"fold {int(fold)} sequences do not match their sha256")
@@ -379,14 +515,69 @@ def read_arms(directory: Path) -> dict:
     return _read_json(Path(directory) / "arms.json")
 
 
+def _report_document_complete(directory: Path, report: dict) -> bool:
+    if report.get("scale") != DESIGNATED_SCALE or int(report.get("outer_seed", -1)) != DESIGNATED_SEED:
+        return False
+    if report.get("formal_experiment") or report.get("ten_seed_conclusion"):
+        return False
+    by_arm = report.get("by_arm")
+    if not isinstance(by_arm, dict):
+        return False
+    for arm in ("full", "sum", "no_potts"):
+        payload = by_arm.get(arm)
+        if not isinstance(payload, dict):
+            return False
+        scored = payload.get("metrics")
+        if not isinstance(scored, dict):
+            return False
+        for name in metrics.METRIC_NAMES:
+            item = scored.get(name)
+            if not isinstance(item, dict):
+                return False
+            if "mean_delta" not in item or "ci_low" not in item or "ci_high" not in item:
+                return False
+    history = recorded_training(directory)
+    if bool(report.get("training_started")) != history["training_started"]:
+        return False
+    if bool(report.get("muformer_train_called")) != history["muformer_train_called"]:
+        return False
+    text = (directory / "single_seed_report.md").read_text()
+    if str(DESIGNATED_SEED) not in text or DESIGNATED_SCALE not in text:
+        return False
+    return True
+
+
 def report_ready(directory: Path) -> bool:
-    return (Path(directory) / "single_seed_report.json").is_file()
+    """True only when the report matches this experiment and the saved artifacts."""
+    directory = Path(directory)
+    json_path = directory / "single_seed_report.json"
+    markdown_path = directory / "single_seed_report.md"
+    if not json_path.is_file() or not markdown_path.is_file() or markdown_path.stat().st_size == 0:
+        return False
+    if not marker_path(directory).is_file():
+        return False
+    try:
+        report = _read_json(json_path)
+        _require_identity(read_marker(directory))
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+        return False
+    if not _report_document_complete(directory, report):
+        return False
+    if not (directory / "oof.json").is_file():
+        return False
+    weights = _weights_path(directory, FULL_NAME)
+    record_path = _record_path(directory, FULL_NAME)
+    if not weights.is_file() or not record_path.is_file():
+        return False
+    try:
+        return arms_ready(directory)
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+        return False
 
 
 def write_report(directory: Path, report: dict) -> dict:
     directory = Path(directory)
     ready = _json_ready(report)
-    _write_json(directory / "single_seed_report.json", ready)
     lines = [
         "# 单种子实验结果",
         "",
@@ -414,7 +605,14 @@ def write_report(directory: Path, report: dict) -> dict:
                 f"{delta['mean_delta']} | {delta['ci_low']} | {delta['ci_high']} |"
             )
         lines.append("")
-    (directory / "single_seed_report.md").write_text("\n".join(lines))
+    json_path = directory / "single_seed_report.json"
+    markdown_path = directory / "single_seed_report.md"
+    json_partial = json_path.with_name(json_path.name + ".partial")
+    markdown_partial = markdown_path.with_name(markdown_path.name + ".partial")
+    _write_json(json_partial, ready)
+    markdown_partial.write_text("\n".join(lines))
+    json_partial.replace(json_path)
+    markdown_partial.replace(markdown_path)
     note_stage(directory, "report")
     return ready
 

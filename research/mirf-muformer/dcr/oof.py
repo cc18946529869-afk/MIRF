@@ -94,6 +94,7 @@ def load_scale(precheck: Path, scale: str) -> dict:
         raise ValueError("scale must be n1000 or full")
     directory = sealed_config.assert_precheck_path(precheck)
     before = sealed_config.precheck_snapshot(directory)
+    verify_precheck_hashes(directory)
     expected = EXPECTED_ROWS[scale]
     folds = []
     covered = np.zeros(expected["n"], dtype=bool)

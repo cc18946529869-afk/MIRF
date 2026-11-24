@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
@@ -13,12 +14,15 @@ import numpy as np
 import torch
 
 import designated_seed
+import experiment_store
 import feature_align
 import frozen_pmlm
 import oof
 import outer_train
 import pmlm_coords
 import sealed_config
+import single_seed
+import test_experiment_store
 import test_outer_train
 
 CHECKPOINT = designated_seed.CHECKPOINT
@@ -276,6 +280,214 @@ class DesignatedEntryTests(unittest.TestCase):
         self.assertEqual(tuple(predicted["prediction"].shape), (2,))
         self.assertTrue(np.array_equal(predicted["row_index"], np.array([0, 3])))
         self.assertFalse(hasattr(trainer, "epochs_completed"))
+
+    def test_formal_entry_refuses_without_exactly_one_visible_gpu(self) -> None:
+        self.assertEqual(torch.cuda.device_count(), 0)
+
+        def boom(*args, **kwargs):
+            raise AssertionError("training started")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(designated_seed, "production_trainer_factory", boom):
+                with self.assertRaises(RuntimeError) as caught:
+                    designated_seed.run_designated_single_seed(
+                        execute=True,
+                        compute_embeddings=True,
+                        output_dir=root,
+                    )
+            self.assertIn("one visible GPU", str(caught.exception))
+            self.assertFalse((root / "designated_run.json").exists())
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=2), patch.object(
+                designated_seed, "production_trainer_factory", boom
+            ):
+                with self.assertRaises(RuntimeError) as caught:
+                    designated_seed.run_designated_single_seed(
+                        execute=True,
+                        compute_embeddings=True,
+                        output_dir=root,
+                    )
+            self.assertIn("one visible GPU", str(caught.exception))
+            self.assertFalse((root / "designated_run.json").exists())
+        with patch.object(designated_seed.torch.cuda, "device_count", return_value=1):
+            designated_seed.require_single_visible_gpu()
+
+    def test_one_visible_gpu_stays_out_of_distributed_mode(self) -> None:
+        designated_seed.load_trainer_class()
+        trainer_mod = __import__("sys").modules["trainer"]
+        calls = []
+
+        def forbidden(local_rank):
+            calls.append(local_rank)
+            raise AssertionError("init_distributed_mode")
+
+        original_count = trainer_mod.torch.cuda.device_count
+        original_init = trainer_mod.init_distributed_mode
+        trainer_mod.torch.cuda.device_count = lambda: 1
+        trainer_mod.init_distributed_mode = forbidden
+        try:
+            request = {"muformer_config": sealed_config.muformer_config()}
+            with tempfile.TemporaryDirectory() as directory:
+                trainer = designated_seed.production_trainer_factory(request, output_dir=Path(directory))
+            self.assertEqual(calls, [])
+            self.assertEqual(trainer.num_gpus, 1)
+            self.assertFalse(trainer.distributed)
+            self.assertFalse(hasattr(trainer, "local_rank"))
+            self.assertFalse(hasattr(trainer, "epochs_completed"))
+        finally:
+            trainer_mod.torch.cuda.device_count = original_count
+            trainer_mod.init_distributed_mode = original_init
+
+    def test_formal_entry_refuses_a_directory_inside_the_repository(self) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        def boom(*args, **kwargs):
+            raise AssertionError("training started")
+
+        with tempfile.TemporaryDirectory(dir=repo) as directory:
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "production_trainer_factory", boom
+            ):
+                with self.assertRaises(RuntimeError) as caught:
+                    designated_seed.run_designated_single_seed(
+                        execute=True,
+                        compute_embeddings=True,
+                        output_dir=Path(directory),
+                    )
+            self.assertIn("outside the repository", str(caught.exception))
+            self.assertFalse((Path(directory) / "designated_run.json").exists())
+
+    def test_formal_entry_refuses_a_directory_that_already_has_a_report(self) -> None:
+        def boom(*args, **kwargs):
+            raise AssertionError("training started")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "single_seed_report.json").write_text("{}")
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "production_trainer_factory", boom
+            ):
+                with self.assertRaises(RuntimeError) as caught:
+                    designated_seed.run_designated_single_seed(
+                        execute=True,
+                        compute_embeddings=True,
+                        output_dir=root,
+                    )
+            self.assertIn("empty directory", str(caught.exception))
+            self.assertFalse((root / "designated_run.json").exists())
+
+    def test_resume_with_six_saved_models_does_not_call_train(self) -> None:
+        prepared = single_seed.prepare_single_outer_seed("n1000", 1975576344)
+        sequences = list(prepared["sequence"])
+        loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            holder = test_experiment_store._Holder(test_experiment_store._Factory())
+            experiment_store.write_full(root, holder, {
+                "e_s": 4,
+                "epochs_run": 4,
+                "restore_best": True,
+                "replaced_with_earlier_best": False,
+                "split": "validation",
+                "score": np.array([1.0, 2.0]),
+                "sequences": np.array(["valid-a", "valid-b"]),
+            })
+            for fold in loaded["folds"]:
+                val_idx = np.asarray(fold["val_idx"], dtype=np.int64)
+                names = [sequences[int(item)] for item in val_idx.tolist()]
+                experiment_store.write_fold(root, holder, int(fold["fold"]), {
+                    "epochs_run": 4,
+                    "restore_best": False,
+                    "replaced_with_earlier_best": False,
+                    "held_out_prediction": val_idx.astype(np.float64),
+                    "held_out_sequence": names,
+                })
+            counter = test_experiment_store._Factory()
+
+            def factory(request, output_dir=None):
+                return counter(request)
+
+            def stop(*args, **kwargs):
+                raise RuntimeError("stopped before embeddings")
+
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "production_trainer_factory", factory
+            ), patch.object(designated_seed.frozen_pmlm, "load_independent_pretrained", stop):
+                with self.assertRaises(RuntimeError) as caught:
+                    designated_seed.run_designated_single_seed(
+                        execute=True,
+                        compute_embeddings=True,
+                        output_dir=root,
+                        resume=True,
+                    )
+            self.assertIn("stopped before embeddings", str(caught.exception))
+            self.assertEqual(counter.trains, 0)
+            self.assertEqual(counter.builds, 1)
+            self.assertTrue(experiment_store.recorded_training(root)["muformer_train_called"])
+
+    def test_interrupted_report_resume_writes_json_and_markdown(self) -> None:
+        prepared = single_seed.prepare_single_outer_seed("n1000", 1975576344)
+        sequences = list(prepared["sequence"])
+        names = ("spearman", "pearson", "ndcg", "recall", "rmse")
+        scored = {name: {"mean_delta": 0.1, "ci_low": -0.2, "ci_high": 0.4} for name in names}
+        point = {name: 0.5 for name in names}
+        arms = ("full", "sum", "no_potts")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            holder = test_experiment_store._Holder(test_experiment_store._Factory())
+            experiment_store.write_full(root, holder, {
+                "e_s": 4,
+                "epochs_run": 4,
+                "restore_best": True,
+                "replaced_with_earlier_best": False,
+                "split": "validation",
+                "score": np.array([1.0]),
+                "sequences": np.array(["valid-a"]),
+            })
+            experiment_store.write_oof(
+                root,
+                np.zeros(len(sequences)),
+                sequences,
+                4,
+                schedule_only=False,
+                weights_saved=True,
+            )
+            experiment_store.write_arms(root, {
+                "arms": list(arms),
+                "etas": {arm: 0.0 for arm in arms},
+                "best_epochs": {arm: 1 for arm in arms},
+                "n_bootstrap": {arm: 10000 for arm in arms},
+                "spearman_passes": {arm: False for arm in arms},
+                "metrics": {arm: scored for arm in arms},
+                "point": {arm: {"baseline": point, "fused": point} for arm in arms},
+                "state_dict": {arm: {"weight": torch.zeros(1)} for arm in arms},
+                "shared_init": True,
+                "shared_first_order": True,
+            })
+            (root / "single_seed_report.json").write_text('{"scale": "n1000"}')
+            self.assertFalse((root / "single_seed_report.md").exists())
+            self.assertFalse(experiment_store.report_ready(root))
+
+            def boom(*args, **kwargs):
+                raise AssertionError("training started")
+
+            with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                designated_seed, "production_trainer_factory", boom
+            ):
+                report = designated_seed.run_designated_single_seed(
+                    execute=True,
+                    compute_embeddings=True,
+                    output_dir=root,
+                    resume=True,
+                )
+            self.assertTrue(report["training_started"])
+            self.assertTrue(report["muformer_train_called"])
+            self.assertTrue(report["loaded_saved_muformer"])
+            text = (root / "single_seed_report.md").read_text()
+            self.assertIn("1975576344", text)
+            self.assertIn("n1000", text)
+            self.assertTrue(experiment_store.report_ready(root))
 
     def _two_lobe_rows(self, index, sequences, scores):
         chosen = []

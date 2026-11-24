@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import multiprocessing
+import shutil
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -13,6 +17,12 @@ from torch import nn
 import experiment_store
 import oof
 import outer_train
+import test_outer_train
+
+
+def _hold_directory(path: str) -> None:
+    experiment_store.open_run(path, resume=False, schedule_only=False)
+    time.sleep(30)
 
 
 class _Net(nn.Module):
@@ -41,6 +51,46 @@ class _Factory:
     def __call__(self, request):
         self.builds += 1
         return _Holder(self)
+
+
+class _Loadable:
+    def __init__(self, factory, request) -> None:
+        self.factory = factory
+        self.models = [_Net()]
+        outer_train.apply_muformer_standin(self, request["muformer_config"])
+
+    def get_bare_model(self, net):
+        return net
+
+    def train(self, **kwargs):
+        self.factory.trains += 1
+        self.epochs_completed = [int(kwargs["epochs"])]
+        self.train_row_index = kwargs.get("train_row_index")
+        self.best_epochs = []
+        self.best_epoch_per_model = [None]
+        self.restored_best_weights = [False]
+        self.restored_earlier_weights = [False]
+
+    def predict_rows(self, sequences, row_index):
+        index = np.asarray(row_index, dtype=np.int64)
+        return {
+            "prediction": index.astype(np.float64),
+            "sequence": [str(item) for item in sequences],
+            "row_index": index,
+        }
+
+
+class _LoadableFactory:
+    def __init__(self) -> None:
+        self.builds = 0
+        self.trains = 0
+
+    def __call__(self, request):
+        self.builds += 1
+        return _Loadable(self, request)
+
+
+_FactoryBase = test_outer_train._Factory
 
 
 class ExperimentStoreTests(unittest.TestCase):
@@ -97,6 +147,8 @@ class ExperimentStoreTests(unittest.TestCase):
             self.assertEqual(factory.builds, 1)
             self.assertFalse(trained["training_started"])
             self.assertFalse(trained["muformer_train_called"])
+            self.assertTrue(experiment_store.recorded_training(root)["muformer_train_called"])
+            self.assertTrue(experiment_store.recorded_training(root)["training_started"])
             self.assertTrue(trained["loaded_saved_muformer"])
             self.assertEqual(int(trained["e_s"]), 4)
             np.testing.assert_array_equal(trained["oof_predictions"], np.arange(int(loaded["n"])))
@@ -131,3 +183,154 @@ class ExperimentStoreTests(unittest.TestCase):
             self.assertEqual(report["by_arm"]["full"]["metrics"]["spearman"]["ci_low"], -0.2)
             self.assertFalse(report["formal_experiment"])
             self.assertFalse(report["ten_seed_conclusion"])
+
+    def test_changed_precheck_file_fails_sha256(self) -> None:
+        source = Path(__file__).resolve().parent / "precheck"
+        with tempfile.TemporaryDirectory() as directory:
+            dest = Path(directory) / "dcr" / "precheck"
+            shutil.copytree(source, dest)
+            target = dest / "n1000_oof_fold0_val.txt"
+            target.write_text(target.read_text() + "9\n")
+            with self.assertRaises(ValueError) as caught:
+                oof.load_scale(dest, "n1000")
+            self.assertIn("n1000_oof_fold0_val.txt", str(caught.exception))
+
+    def test_repository_directory_and_old_report_are_refused(self) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        with tempfile.TemporaryDirectory(dir=repo) as directory:
+            with self.assertRaises(RuntimeError) as caught:
+                experiment_store.open_run(directory, resume=False, schedule_only=False)
+            self.assertIn("outside the repository", str(caught.exception))
+            self.assertFalse((Path(directory) / "designated_run.json").exists())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "single_seed_report.json").write_text("{}")
+            with self.assertRaises(RuntimeError) as caught:
+                experiment_store.open_run(root, resume=False, schedule_only=False)
+            self.assertIn("empty directory", str(caught.exception))
+            self.assertFalse((root / "designated_run.json").exists())
+
+    def test_resume_rejects_a_marker_for_another_seed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            path = root / "designated_run.json"
+            record = json.loads(path.read_text())
+            record["outer_seed"] = 1
+            path.write_text(json.dumps(record))
+            with self.assertRaises(RuntimeError) as caught:
+                experiment_store.open_run(root, resume=True, schedule_only=False)
+            self.assertIn("different scale or outer seed", str(caught.exception))
+
+    def test_one_process_holds_the_directory(self) -> None:
+        context = multiprocessing.get_context("fork")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            process = context.Process(target=_hold_directory, args=(str(root),))
+            process.start()
+            deadline = time.time() + 10
+            while time.time() < deadline and not (root / "designated_run.json").exists():
+                time.sleep(0.05)
+            self.assertTrue((root / "designated_run.json").exists())
+            try:
+                with self.assertRaises(RuntimeError) as caught:
+                    experiment_store.open_run(root, resume=True, schedule_only=False)
+                self.assertIn("already holds", str(caught.exception))
+            finally:
+                process.terminate()
+                process.join(timeout=5)
+                if process.is_alive():
+                    process.kill()
+                    process.join(timeout=5)
+
+    def test_interrupted_full_checkpoint_is_retrained(self) -> None:
+        loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
+        sequences = [f"seq{index}" for index in range(int(loaded["n"]))]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            weights = experiment_store.weights_path(root, "full")
+            weights.parent.mkdir(parents=True, exist_ok=True)
+            torch.save({"orphan": torch.zeros(1)}, weights)
+            weights.with_name(weights.name + ".partial").write_bytes(b"partial")
+            self.assertIsNone(experiment_store.read_full(root))
+            self.assertFalse(weights.exists())
+            self.assertFalse(weights.with_name("full.pt.partial").exists())
+
+            class _Retrain(_FactoryBase):
+                def __call__(self, request):
+                    trainer = super().__call__(request)
+                    trainer.models = [_Net()]
+                    trainer.get_bare_model = lambda net: net
+
+                    def predict_rows(rows, row_index):
+                        index = np.asarray(row_index, dtype=np.int64)
+                        return {
+                            "prediction": index.astype(np.float64),
+                            "sequence": [str(item) for item in rows],
+                            "row_index": index,
+                        }
+
+                    trainer.predict_rows = predict_rows
+                    return trainer
+
+            factory = _Retrain(4)
+            trained = outer_train.train_one_outer_seed(
+                "n1000",
+                oof.OUTER_SEEDS[0],
+                loaded,
+                factory,
+                training_sequences=sequences,
+                artifact_dir=root,
+            )
+            self.assertEqual(len(factory.trainers), 6)
+            self.assertEqual(int(trained["e_s"]), 4)
+            self.assertIsNotNone(experiment_store.read_full(root))
+            self.assertTrue(experiment_store.recorded_training(root)["muformer_train_called"])
+
+    def test_interrupted_fold_checkpoint_retrains_only_that_fold(self) -> None:
+        loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
+        sequences = [f"seq{index}" for index in range(int(loaded["n"]))]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            holder = _Holder(_Factory())
+            experiment_store.write_full(root, holder, {
+                "e_s": 4,
+                "epochs_run": 4,
+                "restore_best": True,
+                "replaced_with_earlier_best": False,
+                "split": "validation",
+                "score": np.array([1.0, 2.0]),
+                "sequences": np.array(["valid-a", "valid-b"]),
+            })
+            for fold in loaded["folds"]:
+                if int(fold["fold"]) == 0:
+                    continue
+                val_idx = np.asarray(fold["val_idx"], dtype=np.int64)
+                names = [sequences[int(item)] for item in val_idx.tolist()]
+                experiment_store.write_fold(root, holder, int(fold["fold"]), {
+                    "epochs_run": 4,
+                    "restore_best": False,
+                    "replaced_with_earlier_best": False,
+                    "held_out_prediction": val_idx.astype(np.float64),
+                    "held_out_sequence": names,
+                })
+            orphan = experiment_store.weights_path(root, "fold_0")
+            torch.save({"orphan": torch.zeros(1)}, orphan)
+            kept = experiment_store.weights_path(root, "fold_1")
+            self.assertTrue(kept.is_file())
+            factory = _LoadableFactory()
+            trained = outer_train.train_one_outer_seed(
+                "n1000",
+                oof.OUTER_SEEDS[0],
+                loaded,
+                factory,
+                training_sequences=sequences,
+                artifact_dir=root,
+            )
+            self.assertEqual(factory.trains, 1)
+            self.assertEqual(factory.builds, 2)
+            self.assertTrue(kept.is_file())
+            self.assertIsNotNone(experiment_store.read_fold(root, 0))
+            np.testing.assert_array_equal(trained["oof_predictions"], np.arange(int(loaded["n"])))

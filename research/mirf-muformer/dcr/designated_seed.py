@@ -136,6 +136,21 @@ def production_trainer_factory(request: dict, *, trainer_cls=None, output_dir: P
     return trainer
 
 
+def require_single_visible_gpu() -> None:
+    """Refuse a formal run unless exactly one GPU is visible.
+
+    ``Trainer`` sets ``distributed`` when ``torch.cuda.device_count()`` is
+    greater than one and then calls ``init_distributed_mode``. One visible
+    device stays on the ordinary path. The launch command must set
+    ``CUDA_VISIBLE_DEVICES`` to one free GPU. This check does not start training.
+    """
+    visible = int(torch.cuda.device_count())
+    if visible != 1:
+        raise RuntimeError(
+            "the designated run requires exactly one visible GPU; set CUDA_VISIBLE_DEVICES to one free device"
+        )
+
+
 def _require_launch_mode(*, compute_embeddings: bool, schedule_only: bool, trainer_factory) -> None:
     """Refuse a call that would train μFormer and then stop before the three arms."""
     if schedule_only and compute_embeddings:
@@ -331,6 +346,8 @@ def run_designated_single_seed(
             "executed": False,
         }
     directory = Path(output_dir)
+    if not schedule_only:
+        require_single_visible_gpu()
     experiment_store.open_run(directory, resume=resume, schedule_only=schedule_only)
     progress = {"stage": "full_model"}
     try:
@@ -353,6 +370,15 @@ def _train_record_ok(trained: dict) -> None:
         raise RuntimeError("train was called but the result still says training did not start")
     if not trained["training_started"] and not trained["loaded_saved_muformer"]:
         raise RuntimeError("the designated run has neither trained nor loaded the μFormer weights")
+
+
+def _training_for_report(directory: Path, trained: dict) -> dict:
+    """Keep the experiment's training history when this process only reloads."""
+    history = experiment_store.recorded_training(directory)
+    merged = dict(trained)
+    merged["training_started"] = bool(history["training_started"] or trained["training_started"])
+    merged["muformer_train_called"] = bool(history["muformer_train_called"] or trained["muformer_train_called"])
+    return merged
 
 
 def _report_body(trained: dict, by_arm: dict) -> dict:
@@ -388,14 +414,17 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
         full = experiment_store.read_full(directory)
         oof_record = experiment_store.read_oof(directory, prepared["sequence"])
         report = _report_body(
-            {
-                "training_started": False,
-                "muformer_train_called": False,
-                "loaded_saved_muformer": True,
-                "formal_training_started": False,
-                "e_s": int(full["e_s"]),
-                "oof_rows": int(oof_record["rows"]),
-            },
+            _training_for_report(
+                directory,
+                {
+                    "training_started": False,
+                    "muformer_train_called": False,
+                    "loaded_saved_muformer": True,
+                    "formal_training_started": False,
+                    "e_s": int(full["e_s"]),
+                    "oof_rows": int(oof_record["rows"]),
+                },
+            ),
             saved_arms["by_arm"],
         )
         experiment_store.write_report(directory, report)
@@ -522,13 +551,16 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
     experiment_store.write_arms(directory, arms)
     progress["stage"] = "report"
     report = _report_body(
-        {
-            "training_started": trained["training_started"],
-            "muformer_train_called": trained["muformer_train_called"],
-            "loaded_saved_muformer": trained["loaded_saved_muformer"],
-            "e_s": trained["e_s"],
-            "oof_rows": oof_rows,
-        },
+        _training_for_report(
+            directory,
+            {
+                "training_started": trained["training_started"],
+                "muformer_train_called": trained["muformer_train_called"],
+                "loaded_saved_muformer": trained["loaded_saved_muformer"],
+                "e_s": trained["e_s"],
+                "oof_rows": oof_rows,
+            },
+        ),
         {
             arm: {
                 "eta": arms["etas"][arm],
