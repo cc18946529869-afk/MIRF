@@ -118,6 +118,14 @@ def write_consistent_run(root: Path, sequences, e_s: int = 4) -> None:
         schedule_only=False,
         weights_saved=True,
     )
+    for fold in range(5):
+        experiment_store.write_fold(root, holder, fold, {
+            "epochs_run": int(e_s),
+            "restore_best": False,
+            "replaced_with_earlier_best": False,
+            "held_out_prediction": np.array([float(fold), float(fold) + 0.5]),
+            "held_out_sequence": [f"held-{fold}-a", f"held-{fold}-b"],
+        })
     names = ("spearman", "pearson", "ndcg", "recall", "rmse")
     scored = {name: {"mean_delta": 0.1, "ci_low": -0.2, "ci_high": 0.4} for name in names}
     point = {name: 0.5 for name in names}
@@ -149,6 +157,8 @@ def write_consistent_run(root: Path, sequences, e_s: int = 4) -> None:
                 "best_epoch": 1,
                 "metrics": scored,
                 "point": {"baseline": point, "fused": point},
+                "n_bootstrap": 10000,
+                "spearman_passes": False,
             }
             for arm in arms
         },
@@ -450,6 +460,50 @@ class ExperimentStoreTests(unittest.TestCase):
             path.write_text(text.replace("0.1", "0.9", 1))
             self.assertIn("1975576344", path.read_text())
 
+        def change_full_score(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["score"][0] = float(record["score"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_fold_prediction(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["held_out_prediction"][0] = float(record["held_out_prediction"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_oof_prediction(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["predictions"][0] = float(record["predictions"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_arm_eta(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["full"]["eta"] = 0.5
+            path.write_text(json.dumps(record))
+
+        def change_arm_metrics(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["full"]["metrics"]["spearman"]["mean_delta"] = 0.5
+            path.write_text(json.dumps(record))
+
+        def change_report_metric_and_markdown(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["full"]["metrics"]["spearman"]["mean_delta"] = 0.5
+            path.write_text(json.dumps(record))
+            (root / "single_seed_report.md").write_text(experiment_store._report_markdown(record))
+
+        def change_report_oof_rows(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["oof_rows"] = 999
+            path.write_text(json.dumps(record))
+            (root / "single_seed_report.md").write_text(experiment_store._report_markdown(record))
+
         reject(change_full_weights)
         reject(change_oof_sequence_sha)
         reject(change_oof_e_s)
@@ -457,3 +511,65 @@ class ExperimentStoreTests(unittest.TestCase):
         reject(delete_one_arm_weight)
         reject(change_report_e_s)
         reject(change_markdown_metric)
+        reject(change_full_score)
+        reject(change_fold_prediction)
+        reject(change_oof_prediction)
+        reject(change_arm_eta)
+        reject(change_arm_metrics)
+        reject(change_report_metric_and_markdown)
+        reject(change_report_oof_rows)
+
+    def test_a_non_finite_prediction_is_refused(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaises(ValueError):
+                experiment_store.write_oof(
+                    root,
+                    np.array([np.nan]),
+                    ["seq"],
+                    1,
+                    schedule_only=False,
+                    weights_saved=True,
+                )
+
+    def test_a_tampered_fold_prediction_is_not_reused(self) -> None:
+        loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", "n1000")
+        sequences = [f"seq{index}" for index in range(int(loaded["n"]))]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            holder = _Holder(_Factory())
+            experiment_store.write_full(root, holder, {
+                "e_s": 4,
+                "epochs_run": 4,
+                "restore_best": True,
+                "replaced_with_earlier_best": False,
+                "split": "validation",
+                "score": np.array([1.0, 2.0]),
+                "sequences": np.array(["valid-a", "valid-b"]),
+            })
+            for fold in loaded["folds"]:
+                val_idx = np.asarray(fold["val_idx"], dtype=np.int64)
+                names = [sequences[int(item)] for item in val_idx.tolist()]
+                experiment_store.write_fold(root, holder, int(fold["fold"]), {
+                    "epochs_run": 4,
+                    "restore_best": False,
+                    "replaced_with_earlier_best": False,
+                    "held_out_prediction": val_idx.astype(np.float64),
+                    "held_out_sequence": names,
+                })
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["held_out_prediction"][0] = float(record["held_out_prediction"][0]) + 1.0
+            path.write_text(json.dumps(record))
+            factory = _Factory()
+            with self.assertRaises(RuntimeError):
+                outer_train.train_one_outer_seed(
+                    "n1000",
+                    oof.OUTER_SEEDS[0],
+                    loaded,
+                    factory,
+                    training_sequences=sequences,
+                    artifact_dir=root,
+                )
+            self.assertEqual(factory.trains, 0)

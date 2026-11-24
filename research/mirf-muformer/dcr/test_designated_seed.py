@@ -454,6 +454,14 @@ class DesignatedEntryTests(unittest.TestCase):
                 schedule_only=False,
                 weights_saved=True,
             )
+            for fold in range(5):
+                experiment_store.write_fold(root, holder, fold, {
+                    "epochs_run": 4,
+                    "restore_best": False,
+                    "replaced_with_earlier_best": False,
+                    "held_out_prediction": np.array([float(fold)]),
+                    "held_out_sequence": [f"held-{fold}"],
+                })
             experiment_store.write_arms(root, {
                 "arms": list(arms),
                 "etas": {arm: 0.0 for arm in arms},
@@ -532,6 +540,50 @@ class DesignatedEntryTests(unittest.TestCase):
             path = root / "single_seed_report.md"
             path.write_text(path.read_text().replace("0.1", "0.9", 1))
 
+        def change_full_score(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["score"][0] = float(record["score"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_fold_prediction(root: Path) -> None:
+            path = root / "muformer" / "fold_0.json"
+            record = json.loads(path.read_text())
+            record["held_out_prediction"][0] = float(record["held_out_prediction"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_oof_prediction(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["predictions"][0] = float(record["predictions"][0]) + 1.0
+            path.write_text(json.dumps(record))
+
+        def change_arm_eta(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["full"]["eta"] = 0.5
+            path.write_text(json.dumps(record))
+
+        def change_arm_metrics(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["sum"]["metrics"]["rmse"]["mean_delta"] = 0.8
+            path.write_text(json.dumps(record))
+
+        def change_report_metric_and_markdown(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["by_arm"]["full"]["metrics"]["spearman"]["mean_delta"] = 0.5
+            path.write_text(json.dumps(record))
+            (root / "single_seed_report.md").write_text(experiment_store._report_markdown(record))
+
+        def change_report_oof_rows(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["oof_rows"] = 999
+            path.write_text(json.dumps(record))
+            (root / "single_seed_report.md").write_text(experiment_store._report_markdown(record))
+
         for mutate in (
             change_full_weights,
             change_oof_sequence_sha,
@@ -540,6 +592,13 @@ class DesignatedEntryTests(unittest.TestCase):
             delete_one_arm_weight,
             change_report_e_s,
             change_markdown_metric,
+            change_full_score,
+            change_fold_prediction,
+            change_oof_prediction,
+            change_arm_eta,
+            change_arm_metrics,
+            change_report_metric_and_markdown,
+            change_report_oof_rows,
         ):
             with tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)

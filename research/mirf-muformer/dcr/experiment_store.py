@@ -25,6 +25,7 @@ DESIGNATED_SCALE = "n1000"
 DESIGNATED_SEED = 1975576344
 DESIGNATED_OOF_ROWS = 1000
 REQUIRED_ARMS = ("full", "sum", "no_potts")
+ARM_RESULT_FIELDS = ("eta", "best_epoch", "metrics", "point", "n_bootstrap", "spearman_passes")
 _HELD_LOCKS: dict[str, object] = {}
 FULL_NAME = "full"
 FOLD_COUNT = 5
@@ -275,11 +276,43 @@ def load_weights(trainer, path: Path) -> None:
             raise RuntimeError("the saved μFormer weights do not match their recorded sha256")
 
 
-def _vector(values) -> list[float]:
+def _finite_vector(values) -> np.ndarray:
+    """One little-endian float64 vector. Non-finite values are refused."""
     array = np.asarray(values, dtype=np.float64)
     if array.ndim != 1:
         raise ValueError("a saved score must be one vector")
-    return [float(item) for item in array.tolist()]
+    if not bool(np.isfinite(array).all()):
+        raise ValueError("a saved score contains a non-finite value")
+    return np.ascontiguousarray(array, dtype="<f8")
+
+
+def vector_sha256(values) -> str:
+    """SHA256 of the vector length and its canonical float64 bytes."""
+    array = _finite_vector(values)
+    digest = hashlib.sha256()
+    digest.update(np.asarray([array.shape[0]], dtype="<i8").tobytes())
+    digest.update(array.tobytes())
+    return digest.hexdigest()
+
+
+def _vector(values) -> list[float]:
+    array = _finite_vector(values)
+    stored = [float(item) for item in array.tolist()]
+    restored = np.asarray(json.loads(json.dumps(stored)), dtype=np.float64)
+    if restored.shape != array.shape or not np.array_equal(restored, array):
+        raise ValueError("a saved score does not round-trip as float64")
+    return stored
+
+
+def _checked_vector(values) -> tuple[list[float], str]:
+    stored = _vector(values)
+    return stored, vector_sha256(stored)
+
+
+def _require_saved_vector(values, recorded, label: str) -> np.ndarray:
+    if not isinstance(recorded, str) or vector_sha256(values) != recorded:
+        raise RuntimeError(f"the saved {label} does not match its sha256")
+    return _finite_vector(values)
 
 
 def _discard_pair(weights: Path, record_path: Path) -> None:
@@ -334,6 +367,7 @@ def _read_committed(weights: Path, record_path: Path) -> dict | None:
 def write_full(directory: Path, trainer, result: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in np.asarray(result["sequences"]).tolist()]
+    score, score_sha256 = _checked_vector(result["score"])
     _commit_pair(
         _weights_path(directory, FULL_NAME),
         _record_path(directory, FULL_NAME),
@@ -344,7 +378,8 @@ def write_full(directory: Path, trainer, result: dict) -> None:
             "restore_best": bool(result["restore_best"]),
             "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
             "split": str(result["split"]),
-            "score": _vector(result["score"]),
+            "score": score,
+            "score_sha256": score_sha256,
             "sequences": sequences,
             "sequence_sha256": sequence_sha256(sequences),
         },
@@ -367,13 +402,14 @@ def read_full(directory: Path) -> dict | None:
         raise RuntimeError("the saved full-model weights do not match their sha256")
     if record["split"] != "validation":
         raise RuntimeError("the saved full model was not scored on the validation split")
+    score = _require_saved_vector(record["score"], record.get("score_sha256"), "validation score")
     return {
         "e_s": int(record["e_s"]),
         "epochs_run": int(record["epochs_run"]),
         "restore_best": bool(record["restore_best"]),
         "replaced_with_earlier_best": bool(record["replaced_with_earlier_best"]),
         "split": "validation",
-        "score": np.asarray(record["score"], dtype=np.float64),
+        "score": score,
         "sequences": np.asarray(sequences),
     }
 
@@ -382,6 +418,7 @@ def write_fold(directory: Path, trainer, fold: int, produced: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in produced["held_out_sequence"]]
     name = f"fold_{int(fold)}"
+    prediction, prediction_sha256 = _checked_vector(produced["held_out_prediction"])
     _commit_pair(
         _weights_path(directory, name),
         _record_path(directory, name),
@@ -391,7 +428,8 @@ def write_fold(directory: Path, trainer, fold: int, produced: dict) -> None:
             "epochs_run": int(produced["epochs_run"]),
             "restore_best": bool(produced["restore_best"]),
             "replaced_with_earlier_best": bool(produced["replaced_with_earlier_best"]),
-            "held_out_prediction": _vector(produced["held_out_prediction"]),
+            "held_out_prediction": prediction,
+            "held_out_prediction_sha256": prediction_sha256,
             "held_out_sequence": sequences,
             "sequence_sha256": sequence_sha256(sequences),
         },
@@ -412,11 +450,16 @@ def read_fold(directory: Path, fold: int) -> dict | None:
         raise RuntimeError(f"fold {int(fold)} sequences do not match their sha256")
     if file_sha256(weights) != record["weight_sha256"]:
         raise RuntimeError(f"fold {int(fold)} weights do not match their sha256")
+    prediction = _require_saved_vector(
+        record["held_out_prediction"],
+        record.get("held_out_prediction_sha256"),
+        f"fold {int(fold)} prediction",
+    )
     return {
         "epochs_run": int(record["epochs_run"]),
         "restore_best": bool(record["restore_best"]),
         "replaced_with_earlier_best": bool(record["replaced_with_earlier_best"]),
-        "held_out_prediction": np.asarray(record["held_out_prediction"], dtype=np.float64),
+        "held_out_prediction": prediction,
         "held_out_sequence": sequences,
     }
 
@@ -424,13 +467,14 @@ def read_fold(directory: Path, fold: int) -> dict | None:
 def write_oof(directory: Path, predictions, sequences, e_s: int, *, schedule_only: bool, weights_saved: bool) -> None:
     directory = Path(directory)
     names = [str(item) for item in sequences]
-    values = _vector(predictions)
+    values, values_sha256 = _checked_vector(predictions)
     if len(values) != len(names):
         raise ValueError("OOF predictions do not match the training sequences")
     _write_json(directory / "oof.json", {
         "rows": len(names),
         "e_s": int(e_s),
         "predictions": values,
+        "predictions_sha256": values_sha256,
         "sequence_sha256": sequence_sha256(names),
         "schedule_only": bool(schedule_only),
         "weights_saved": bool(weights_saved),
@@ -443,7 +487,7 @@ def read_oof(directory: Path, sequences) -> dict:
     names = [str(item) for item in sequences]
     if record["sequence_sha256"] != sequence_sha256(names) or int(record["rows"]) != len(names):
         raise RuntimeError("the saved OOF predictions are not this training sequence list")
-    values = np.asarray(record["predictions"], dtype=np.float64)
+    values = _require_saved_vector(record["predictions"], record.get("predictions_sha256"), "OOF predictions")
     if values.shape != (len(names),):
         raise RuntimeError("the saved OOF predictions are not this training sequence list")
     return record
@@ -525,6 +569,29 @@ def arms_ready(directory: Path) -> bool:
         recorded = payload.get("weight_sha256")
         if not isinstance(recorded, str) or file_sha256(weights) != recorded:
             return False
+    return True
+
+
+def _json_equal(left, right) -> bool:
+    return json.dumps(_json_ready(left), sort_keys=True) == json.dumps(_json_ready(right), sort_keys=True)
+
+
+def report_matches_arms(report: dict, arms_record: dict) -> bool:
+    """The report's three arm results are the saved arm record, field by field."""
+    report_arms = report.get("by_arm")
+    saved = arms_record.get("by_arm")
+    if not isinstance(report_arms, dict) or set(report_arms) != set(REQUIRED_ARMS):
+        return False
+    if not isinstance(saved, dict):
+        return False
+    for arm in REQUIRED_ARMS:
+        left = report_arms.get(arm)
+        right = saved.get(arm)
+        if not isinstance(left, dict) or not isinstance(right, dict):
+            return False
+        for field in ARM_RESULT_FIELDS:
+            if field not in left or field not in right or not _json_equal(left[field], right[field]):
+                return False
     return True
 
 
@@ -632,7 +699,14 @@ def report_ready(directory: Path, sequences) -> bool:
             return False
         if int(report["e_s"]) != int(full["e_s"]) or int(oof_record["e_s"]) != int(full["e_s"]):
             return False
-        return arms_ready(directory)
+        if int(report.get("oof_rows", -1)) != DESIGNATED_OOF_ROWS or int(report["oof_rows"]) != int(oof_record["rows"]):
+            return False
+        for fold in range(FOLD_COUNT):
+            if read_fold(directory, fold) is None:
+                return False
+        if not arms_ready(directory):
+            return False
+        return report_matches_arms(report, read_arms(directory))
     except (OSError, ValueError, RuntimeError, KeyError, TypeError):
         return False
 
