@@ -59,7 +59,7 @@ class DesignatedEntryTests(unittest.TestCase):
                 execute=True,
                 trainer_factory=_Factory(4),
                 output_dir=Path(directory),
-                compute_embeddings=False,
+                schedule_only=True,
             )
             self.assertTrue(first["training_started"])
             self.assertTrue(first["muformer_train_called"])
@@ -67,11 +67,18 @@ class DesignatedEntryTests(unittest.TestCase):
             self.assertTrue(first["oof_predictions_computed"])
             self.assertEqual(first["oof_rows"], 1000)
             self.assertFalse(first["arms_trained"])
+            self.assertTrue(first["schedule_only"])
+            self.assertFalse(first["weights_saved"])
+            saved = __import__("json").loads((Path(directory) / "oof.json").read_text())
+            self.assertTrue(saved["schedule_only"])
+            self.assertFalse(saved["weights_saved"])
+            self.assertEqual(saved["rows"], 1000)
             with self.assertRaises(RuntimeError):
                 designated_seed.run_designated_single_seed(
                     execute=True,
                     trainer_factory=_Factory(4),
                     output_dir=Path(directory),
+                    schedule_only=True,
                 )
         with self.assertRaises(RuntimeError):
             outer_train.train_one_outer_seed(
@@ -81,6 +88,23 @@ class DesignatedEntryTests(unittest.TestCase):
                 test_outer_train._Factory(4),
                 training_sequences=["seq"] * loaded["n"],
             )
+
+    def test_execute_without_embeddings_does_not_claim_the_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(RuntimeError):
+                designated_seed.run_designated_single_seed(
+                    execute=True,
+                    output_dir=Path(directory),
+                )
+            self.assertFalse((Path(directory) / "designated_run.json").exists())
+            with self.assertRaises(RuntimeError):
+                designated_seed.run_designated_single_seed(
+                    execute=True,
+                    trainer_factory=lambda request: None,
+                    output_dir=Path(directory),
+                    compute_embeddings=True,
+                )
+            self.assertFalse((Path(directory) / "designated_run.json").exists())
 
     def test_production_factory_uses_the_real_trainer_arguments(self) -> None:
         request = {"muformer_config": sealed_config.muformer_config()}
@@ -189,6 +213,13 @@ class DesignatedEntryTests(unittest.TestCase):
         self.assertTrue(all(value is False for value in result["spearman_passes"].values()))
         self.assertFalse(result["formal_experiment"])
         self.assertFalse(result["ten_seed_conclusion"])
+        self.assertEqual(set(result["metrics"]["full"]), {"spearman", "pearson", "ndcg", "recall", "rmse"})
+        for name in ("spearman", "pearson", "ndcg", "recall", "rmse"):
+            self.assertIn("mean_delta", result["metrics"]["full"][name])
+            self.assertIn("ci_low", result["metrics"]["full"][name])
+            self.assertIn("ci_high", result["metrics"]["full"][name])
+            self.assertIn(name, result["point"]["full"]["baseline"])
+            self.assertIn(name, result["point"]["full"]["fused"])
 
     def test_real_trainer_predict_rows_does_not_train(self) -> None:
         import argparse

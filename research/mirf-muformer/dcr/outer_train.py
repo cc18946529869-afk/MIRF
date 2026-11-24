@@ -8,10 +8,12 @@ Completed epochs and restored-weight flags are read from the trainer record.
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 
+import experiment_store
 import oof
 import sealed_config
 
@@ -260,6 +262,8 @@ def execute_muformer_request(trainer, request: dict) -> dict:
         "epochs": int(request["epochs"]),
         "eval_freq": int(request["eval_freq"]),
         "patience": int(request["patience"]),
+        # Fold training returns before Trainer.save_checkpoint. Weights are
+        # written by experiment_store after train returns. This value stays false.
         "save_checkpoint": False,
         "resume_path": None,
         "restore_best": not fold,
@@ -306,7 +310,7 @@ def _complement(n: int, val_idx: np.ndarray) -> set[int]:
     return set(range(int(n))) - set(int(value) for value in val_idx.tolist())
 
 
-def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory, training_sequences=None) -> dict:
+def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, trainer_factory, training_sequences=None, artifact_dir: Path | None = None) -> dict:
     """Train one full model and five fold models. The caller decides whether this may run."""
     if trainer_factory is None:
         raise RuntimeError("real single-seed μFormer training is not started")
@@ -343,7 +347,16 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
         "select_on_held_out_fold": False,
     }
     full_request.update(_comparison_request_fields())
-    full_result = execute_muformer_request(trainer_factory(full_request), full_request)
+    saved_full = experiment_store.read_full(artifact_dir) if artifact_dir is not None else None
+    trained_full = saved_full is None
+    if saved_full is None:
+        full_trainer = trainer_factory(full_request)
+        full_result = execute_muformer_request(full_trainer, full_request)
+        if artifact_dir is not None:
+            experiment_store.write_full(artifact_dir, full_trainer, full_result)
+    else:
+        full_result = saved_full
+        experiment_store.load_weights(trainer_factory(full_request), experiment_store.weights_path(artifact_dir, experiment_store.FULL_NAME))
     e_s = sealed_config.assert_e_s(full_result["e_s"], full_result["e_s"], cfg.e_s_source, cfg)
     score = np.asarray(full_result["score"], dtype=np.float64)
     sequences = np.asarray(full_result["sequences"])
@@ -377,29 +390,42 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
             raise RuntimeError("a fold model's muformer_config is not the full model's muformer_config")
         if request["residual_config"] != full_request["residual_config"]:
             raise RuntimeError("a fold model's residual_config is not the full model's residual_config")
-        trainer = trainer_factory(request)
-        produced = execute_muformer_request(trainer, request)
-        if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
-            raise RuntimeError("a fold model did not keep the weights from epoch E_s")
-        if training_sequences is None:
-            predict_held_out = getattr(trainer, "predict_held_out", None)
-            if predict_held_out is not None:
-                prediction = np.asarray(predict_held_out(val_idx), dtype=np.float64)
+        saved_fold = experiment_store.read_fold(artifact_dir, int(fold["fold"])) if artifact_dir is not None else None
+        if saved_fold is None:
+            trainer = trainer_factory(request)
+            produced = execute_muformer_request(trainer, request)
+            if training_sequences is None:
+                predict_held_out = getattr(trainer, "predict_held_out", None)
+                if predict_held_out is not None:
+                    prediction = np.asarray(predict_held_out(val_idx), dtype=np.float64)
+                    if prediction.shape != (int(val_idx.shape[0]),):
+                        raise ValueError("a fold prediction does not have one value for each held-out row")
+                    produced["held_out_prediction"] = prediction
+            else:
+                if not hasattr(trainer, "predict_rows"):
+                    raise RuntimeError("fold OOF prediction requires Trainer.predict_rows")
+                held_sequences = [str(training_sequences[int(item)]) for item in val_idx.tolist()]
+                predicted = trainer.predict_rows(held_sequences, val_idx)
+                if list(predicted["sequence"]) != held_sequences:
+                    raise ValueError("held-out prediction sequences are not the requested rows")
+                prediction = np.asarray(predicted["prediction"], dtype=np.float64)
                 if prediction.shape != (int(val_idx.shape[0]),):
                     raise ValueError("a fold prediction does not have one value for each held-out row")
                 produced["held_out_prediction"] = prediction
+                produced["held_out_sequence"] = list(predicted["sequence"])
+            if artifact_dir is not None:
+                if "held_out_sequence" not in produced or "held_out_prediction" not in produced:
+                    raise RuntimeError("a fold checkpoint requires the held-out sequences and predictions")
+                experiment_store.write_fold(artifact_dir, trainer, int(fold["fold"]), produced)
+                trained_full = True
         else:
-            if not hasattr(trainer, "predict_rows"):
-                raise RuntimeError("fold OOF prediction requires Trainer.predict_rows")
-            held_sequences = [str(training_sequences[int(item)]) for item in val_idx.tolist()]
-            predicted = trainer.predict_rows(held_sequences, val_idx)
-            if list(predicted["sequence"]) != held_sequences:
-                raise ValueError("held-out prediction sequences are not the requested rows")
-            prediction = np.asarray(predicted["prediction"], dtype=np.float64)
-            if prediction.shape != (int(val_idx.shape[0]),):
-                raise ValueError("a fold prediction does not have one value for each held-out row")
-            produced["held_out_prediction"] = prediction
-            produced["held_out_sequence"] = list(predicted["sequence"])
+            produced = saved_fold
+            if training_sequences is not None:
+                held_sequences = [str(training_sequences[int(item)]) for item in val_idx.tolist()]
+                if list(produced["held_out_sequence"]) != held_sequences:
+                    raise RuntimeError("saved fold predictions are not this fold's held-out sequences")
+        if int(produced["epochs_run"]) != e_s or produced["restore_best"] or produced["replaced_with_earlier_best"]:
+            raise RuntimeError("a fold model did not keep the weights from epoch E_s")
         fold_results.append(produced)
     sealed_config.assert_folds_share_e_s(
         e_s,
@@ -419,6 +445,18 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
             oof_predictions[val_idx] = prediction
         if not bool(np.isfinite(oof_predictions).all()):
             raise ValueError("at least one training row has no OOF prediction")
+    if artifact_dir is not None:
+        experiment_store.note_stage(artifact_dir, "folds")
+        if training_sequences is None or oof_predictions is None:
+            raise RuntimeError("the designated run cannot save OOF without sequences and one prediction per row")
+        experiment_store.write_oof(
+            artifact_dir,
+            oof_predictions,
+            training_sequences,
+            e_s,
+            schedule_only=False,
+            weights_saved=True,
+        )
     return {
         "scale": scale,
         "outer_seed": int(outer_seed),
@@ -430,8 +468,9 @@ def train_one_outer_seed(scale: str, outer_seed: int, loaded_scale: dict, traine
         "folds": fold_results,
         "oof_predictions": oof_predictions,
         "oof_predictions_computed": oof_predictions is not None,
-        "training_started": True,
-        "muformer_train_called": True,
+        "training_started": bool(trained_full),
+        "muformer_train_called": bool(trained_full),
+        "loaded_saved_muformer": artifact_dir is not None and not bool(trained_full),
         # This call entered train(). formal_training_started stays false because
         # it records the ten-seed experiment, which this function does not start.
         "formal_training_started": False,

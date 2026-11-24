@@ -1,22 +1,24 @@
 """The one designated n=1000 run. It is not the ten-seed entry.
 
-``execute=False`` only checks the locked files and indices. ``execute=True``
-calls the supplied factory. The default factory constructs the real Trainer
-and would train; this module's tests pass a stand-in factory instead.
-``run_ten_outer_seeds`` is not called. ``run_seed_protocol`` is not called.
+``execute=False`` only checks the locked files and indices. The complete run
+is ``execute=True`` and ``compute_embeddings=True`` with the production
+factory. ``execute=True`` alone is refused before a marker is written.
+``schedule_only=True`` is the stand-in schedule check and is not the
+experiment. ``run_ten_outer_seeds`` is not called. ``run_seed_protocol`` is
+not called.
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib
-import json
 import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 
+import experiment_store
 import feature_align
 import frozen_pmlm
 import metrics
@@ -134,17 +136,16 @@ def production_trainer_factory(request: dict, *, trainer_cls=None, output_dir: P
     return trainer
 
 
-def _claim_once(output_dir: Path) -> None:
-    directory = Path(output_dir)
-    directory.mkdir(parents=True, exist_ok=True)
-    marker = directory / MARKER_NAME
-    if marker.exists():
-        raise RuntimeError("the designated single-seed run was already started")
-    marker.write_text(json.dumps({
-        "scale": DESIGNATED_SCALE,
-        "outer_seed": DESIGNATED_SEED,
-        "started": True,
-    }) + "\n")
+def _require_launch_mode(*, compute_embeddings: bool, schedule_only: bool, trainer_factory) -> None:
+    """Refuse a call that would train μFormer and then stop before the three arms."""
+    if schedule_only and compute_embeddings:
+        raise RuntimeError("schedule_only stops before embeddings and is not the complete experiment")
+    if schedule_only and trainer_factory is None:
+        raise RuntimeError("schedule_only cannot construct the production Trainer")
+    if not schedule_only and not compute_embeddings:
+        raise RuntimeError("the complete designated run requires compute_embeddings=True")
+    if not schedule_only and trainer_factory is not None:
+        raise RuntimeError("the complete designated run uses the production Trainer factory")
 
 
 def _batch_from_rows(values, mask, embedded) -> dict:
@@ -229,11 +230,12 @@ def fit_three_arms(
         test_mask = residual.arm_mask(test_batch["mask"], arm)
         test_r = predict.residual_vector(fitted["model"], {**test_batch, "mask": test_mask})
         fused = predict.fuse(test_base, eta, test_r)
+        fused_values = np.asarray(fused, dtype=np.float64)
         scored = metrics.evaluate_paired(
             test_scores,
             test_sequences,
             test_base.reshape(1, -1),
-            np.asarray(fused, dtype=np.float64).reshape(1, -1),
+            fused_values.reshape(1, -1),
         )
         arms[arm] = {
             "eta": float(eta),
@@ -244,6 +246,15 @@ def fit_three_arms(
             "n_bootstrap": int(scored["n_bootstrap"]),
             "formal_experiment": bool(scored["formal_experiment"]),
             "spearman_passes": bool(scored["spearman_passes"]),
+            "metrics": scored["metrics"],
+            "point": {
+                "baseline": experiment_store.point_metrics(test_scores, test_sequences, test_base),
+                "fused": experiment_store.point_metrics(test_scores, test_sequences, fused_values),
+            },
+            "state_dict": {
+                key: value.detach().cpu().clone()
+                for key, value in fitted["model"].state_dict().items()
+            },
         }
     first = [arms[arm]["selection_orders"][0] for arm in residual.ARMS]
     return {
@@ -258,6 +269,9 @@ def fit_three_arms(
         "etas": {arm: arms[arm]["eta"] for arm in residual.ARMS},
         "n_bootstrap": {arm: arms[arm]["n_bootstrap"] for arm in residual.ARMS},
         "spearman_passes": {arm: bool(arms[arm]["spearman_passes"]) for arm in residual.ARMS},
+        "metrics": {arm: arms[arm]["metrics"] for arm in residual.ARMS},
+        "point": {arm: arms[arm]["point"] for arm in residual.ARMS},
+        "state_dict": {arm: arms[arm]["state_dict"] for arm in residual.ARMS},
         "formal_experiment": False,
         "ten_seed_conclusion": False,
     }
@@ -277,15 +291,25 @@ def run_designated_single_seed(
     trainer_factory=None,
     output_dir: Path | None = None,
     compute_embeddings: bool = False,
+    schedule_only: bool = False,
+    resume: bool = False,
 ) -> dict:
     """Check or run the one designated seed.
 
-    The default does not construct Trainer and does not train. Passing
-    ``execute=True`` without a factory uses the real Trainer and would train;
-    callers in this round pass a stand-in factory. Other scales and seeds are
-    refused. A second ``execute=True`` in the same output directory is refused.
+    ``execute=False`` does not construct Trainer. The complete run requires
+    ``compute_embeddings=True`` and the production factory. ``execute=True``
+    without that flag is refused before the directory is claimed.
+    ``schedule_only=True`` runs a stand-in schedule and saves no μFormer weights.
     """
     _require_designated(scale, outer_seed)
+    if execute:
+        _require_launch_mode(
+            compute_embeddings=compute_embeddings,
+            schedule_only=schedule_only,
+            trainer_factory=trainer_factory,
+        )
+        if output_dir is None:
+            raise RuntimeError("an output directory is required before the designated run starts")
     import single_seed
 
     prepared = single_seed.prepare_single_outer_seed(scale, outer_seed)
@@ -306,53 +330,134 @@ def run_designated_single_seed(
             "executable": True,
             "executed": False,
         }
-    if output_dir is None:
-        raise RuntimeError("an output directory is required before the designated run starts")
-    _claim_once(output_dir)
+    directory = Path(output_dir)
+    experiment_store.open_run(directory, resume=resume, schedule_only=schedule_only)
+    progress = {"stage": "full_model"}
+    try:
+        return _execute_claimed(
+            directory,
+            prepared,
+            trainer_factory=trainer_factory,
+            schedule_only=schedule_only,
+            progress=progress,
+        )
+    except Exception as exc:
+        experiment_store.mark_failed(directory, progress["stage"], exc)
+        raise
+
+
+def _train_record_ok(trained: dict) -> None:
+    if trained["formal_training_started"]:
+        raise RuntimeError("the designated run reported the ten-seed formal experiment")
+    if trained["training_started"] and not trained["muformer_train_called"]:
+        raise RuntimeError("train was called but the result still says training did not start")
+    if not trained["training_started"] and not trained["loaded_saved_muformer"]:
+        raise RuntimeError("the designated run has neither trained nor loaded the μFormer weights")
+
+
+def _report_body(trained: dict, by_arm: dict) -> dict:
+    return {
+        "scale": DESIGNATED_SCALE,
+        "outer_seed": DESIGNATED_SEED,
+        "formal_experiment": False,
+        "ten_seed_conclusion": False,
+        "formal_ten_seed_started": False,
+        "ten_seed_entry_called": False,
+        "training_started": bool(trained["training_started"]),
+        "muformer_train_called": bool(trained["muformer_train_called"]),
+        "loaded_saved_muformer": bool(trained["loaded_saved_muformer"]),
+        "e_s": int(trained["e_s"]),
+        "oof_rows": int(trained["oof_rows"]),
+        "embeddings_computed": True,
+        "arms_trained": True,
+        "executed": True,
+        "executable": True,
+        "schedule_only": False,
+        "weights_saved": True,
+        "by_arm": by_arm,
+    }
+
+
+def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedule_only: bool, progress: dict) -> dict:
+    if not schedule_only and experiment_store.report_ready(directory):
+        experiment_store.mark_complete(directory)
+        return experiment_store.read_report(directory)
+    if not schedule_only and experiment_store.arms_ready(directory):
+        progress["stage"] = "report"
+        saved_arms = experiment_store.read_arms(directory)
+        full = experiment_store.read_full(directory)
+        oof_record = experiment_store.read_oof(directory, prepared["sequence"])
+        report = _report_body(
+            {
+                "training_started": False,
+                "muformer_train_called": False,
+                "loaded_saved_muformer": True,
+                "formal_training_started": False,
+                "e_s": int(full["e_s"]),
+                "oof_rows": int(oof_record["rows"]),
+            },
+            saved_arms["by_arm"],
+        )
+        experiment_store.write_report(directory, report)
+        experiment_store.mark_complete(directory)
+        return report
+
     loaded = oof.load_scale(Path(__file__).resolve().parent / "precheck", DESIGNATED_SCALE)
     keepers = {}
     upstream = trainer_factory
 
     def factory(request):
         if upstream is None:
-            created = production_trainer_factory(request, output_dir=output_dir)
+            created = production_trainer_factory(request, output_dir=directory)
         else:
             created = upstream(request)
         if request.get("kind") == "full":
             keepers["full"] = created
         return created
 
+    progress["stage"] = "full_model"
     trained = outer_train.train_one_outer_seed(
         DESIGNATED_SCALE,
         DESIGNATED_SEED,
         loaded,
         factory,
         training_sequences=prepared["sequence"],
+        artifact_dir=None if schedule_only else directory,
     )
-    if trained["training_started"] is not True or trained["muformer_train_called"] is not True:
-        raise RuntimeError("train was called but the result still says training did not start")
-    if trained["formal_training_started"]:
-        raise RuntimeError("the designated run reported the ten-seed formal experiment")
-    result = {
-        "scale": DESIGNATED_SCALE,
-        "outer_seed": DESIGNATED_SEED,
-        "training_started": True,
-        "muformer_train_called": True,
-        "formal_training_started": False,
-        "formal_ten_seed_started": False,
-        "ten_seed_entry_called": False,
-        "e_s": trained["e_s"],
-        "oof_predictions_computed": bool(trained["oof_predictions_computed"]),
-        "oof_rows": None if trained["oof_predictions"] is None else int(np.asarray(trained["oof_predictions"]).shape[0]),
-        "embeddings_computed": False,
-        "arms_trained": False,
-        "executed": True,
-        "executable": True,
-    }
-    if not compute_embeddings:
-        return result
+    _train_record_ok(trained)
+    oof_rows = None if trained["oof_predictions"] is None else int(np.asarray(trained["oof_predictions"]).shape[0])
+    if schedule_only:
+        progress["stage"] = "oof"
+        experiment_store.write_oof(
+            directory,
+            trained["oof_predictions"],
+            prepared["sequence"],
+            int(trained["e_s"]),
+            schedule_only=True,
+            weights_saved=False,
+        )
+        experiment_store.mark_complete(directory)
+        return {
+            "scale": DESIGNATED_SCALE,
+            "outer_seed": DESIGNATED_SEED,
+            "training_started": True,
+            "muformer_train_called": True,
+            "formal_training_started": False,
+            "formal_ten_seed_started": False,
+            "ten_seed_entry_called": False,
+            "e_s": trained["e_s"],
+            "oof_predictions_computed": bool(trained["oof_predictions_computed"]),
+            "oof_rows": oof_rows,
+            "embeddings_computed": False,
+            "arms_trained": False,
+            "executed": True,
+            "executable": True,
+            "schedule_only": True,
+            "weights_saved": False,
+        }
     if trained["oof_predictions"] is None:
         raise RuntimeError("residual arms require one OOF prediction per training row")
+    progress["stage"] = "embeddings"
     index = feature_align.FeatureIndex(feature_align.table_path())
     model = frozen_pmlm.load_independent_pretrained(str(CHECKPOINT))
     if model.training or any(bool(parameter.requires_grad) for parameter in model.parameters()):
@@ -369,6 +474,12 @@ def run_designated_single_seed(
     )
     test_embedded = frozen_pmlm.embed_sequences(
         model, test_aligned["sequence"], index, checkpoint=CHECKPOINT, batch_size=2,
+    )
+    experiment_store.write_embedding_identity(
+        directory,
+        train_embedded["metadata"],
+        valid_embedded["metadata"],
+        test_embedded["metadata"],
     )
     valid_base = np.asarray(trained["s_mu_f"], dtype=np.float64)
     valid_names = [str(item) for item in np.asarray(trained["s_mu_f_sequences"]).tolist()]
@@ -389,6 +500,7 @@ def run_designated_single_seed(
         values = np.asarray(test_scored["df"]["prediction"], dtype=np.float64)
         return values, names
 
+    progress["stage"] = "arms"
     arms = fit_three_arms(
         train_batch=_batch_from_rows(prepared["values"], prepared["mask"], train_embedded),
         train_scores=prepared["score"],
@@ -407,7 +519,28 @@ def run_designated_single_seed(
         val_idx=loaded["residual_val_idx"],
         outer_seed=DESIGNATED_SEED,
     )
-    result["embeddings_computed"] = True
-    result["arms_trained"] = True
-    result["arms"] = arms
-    return result
+    experiment_store.write_arms(directory, arms)
+    progress["stage"] = "report"
+    report = _report_body(
+        {
+            "training_started": trained["training_started"],
+            "muformer_train_called": trained["muformer_train_called"],
+            "loaded_saved_muformer": trained["loaded_saved_muformer"],
+            "e_s": trained["e_s"],
+            "oof_rows": oof_rows,
+        },
+        {
+            arm: {
+                "eta": arms["etas"][arm],
+                "best_epoch": arms["best_epochs"][arm],
+                "metrics": arms["metrics"][arm],
+                "point": arms["point"][arm],
+                "n_bootstrap": arms["n_bootstrap"][arm],
+                "spearman_passes": arms["spearman_passes"][arm],
+            }
+            for arm in residual.ARMS
+        },
+    )
+    experiment_store.write_report(directory, report)
+    experiment_store.mark_complete(directory)
+    return report
