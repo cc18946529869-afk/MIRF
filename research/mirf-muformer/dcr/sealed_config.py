@@ -42,6 +42,10 @@ class SealedExecution:
 
 SEALED = SealedExecution()
 
+# SHA256 of ``dcr/precheck/SHA256SUMS`` itself. Matching the lines inside that
+# file is not enough: replacing an index and the manifest together still fails.
+PRECHECK_MANIFEST_SHA256 = "eea8056329a822a51a8702759fe685c969b3a18f0cab8622668cc69a2ce3c7c6"
+
 MUFORMER_TRAIN_KEYS = frozenset({
     "epochs",
     "eval_freq",

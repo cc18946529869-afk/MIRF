@@ -90,6 +90,34 @@ class FrozenPmlm(nn.Module):
         return site, source, other
 
 
+def file_identity(path: Path) -> tuple:
+    """Device, inode, size, mtime, and ctime of the file that will be loaded."""
+    stat = Path(path).resolve().stat()
+    return (
+        int(stat.st_dev),
+        int(stat.st_ino),
+        int(stat.st_size),
+        int(stat.st_mtime_ns),
+        int(stat.st_ctime_ns),
+    )
+
+
+def bound_checkpoint_sha256(model, checkpoint: Path) -> str:
+    """The SHA256 captured when this model object was loaded.
+
+    Embedding does not hash the checkpoint path again. A file that no longer
+    has the loaded identity is refused, so a later replacement is not recorded
+    as the model that is already in memory.
+    """
+    recorded = getattr(model, "checkpoint_sha256", None)
+    if not isinstance(recorded, str) or len(recorded) != 64 or any(character not in "0123456789abcdef" for character in recorded):
+        raise RuntimeError("the loaded PMLM has no checkpoint sha256 from the weights that were loaded")
+    identity = getattr(model, "checkpoint_identity", None)
+    if identity is None or file_identity(checkpoint) != identity:
+        raise RuntimeError("the PMLM checkpoint file is not the file that was loaded")
+    return recorded
+
+
 def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
     """Load ``pmlm`` weights the way ``Trainer`` does, as a separate module.
 
@@ -104,11 +132,20 @@ def load_independent_pretrained(checkpoint_path: str) -> FrozenPmlm:
     if source not in sys.path:
         sys.path.insert(0, source)
     importlib.import_module("protein")
+    identity = file_identity(checkpoint_path)
+    digest = _sha256(checkpoint_path)
+    if file_identity(checkpoint_path) != identity:
+        raise RuntimeError("the PMLM checkpoint changed while its sha256 was being read")
     models, _args, _task = checkpoint_utils.load_model_ensemble_and_task(
         str(checkpoint_path).split(os.pathsep),
         arg_overrides={"data": str(tokendict)},
     )
-    return FrozenPmlm(models[0])
+    if file_identity(checkpoint_path) != identity:
+        raise RuntimeError("the PMLM checkpoint changed while it was being loaded")
+    loaded = FrozenPmlm(models[0])
+    loaded.checkpoint_sha256 = digest
+    loaded.checkpoint_identity = identity
+    return loaded
 
 
 def _sha256(path: Path) -> str:
@@ -173,7 +210,7 @@ def embed_sequences(model: FrozenPmlm, sequences, feature_index, *, checkpoint: 
         "other": torch.cat(others, dim=0),
         "sequence": ordered,
         "metadata": {
-            "checkpoint_sha256": _sha256(checkpoint),
+            "checkpoint_sha256": bound_checkpoint_sha256(model, checkpoint),
             "sequence_sha256": identity,
             "rows": len(ordered),
             "hidden": 1280,

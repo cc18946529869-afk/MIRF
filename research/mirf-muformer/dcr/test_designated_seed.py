@@ -165,6 +165,29 @@ class DesignatedEntryTests(unittest.TestCase):
                 ),
             )
 
+    def test_loaded_checkpoint_hash_rejects_a_replaced_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "weights.bin"
+            path.write_bytes(b"aaaa")
+            model = frozen_pmlm.FrozenPmlm(torch.nn.Linear(1, 1))
+            model.checkpoint_sha256 = experiment_store.file_sha256(path)
+            model.checkpoint_identity = frozen_pmlm.file_identity(path)
+            self.assertEqual(frozen_pmlm.bound_checkpoint_sha256(model, path), model.checkpoint_sha256)
+            stamp = path.stat()
+            handle = os.open(path, os.O_WRONLY)
+            try:
+                os.write(handle, b"bbbb")
+            finally:
+                os.close(handle)
+            os.utime(path, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            with self.assertRaises(RuntimeError) as caught:
+                frozen_pmlm.bound_checkpoint_sha256(model, path)
+            self.assertIn("not the file that was loaded", str(caught.exception))
+            bare = frozen_pmlm.FrozenPmlm(torch.nn.Linear(1, 1))
+            with self.assertRaises(RuntimeError) as missing:
+                frozen_pmlm.bound_checkpoint_sha256(bare, path)
+            self.assertIn("weights that were loaded", str(missing.exception))
+
     def test_small_real_pmlm_batch_enters_the_three_arms(self) -> None:
         self.assertTrue(CHECKPOINT.is_file())
         index = feature_align.FeatureIndex(feature_align.table_path())
@@ -182,6 +205,9 @@ class DesignatedEntryTests(unittest.TestCase):
         test_embedded = frozen_pmlm.embed_sequences(model, test_pick["sequence"], index, checkpoint=CHECKPOINT)
         self.assertEqual(tuple(train_embedded["site"].shape), (2, 1280))
         self.assertEqual(train_embedded["metadata"]["hidden"], 1280)
+        self.assertEqual(train_embedded["metadata"]["checkpoint_sha256"], model.checkpoint_sha256)
+        self.assertEqual(valid_embedded["metadata"]["checkpoint_sha256"], model.checkpoint_sha256)
+        self.assertEqual(test_embedded["metadata"]["checkpoint_sha256"], model.checkpoint_sha256)
         self.assertEqual(len(train_embedded["metadata"]["checkpoint_sha256"]), 64)
         self.assertFalse(train_embedded["metadata"]["embeddings_stored"])
         self.assertFalse(train_embedded["metadata"]["lm_head_called"])
@@ -594,6 +620,24 @@ class DesignatedEntryTests(unittest.TestCase):
             record["score_sha256"] = experiment_store.vector_sha256(record["score"])
             path.write_text(json.dumps(record))
 
+        def set_epochs_below_e_s(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["epochs_run"] = int(record["e_s"]) - 1
+            path.write_text(json.dumps(record))
+
+        def clear_restore_best(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["restore_best"] = False
+            path.write_text(json.dumps(record))
+
+        def mismatch_replaced_flag(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["replaced_with_earlier_best"] = not bool(record["replaced_with_earlier_best"])
+            path.write_text(json.dumps(record))
+
         for mutate in (
             change_full_weights,
             change_oof_sequence_sha,
@@ -617,6 +661,9 @@ class DesignatedEntryTests(unittest.TestCase):
             change_oof_but_keep_its_hash,
             delete_pmlm_identity,
             shorten_full_score,
+            set_epochs_below_e_s,
+            clear_restore_best,
+            mismatch_replaced_flag,
         ):
             with tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -634,6 +681,8 @@ class DesignatedEntryTests(unittest.TestCase):
                             resume=True,
                         )
                 self.assertNotEqual(experiment_store.read_marker(root)["status"], "complete")
+                self.assertTrue((root / "muformer" / "full.json").is_file())
+                self.assertTrue(experiment_store.weights_path(root, "full").is_file())
 
     def _two_lobe_rows(self, index, sequences, scores):
         chosen = []

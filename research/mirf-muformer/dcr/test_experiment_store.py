@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import multiprocessing
+import os
 import shutil
 import tempfile
 import time
@@ -17,6 +18,7 @@ from torch import nn
 import experiment_store
 import oof
 import outer_train
+import sealed_config
 import test_outer_train
 
 
@@ -276,6 +278,87 @@ class ExperimentStoreTests(unittest.TestCase):
             with self.assertRaises(ValueError) as caught:
                 oof.load_scale(dest, "n1000")
             self.assertIn("n1000_oof_fold0_val.txt", str(caught.exception))
+
+    def test_precheck_manifest_and_index_cannot_be_replaced_together(self) -> None:
+        source = Path(__file__).resolve().parent / "precheck"
+        with tempfile.TemporaryDirectory() as directory:
+            dest = Path(directory) / "dcr" / "precheck"
+            shutil.copytree(source, dest)
+            target = dest / "n1000_oof_fold0_val.txt"
+            target.write_text(target.read_text() + "9\n")
+            rewritten = []
+            for line in (dest / "SHA256SUMS").read_text().splitlines():
+                if line.strip() == "":
+                    continue
+                _digest, name = line.split()
+                rewritten.append(f"{oof.file_sha256(dest / name)}  {name}")
+            (dest / "SHA256SUMS").write_text("\n".join(rewritten) + "\n")
+            self.assertNotEqual(oof.file_sha256(dest / "SHA256SUMS"), sealed_config.PRECHECK_MANIFEST_SHA256)
+            self.assertNotEqual(target.read_text(), (source / "n1000_oof_fold0_val.txt").read_text())
+            with self.assertRaises(ValueError) as caught:
+                oof.load_scale(dest, "n1000")
+            self.assertIn("sealed manifest", str(caught.exception))
+            self.assertNotEqual(target.read_text(), (source / "n1000_oof_fold0_val.txt").read_text())
+
+    def test_checkpoint_cache_rehashes_a_same_size_replacement(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "checkpoint.bin"
+            path.write_bytes(b"aaaa")
+            slot: dict = {}
+            first = experiment_store.sha256_cached(path, slot)
+            stamp = path.stat()
+            handle = os.open(path, os.O_WRONLY)
+            try:
+                os.write(handle, b"bbbb")
+            finally:
+                os.close(handle)
+            os.utime(path, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            second = experiment_store.sha256_cached(path, slot)
+            self.assertEqual(second, experiment_store.file_sha256(path))
+            self.assertNotEqual(first, second)
+            self.assertEqual(experiment_store.sha256_cached(path, slot), second)
+
+    def test_full_training_record_is_refused_and_not_deleted(self) -> None:
+        sequences = _consistent_sequences()
+
+        def set_epochs_below_e_s(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["epochs_run"] = int(record["e_s"]) - 1
+            path.write_text(json.dumps(record))
+
+        def clear_restore_best(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["restore_best"] = False
+            path.write_text(json.dumps(record))
+
+        def mismatch_replaced_flag(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["replaced_with_earlier_best"] = not bool(record["replaced_with_earlier_best"])
+            path.write_text(json.dumps(record))
+
+        def bool_impersonates_epoch(root: Path) -> None:
+            path = root / "muformer" / "full.json"
+            record = json.loads(path.read_text())
+            record["e_s"] = True
+            path.write_text(json.dumps(record))
+
+        for mutate in (set_epochs_below_e_s, clear_restore_best, mismatch_replaced_flag, bool_impersonates_epoch):
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                write_consistent_run(root, sequences)
+                weights = experiment_store.weights_path(root, "full")
+                record_path = root / "muformer" / "full.json"
+                mutate(root)
+                self.assertFalse(experiment_store.report_ready(root, sequences))
+                with self.assertRaises(RuntimeError):
+                    experiment_store.require_consistent_report(root, sequences)
+                with self.assertRaises(RuntimeError):
+                    experiment_store.read_full(root)
+                self.assertTrue(weights.is_file())
+                self.assertTrue(record_path.is_file())
 
     def test_repository_directory_and_old_report_are_refused(self) -> None:
         repo = Path(__file__).resolve().parents[3]

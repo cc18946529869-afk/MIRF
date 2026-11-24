@@ -74,8 +74,15 @@ def read_index(path: Path) -> np.ndarray:
 
 
 def verify_precheck_hashes(precheck: Path) -> None:
-    """Recompute ``SHA256SUMS`` without writing the index files."""
-    lines = (Path(precheck) / "SHA256SUMS").read_text().splitlines()
+    """Recompute ``SHA256SUMS`` without writing the index files.
+
+    The manifest file has its own sealed SHA256. Rewriting that file to match
+    a changed index does not make the index acceptable.
+    """
+    manifest = Path(precheck) / "SHA256SUMS"
+    if file_sha256(manifest) != sealed_config.PRECHECK_MANIFEST_SHA256:
+        raise ValueError("SHA256SUMS does not match the sealed manifest hash")
+    lines = manifest.read_text().splitlines()
     if len(lines) != 27:
         raise ValueError("SHA256SUMS does not have the sealed 27 entries")
     for line in lines:

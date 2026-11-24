@@ -31,7 +31,7 @@ FULL_NAME = "full"
 FOLD_COUNT = 5
 PMLM_HIDDEN = 1280
 PMLM_COORDINATE_MAP = "blat_ref_pos_is_token_after_bos_v1"
-_CHECKPOINT_DIGEST: tuple | None = None
+_CHECKPOINT_CACHE: dict = {}
 
 
 def sequence_sha256(sequences) -> str:
@@ -367,27 +367,54 @@ def _read_committed(weights: Path, record_path: Path) -> dict | None:
     return None
 
 
+def _strict_positive_int(value, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise RuntimeError(f"the saved full model {label} is not a positive integer")
+    return value
+
+
+def _require_saved_full_record(record: dict) -> None:
+    """The saved full model restored the best epoch inside the completed run.
+
+    This is the same relation ``outer_train._require_full_record`` requires
+    while training: ``restore_best`` is true, and replacing an earlier epoch
+    happens exactly when ``E_s`` is before the last completed epoch.
+    """
+    e_s = _strict_positive_int(record.get("e_s"), "E_s")
+    epochs_run = _strict_positive_int(record.get("epochs_run"), "epochs_run")
+    if e_s > epochs_run:
+        raise RuntimeError("the saved full model E_s is outside the completed epochs")
+    if record.get("restore_best") is not True:
+        raise RuntimeError("the saved full model did not restore its best weights")
+    if record.get("replaced_with_earlier_best") is not (e_s < epochs_run):
+        raise RuntimeError(
+            "whether earlier weights were restored does not match E_s and the completed epochs"
+        )
+
+
 def write_full(directory: Path, trainer, result: dict) -> None:
     directory = Path(directory)
     sequences = [str(item) for item in np.asarray(result["sequences"]).tolist()]
     score, score_sha256 = _checked_vector(result["score"])
     if len(score) != len(sequences):
         raise ValueError("the validation score does not match the validation sequences")
+    payload = {
+        "e_s": int(result["e_s"]),
+        "epochs_run": int(result["epochs_run"]),
+        "restore_best": bool(result["restore_best"]),
+        "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
+        "split": str(result["split"]),
+        "score": score,
+        "score_sha256": score_sha256,
+        "sequences": sequences,
+        "sequence_sha256": sequence_sha256(sequences),
+    }
+    _require_saved_full_record(payload)
     _commit_pair(
         _weights_path(directory, FULL_NAME),
         _record_path(directory, FULL_NAME),
         module_state(trainer),
-        {
-            "e_s": int(result["e_s"]),
-            "epochs_run": int(result["epochs_run"]),
-            "restore_best": bool(result["restore_best"]),
-            "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
-            "split": str(result["split"]),
-            "score": score,
-            "score_sha256": score_sha256,
-            "sequences": sequences,
-            "sequence_sha256": sequence_sha256(sequences),
-        },
+        payload,
     )
     remember_muformer_trained(directory)
     note_stage(directory, "full_model", e_s=int(result["e_s"]))
@@ -410,6 +437,7 @@ def read_full(directory: Path) -> dict | None:
     score = _require_saved_vector(record["score"], record.get("score_sha256"), "validation score")
     if int(score.shape[0]) != len(sequences):
         raise RuntimeError("the saved validation score does not match the validation sequences")
+    _require_saved_full_record(record)
     return {
         "e_s": int(record["e_s"]),
         "epochs_run": int(record["epochs_run"]),
@@ -572,17 +600,33 @@ def _checkpoint_path() -> Path:
     return Path(__file__).resolve().parents[3] / "Mu-Protein" / "pretrained" / "pmlm_650m.pt"
 
 
+def sha256_cached(path: Path, slot: dict) -> str:
+    """SHA256 of one file. The saved digest is reused only for the same inode.
+
+    Size and mtime are not enough: a replacement can keep both. Device, inode,
+    and ctime have to match as well.
+    """
+    resolved = Path(path).resolve()
+    stat = resolved.stat()
+    key = (
+        str(resolved),
+        int(stat.st_dev),
+        int(stat.st_ino),
+        int(stat.st_size),
+        int(stat.st_mtime_ns),
+        int(stat.st_ctime_ns),
+    )
+    saved = slot.get("entry")
+    if isinstance(saved, tuple) and len(saved) == 2 and saved[0] == key:
+        return saved[1]
+    digest = file_sha256(resolved)
+    slot["entry"] = (key, digest)
+    return digest
+
+
 def _checkpoint_sha256() -> str:
     """SHA256 of the frozen PMLM file. A replaced file is hashed again."""
-    global _CHECKPOINT_DIGEST
-    path = _checkpoint_path().resolve()
-    stat = path.stat()
-    key = (str(path), int(stat.st_size), int(stat.st_mtime_ns))
-    if _CHECKPOINT_DIGEST is not None and _CHECKPOINT_DIGEST[0] == key:
-        return _CHECKPOINT_DIGEST[1]
-    digest = file_sha256(path)
-    _CHECKPOINT_DIGEST = (key, digest)
-    return digest
+    return sha256_cached(_checkpoint_path(), _CHECKPOINT_CACHE)
 
 
 def pmlm_split_record(sequences) -> dict:
