@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import unittest
@@ -467,7 +468,7 @@ class DesignatedEntryTests(unittest.TestCase):
             })
             (root / "single_seed_report.json").write_text('{"scale": "n1000"}')
             self.assertFalse((root / "single_seed_report.md").exists())
-            self.assertFalse(experiment_store.report_ready(root))
+            self.assertFalse(experiment_store.report_ready(root, sequences))
 
             def boom(*args, **kwargs):
                 raise AssertionError("training started")
@@ -487,7 +488,75 @@ class DesignatedEntryTests(unittest.TestCase):
             text = (root / "single_seed_report.md").read_text()
             self.assertIn("1975576344", text)
             self.assertIn("n1000", text)
-            self.assertTrue(experiment_store.report_ready(root))
+            self.assertTrue(experiment_store.report_ready(root, sequences))
+
+    def test_resume_does_not_complete_an_inconsistent_report(self) -> None:
+        prepared = single_seed.prepare_single_outer_seed("n1000", 1975576344)
+        sequences = list(prepared["sequence"])
+
+        def boom(*args, **kwargs):
+            raise AssertionError("training started")
+
+        def change_full_weights(root: Path) -> None:
+            weights = experiment_store.weights_path(root, "full")
+            weights.write_bytes(weights.read_bytes() + b"x")
+
+        def change_oof_sequence_sha(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["sequence_sha256"] = "0" * 64
+            path.write_text(json.dumps(record))
+
+        def change_oof_e_s(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["e_s"] = int(record["e_s"]) + 1
+            path.write_text(json.dumps(record))
+
+        def drop_one_arm(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["arms"] = ["full"]
+            path.write_text(json.dumps(record))
+
+        def delete_one_arm_weight(root: Path) -> None:
+            (root / "arms" / "sum.pt").unlink()
+
+        def change_report_e_s(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["e_s"] = int(record["e_s"]) + 1
+            path.write_text(json.dumps(record))
+
+        def change_markdown_metric(root: Path) -> None:
+            path = root / "single_seed_report.md"
+            path.write_text(path.read_text().replace("0.1", "0.9", 1))
+
+        for mutate in (
+            change_full_weights,
+            change_oof_sequence_sha,
+            change_oof_e_s,
+            drop_one_arm,
+            delete_one_arm_weight,
+            change_report_e_s,
+            change_markdown_metric,
+        ):
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                test_experiment_store.write_consistent_run(root, sequences)
+                mutate(root)
+                self.assertFalse(experiment_store.report_ready(root, sequences))
+                with patch.object(designated_seed.torch.cuda, "device_count", return_value=1), patch.object(
+                    designated_seed, "production_trainer_factory", boom
+                ):
+                    with self.assertRaises(RuntimeError):
+                        designated_seed.run_designated_single_seed(
+                            execute=True,
+                            compute_embeddings=True,
+                            output_dir=root,
+                            resume=True,
+                        )
+                self.assertNotEqual(experiment_store.read_marker(root)["status"], "complete")
 
     def _two_lobe_rows(self, index, sequences, scores):
         chosen = []

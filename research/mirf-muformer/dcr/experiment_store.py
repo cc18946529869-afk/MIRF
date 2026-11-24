@@ -23,6 +23,8 @@ LOCK_NAME = ".run.lock"
 EXPERIMENT_ID = "n1000-1975576344"
 DESIGNATED_SCALE = "n1000"
 DESIGNATED_SEED = 1975576344
+DESIGNATED_OOF_ROWS = 1000
+REQUIRED_ARMS = ("full", "sum", "no_potts")
 _HELD_LOCKS: dict[str, object] = {}
 FULL_NAME = "full"
 FOLD_COUNT = 5
@@ -498,14 +500,31 @@ def write_arms(directory: Path, arm_result: dict) -> None:
 
 
 def arms_ready(directory: Path) -> bool:
+    """True only when the saved arms are exactly full, sum, and no_potts."""
     path = Path(directory) / "arms.json"
     if not path.is_file():
         return False
-    record = _read_json(path)
-    for arm in record["arms"]:
+    try:
+        record = _read_json(path)
+    except (OSError, ValueError, RuntimeError):
+        return False
+    listed = record.get("arms")
+    if not isinstance(listed, list):
+        return False
+    names = [str(item) for item in listed]
+    if len(names) != len(REQUIRED_ARMS) or set(names) != set(REQUIRED_ARMS):
+        return False
+    by_arm = record.get("by_arm")
+    if not isinstance(by_arm, dict) or set(by_arm) != set(REQUIRED_ARMS):
+        return False
+    for arm in REQUIRED_ARMS:
+        payload = by_arm.get(arm)
         weights = Path(directory) / "arms" / f"{arm}.pt"
-        if not weights.is_file() or file_sha256(weights) != record["by_arm"][arm]["weight_sha256"]:
-            raise RuntimeError(f"the saved {arm} residual weights do not match their sha256")
+        if not isinstance(payload, dict) or not weights.is_file():
+            return False
+        recorded = payload.get("weight_sha256")
+        if not isinstance(recorded, str) or file_sha256(weights) != recorded:
+            return False
     return True
 
 
@@ -541,43 +560,14 @@ def _report_document_complete(directory: Path, report: dict) -> bool:
         return False
     if bool(report.get("muformer_train_called")) != history["muformer_train_called"]:
         return False
-    text = (directory / "single_seed_report.md").read_text()
-    if str(DESIGNATED_SEED) not in text or DESIGNATED_SCALE not in text:
-        return False
     return True
 
 
-def report_ready(directory: Path) -> bool:
-    """True only when the report matches this experiment and the saved artifacts."""
-    directory = Path(directory)
-    json_path = directory / "single_seed_report.json"
-    markdown_path = directory / "single_seed_report.md"
-    if not json_path.is_file() or not markdown_path.is_file() or markdown_path.stat().st_size == 0:
-        return False
-    if not marker_path(directory).is_file():
-        return False
-    try:
-        report = _read_json(json_path)
-        _require_identity(read_marker(directory))
-    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
-        return False
-    if not _report_document_complete(directory, report):
-        return False
-    if not (directory / "oof.json").is_file():
-        return False
-    weights = _weights_path(directory, FULL_NAME)
-    record_path = _record_path(directory, FULL_NAME)
-    if not weights.is_file() or not record_path.is_file():
-        return False
-    try:
-        return arms_ready(directory)
-    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
-        return False
+def _canonical_report(report: dict) -> dict:
+    return json.loads(json.dumps(_json_ready(report), ensure_ascii=False, sort_keys=True))
 
 
-def write_report(directory: Path, report: dict) -> dict:
-    directory = Path(directory)
-    ready = _json_ready(report)
+def _report_markdown(ready: dict) -> str:
     lines = [
         "# 单种子实验结果",
         "",
@@ -605,12 +595,64 @@ def write_report(directory: Path, report: dict) -> dict:
                 f"{delta['mean_delta']} | {delta['ci_low']} | {delta['ci_high']} |"
             )
         lines.append("")
+    return "\n".join(lines)
+
+
+def report_files_present(directory: Path) -> bool:
+    directory = Path(directory)
+    return (directory / "single_seed_report.json").is_file() and (directory / "single_seed_report.md").is_file()
+
+
+def report_ready(directory: Path, sequences) -> bool:
+    """True only when the report, weights, OOF, and the three arms agree."""
+    directory = Path(directory)
+    json_path = directory / "single_seed_report.json"
+    markdown_path = directory / "single_seed_report.md"
+    if not json_path.is_file() or not markdown_path.is_file() or markdown_path.stat().st_size == 0:
+        return False
+    if not marker_path(directory).is_file():
+        return False
+    try:
+        report = _read_json(json_path)
+        _require_identity(read_marker(directory))
+        if markdown_path.read_text() != _report_markdown(report):
+            return False
+        if not _report_document_complete(directory, report):
+            return False
+        names = [str(item) for item in sequences]
+        if len(names) != DESIGNATED_OOF_ROWS:
+            return False
+        full = read_full(directory)
+        if full is None:
+            return False
+        oof_record = read_oof(directory, names)
+        if int(oof_record["rows"]) != DESIGNATED_OOF_ROWS:
+            return False
+        if bool(oof_record.get("schedule_only")) or not bool(oof_record.get("weights_saved")):
+            return False
+        if int(report["e_s"]) != int(full["e_s"]) or int(oof_record["e_s"]) != int(full["e_s"]):
+            return False
+        return arms_ready(directory)
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+        return False
+
+
+def require_consistent_report(directory: Path, sequences) -> None:
+    """Refuse to treat this directory as finished when any artifact disagrees."""
+    if not report_ready(directory, sequences):
+        raise RuntimeError("the saved report does not match the experiment artifacts")
+
+
+def write_report(directory: Path, report: dict) -> dict:
+    directory = Path(directory)
+    ready = _canonical_report(report)
+    text = _report_markdown(ready)
     json_path = directory / "single_seed_report.json"
     markdown_path = directory / "single_seed_report.md"
     json_partial = json_path.with_name(json_path.name + ".partial")
     markdown_partial = markdown_path.with_name(markdown_path.name + ".partial")
     _write_json(json_partial, ready)
-    markdown_partial.write_text("\n".join(lines))
+    markdown_partial.write_text(text)
     json_partial.replace(json_path)
     markdown_partial.replace(markdown_path)
     note_stage(directory, "report")

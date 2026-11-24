@@ -405,10 +405,13 @@ def _report_body(trained: dict, by_arm: dict) -> dict:
 
 
 def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedule_only: bool, progress: dict) -> dict:
-    if not schedule_only and experiment_store.report_ready(directory):
+    if not schedule_only and experiment_store.report_files_present(directory):
+        experiment_store.require_consistent_report(directory, prepared["sequence"])
         experiment_store.mark_complete(directory)
         return experiment_store.read_report(directory)
-    if not schedule_only and experiment_store.arms_ready(directory):
+    if not schedule_only and (Path(directory) / "arms.json").is_file():
+        if not experiment_store.arms_ready(directory):
+            raise RuntimeError("the saved residual arms are not the three designated arms")
         progress["stage"] = "report"
         saved_arms = experiment_store.read_arms(directory)
         full = experiment_store.read_full(directory)
@@ -428,6 +431,7 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
             saved_arms["by_arm"],
         )
         experiment_store.write_report(directory, report)
+        experiment_store.require_consistent_report(directory, prepared["sequence"])
         experiment_store.mark_complete(directory)
         return report
 
@@ -574,5 +578,6 @@ def _execute_claimed(directory: Path, prepared: dict, *, trainer_factory, schedu
         },
     )
     experiment_store.write_report(directory, report)
+    experiment_store.require_consistent_report(directory, prepared["sequence"])
     experiment_store.mark_complete(directory)
     return report

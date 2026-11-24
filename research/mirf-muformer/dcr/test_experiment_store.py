@@ -93,6 +93,68 @@ class _LoadableFactory:
 _FactoryBase = test_outer_train._Factory
 
 
+def _consistent_sequences() -> list[str]:
+    return [f"seq{index}" for index in range(1000)]
+
+
+def write_consistent_run(root: Path, sequences, e_s: int = 4) -> None:
+    """Write one finished directory whose report matches the saved artifacts."""
+    experiment_store.open_run(root, resume=False, schedule_only=False)
+    holder = _Holder(_Factory())
+    experiment_store.write_full(root, holder, {
+        "e_s": int(e_s),
+        "epochs_run": int(e_s),
+        "restore_best": True,
+        "replaced_with_earlier_best": False,
+        "split": "validation",
+        "score": np.array([1.0, 2.0]),
+        "sequences": np.array(["valid-a", "valid-b"]),
+    })
+    experiment_store.write_oof(
+        root,
+        np.zeros(len(sequences)),
+        sequences,
+        int(e_s),
+        schedule_only=False,
+        weights_saved=True,
+    )
+    names = ("spearman", "pearson", "ndcg", "recall", "rmse")
+    scored = {name: {"mean_delta": 0.1, "ci_low": -0.2, "ci_high": 0.4} for name in names}
+    point = {name: 0.5 for name in names}
+    arms = ("full", "sum", "no_potts")
+    experiment_store.write_arms(root, {
+        "arms": list(arms),
+        "etas": {arm: 0.0 for arm in arms},
+        "best_epochs": {arm: 1 for arm in arms},
+        "n_bootstrap": {arm: 10000 for arm in arms},
+        "spearman_passes": {arm: False for arm in arms},
+        "metrics": {arm: scored for arm in arms},
+        "point": {arm: {"baseline": point, "fused": point} for arm in arms},
+        "state_dict": {arm: {"weight": torch.zeros(1)} for arm in arms},
+        "shared_init": True,
+        "shared_first_order": True,
+    })
+    experiment_store.write_report(root, {
+        "scale": "n1000",
+        "outer_seed": 1975576344,
+        "formal_experiment": False,
+        "ten_seed_conclusion": False,
+        "training_started": True,
+        "muformer_train_called": True,
+        "e_s": int(e_s),
+        "oof_rows": len(sequences),
+        "by_arm": {
+            arm: {
+                "eta": 0.0,
+                "best_epoch": 1,
+                "metrics": scored,
+                "point": {"baseline": point, "fused": point},
+            }
+            for arm in arms
+        },
+    })
+
+
 class ExperimentStoreTests(unittest.TestCase):
     def test_incomplete_directory_requires_resume_and_a_finished_one_refuses(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -334,3 +396,64 @@ class ExperimentStoreTests(unittest.TestCase):
             self.assertTrue(kept.is_file())
             self.assertIsNotNone(experiment_store.read_fold(root, 0))
             np.testing.assert_array_equal(trained["oof_predictions"], np.arange(int(loaded["n"])))
+
+    def test_a_consistent_report_passes_and_each_mismatch_fails(self) -> None:
+        sequences = _consistent_sequences()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_consistent_run(root, sequences)
+            self.assertTrue(experiment_store.report_ready(root, sequences))
+            self.assertTrue(experiment_store.arms_ready(root))
+
+        def reject(mutate) -> None:
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                write_consistent_run(root, sequences)
+                mutate(root)
+                self.assertFalse(experiment_store.report_ready(root, sequences))
+
+        def change_full_weights(root: Path) -> None:
+            weights = experiment_store.weights_path(root, "full")
+            weights.write_bytes(weights.read_bytes() + b"x")
+
+        def change_oof_sequence_sha(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["sequence_sha256"] = "0" * 64
+            path.write_text(json.dumps(record))
+
+        def change_oof_e_s(root: Path) -> None:
+            path = root / "oof.json"
+            record = json.loads(path.read_text())
+            record["e_s"] = int(record["e_s"]) + 1
+            path.write_text(json.dumps(record))
+
+        def drop_one_arm(root: Path) -> None:
+            path = root / "arms.json"
+            record = json.loads(path.read_text())
+            record["arms"] = ["full"]
+            path.write_text(json.dumps(record))
+
+        def delete_one_arm_weight(root: Path) -> None:
+            (root / "arms" / "sum.pt").unlink()
+
+        def change_report_e_s(root: Path) -> None:
+            path = root / "single_seed_report.json"
+            record = json.loads(path.read_text())
+            record["e_s"] = int(record["e_s"]) + 1
+            path.write_text(json.dumps(record))
+
+        def change_markdown_metric(root: Path) -> None:
+            path = root / "single_seed_report.md"
+            text = path.read_text()
+            self.assertIn("1975576344", text)
+            path.write_text(text.replace("0.1", "0.9", 1))
+            self.assertIn("1975576344", path.read_text())
+
+        reject(change_full_weights)
+        reject(change_oof_sequence_sha)
+        reject(change_oof_e_s)
+        reject(drop_one_arm)
+        reject(delete_one_arm_weight)
+        reject(change_report_e_s)
+        reject(change_markdown_metric)
