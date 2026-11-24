@@ -394,22 +394,27 @@ def _require_saved_full_record(record: dict) -> None:
 
 def write_full(directory: Path, trainer, result: dict) -> None:
     directory = Path(directory)
+    _require_saved_full_record({
+        "e_s": result["e_s"],
+        "epochs_run": result["epochs_run"],
+        "restore_best": result["restore_best"],
+        "replaced_with_earlier_best": result["replaced_with_earlier_best"],
+    })
     sequences = [str(item) for item in np.asarray(result["sequences"]).tolist()]
     score, score_sha256 = _checked_vector(result["score"])
     if len(score) != len(sequences):
         raise ValueError("the validation score does not match the validation sequences")
     payload = {
-        "e_s": int(result["e_s"]),
-        "epochs_run": int(result["epochs_run"]),
-        "restore_best": bool(result["restore_best"]),
-        "replaced_with_earlier_best": bool(result["replaced_with_earlier_best"]),
+        "e_s": result["e_s"],
+        "epochs_run": result["epochs_run"],
+        "restore_best": result["restore_best"],
+        "replaced_with_earlier_best": result["replaced_with_earlier_best"],
         "split": str(result["split"]),
         "score": score,
         "score_sha256": score_sha256,
         "sequences": sequences,
         "sequence_sha256": sequence_sha256(sequences),
     }
-    _require_saved_full_record(payload)
     _commit_pair(
         _weights_path(directory, FULL_NAME),
         _record_path(directory, FULL_NAME),

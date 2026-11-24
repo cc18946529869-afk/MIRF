@@ -360,6 +360,73 @@ class ExperimentStoreTests(unittest.TestCase):
                 self.assertTrue(weights.is_file())
                 self.assertTrue(record_path.is_file())
 
+    def test_write_full_rejects_untyped_fields_before_storage(self) -> None:
+        valid = {
+            "e_s": 4,
+            "epochs_run": 4,
+            "restore_best": True,
+            "replaced_with_earlier_best": False,
+            "split": "validation",
+            "score": np.array([1.0, 2.0]),
+            "sequences": np.array(["valid-a", "valid-b"]),
+        }
+        illegal = (
+            {"e_s": True},
+            {"epochs_run": True},
+            {"restore_best": 1},
+            {"restore_best": "true"},
+            {"replaced_with_earlier_best": 0},
+        )
+
+        class _Unused:
+            pass
+
+        for override in illegal:
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                result = dict(valid)
+                result.update(override)
+                with self.assertRaises(RuntimeError):
+                    experiment_store.write_full(root, _Unused(), result)
+                self.assertFalse((root / "muformer" / "full.json").exists())
+                self.assertFalse((root / "muformer" / "full.pt").exists())
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            experiment_store.open_run(root, resume=False, schedule_only=False)
+            holder = _Holder(_Factory())
+            experiment_store.write_full(root, holder, valid)
+            kept = (root / "muformer" / "full.json").read_text()
+            rejected = dict(valid)
+            rejected["e_s"] = True
+            with self.assertRaises(RuntimeError):
+                experiment_store.write_full(root, holder, rejected)
+            self.assertEqual((root / "muformer" / "full.json").read_text(), kept)
+            self.assertIsNotNone(experiment_store.read_full(root))
+
+    def test_model_records_reject_raw_types_before_coercion(self) -> None:
+        class _Trainer:
+            def __init__(self, **fields):
+                self.epochs_completed = fields["epochs_completed"]
+                self.best_epoch_per_model = fields["best_epoch"]
+                self.restored_best_weights = fields["restored_best"]
+                self.restored_earlier_weights = fields["restored_earlier"]
+                self.best_epochs = fields["saved_best"]
+
+        illegal = (
+            {"epochs_completed": [True], "best_epoch": [1], "restored_best": [True], "restored_earlier": [False], "saved_best": [1]},
+            {"epochs_completed": [4], "best_epoch": [True], "restored_best": [True], "restored_earlier": [False], "saved_best": [1]},
+            {"epochs_completed": [4], "best_epoch": [4], "restored_best": [1], "restored_earlier": [False], "saved_best": [4]},
+            {"epochs_completed": [4], "best_epoch": [4], "restored_best": ["true"], "restored_earlier": [False], "saved_best": [4]},
+            {"epochs_completed": [4], "best_epoch": [4], "restored_best": [True], "restored_earlier": [0], "saved_best": [4]},
+        )
+        for fields in illegal:
+            trainer = _Trainer(**fields)
+            with self.assertRaises(RuntimeError):
+                outer_train._model_records(trainer)
+            with self.assertRaises(RuntimeError):
+                outer_train._require_full_record(trainer)
+
     def test_repository_directory_and_old_report_are_refused(self) -> None:
         repo = Path(__file__).resolve().parents[3]
         with tempfile.TemporaryDirectory(dir=repo) as directory:

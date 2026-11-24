@@ -84,26 +84,38 @@ def _listed(trainer, name: str):
     return list(value)
 
 
+def _require_bool(value, label: str) -> bool:
+    if value is not True and value is not False:
+        raise RuntimeError(f"{label} is not a boolean")
+    return value
+
+
+def _require_positive_epoch(value, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise RuntimeError(f"{label} is not a positive integer")
+    return value
+
+
 def _check_model_record(record: dict) -> None:
-    """The four recorded facts have to agree with each other."""
-    completed = int(record["epochs_completed"])
+    """The four recorded facts have to agree before any type is coerced."""
+    completed = record["epochs_completed"]
     best_epoch = record["best_epoch"]
-    restored_best = bool(record["restored_best_weights"])
-    restored_earlier = bool(record["restored_earlier_weights"])
-    if completed < 1:
-        raise RuntimeError("the trainer did not record a completed epoch")
+    restored_best = record["restored_best_weights"]
+    restored_earlier = record["restored_earlier_weights"]
+    _require_positive_epoch(completed, "epochs_completed")
+    _require_bool(restored_best, "restored_best_weights")
+    _require_bool(restored_earlier, "restored_earlier_weights")
+    if isinstance(best_epoch, bool) or (best_epoch is not None and (not isinstance(best_epoch, int) or best_epoch < 1)):
+        raise RuntimeError("best_epoch is not a positive integer")
     if restored_earlier and not restored_best:
         raise RuntimeError("earlier weights were restored without restoring the best weights")
     if not restored_best:
         if best_epoch is not None:
             raise RuntimeError("a fold model selected a best epoch on the held-out fold")
         return
-    if best_epoch is None:
-        raise RuntimeError("E_s is recorded only when is_best is true")
-    best_epoch = int(best_epoch)
-    if best_epoch < 1 or best_epoch > completed:
+    if best_epoch is None or best_epoch > completed:
         raise RuntimeError("the best epoch is outside the completed epochs")
-    if restored_earlier != (best_epoch < completed):
+    if restored_earlier is not (best_epoch < completed):
         raise RuntimeError(
             "whether earlier weights were restored does not match the best epoch and the completed epochs"
         )
@@ -120,14 +132,14 @@ def _model_records(trainer) -> list[dict]:
         raise RuntimeError("the trainer record of completed epochs, best epoch, and restored weights is incomplete")
     records = []
     for done, best_epoch, did_restore, did_replace in zip(completed, best_epochs, restored_best, restored_earlier):
-        records.append(
-            {
-                "epochs_completed": int(done),
-                "best_epoch": None if best_epoch is None else int(best_epoch),
-                "restored_best_weights": bool(did_restore),
-                "restored_earlier_weights": bool(did_replace),
-            }
-        )
+        raw = {
+            "epochs_completed": done,
+            "best_epoch": best_epoch,
+            "restored_best_weights": did_restore,
+            "restored_earlier_weights": did_replace,
+        }
+        _check_model_record(raw)
+        records.append(raw)
     return records
 
 
@@ -138,9 +150,9 @@ def _require_full_record(trainer) -> dict:
         raise RuntimeError("the best epoch was not recorded once for each model")
     for saved, record in zip(saved_best, records):
         _check_model_record(record)
-        if saved is None or record["best_epoch"] is None or int(saved) != int(record["best_epoch"]):
+        if isinstance(saved, bool) or not isinstance(saved, int) or saved < 1 or saved != record["best_epoch"]:
             raise RuntimeError("E_s is recorded only when is_best is true")
-        if not record["restored_best_weights"]:
+        if record["restored_best_weights"] is not True:
             raise RuntimeError("the full model did not restore its best weights")
     return records[-1]
 
@@ -153,7 +165,7 @@ def _require_fold_record(trainer, request: dict) -> dict:
         _check_model_record(record)
         if record["best_epoch"] is not None or record["restored_best_weights"] or record["restored_earlier_weights"]:
             raise RuntimeError("a fold model restored or selected weights on the held-out fold")
-        if int(record["epochs_completed"]) != int(request["epochs"]):
+        if record["epochs_completed"] != int(request["epochs"]):
             raise RuntimeError("a fold model did not complete this seed's E_s epochs")
     return records[-1]
 
@@ -289,20 +301,20 @@ def execute_muformer_request(trainer, request: dict) -> dict:
         )
         score, sequences = _rows_from_score(scored, valid_df)
         return {
-            "e_s": int(record["best_epoch"]),
+            "e_s": record["best_epoch"],
             "score": score,
             "sequences": sequences,
             "split": "validation",
-            "epochs_run": int(record["epochs_completed"]),
-            "restore_best": bool(record["restored_best_weights"]),
-            "replaced_with_earlier_best": bool(record["restored_earlier_weights"]),
+            "epochs_run": record["epochs_completed"],
+            "restore_best": record["restored_best_weights"],
+            "replaced_with_earlier_best": record["restored_earlier_weights"],
         }
     record = _require_fold_record(trainer, request)
     return {
-        "epochs_run": int(record["epochs_completed"]),
-        "restore_best": bool(record["restored_best_weights"]),
+        "epochs_run": record["epochs_completed"],
+        "restore_best": record["restored_best_weights"],
         "train_idx": _recorded_fold_rows(trainer, request),
-        "replaced_with_earlier_best": bool(record["restored_earlier_weights"]),
+        "replaced_with_earlier_best": record["restored_earlier_weights"],
     }
 
 

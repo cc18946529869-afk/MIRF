@@ -1,0 +1,17 @@
+# 单卡小批量
+
+这不是正式实验，也没有调用 `Trainer.train`。进程只看见一张卡。
+
+```bash
+cd research/mirf-muformer/dcr
+env -u PYTHONPATH CUDA_VISIBLE_DEVICES=0 \
+  /home/cc233/miniforge3/envs/nsf310/bin/python gpu_smoke.py
+```
+
+解释器是 Python 3.10.20，torch 2.6.0。退出码 0。结果：
+
+```json
+{"adam_lrs": [1e-05, 0.0001], "batch_rows": 2, "cuda_visible_devices": "0", "device_count": 1, "device_index": 0, "distributed": false, "distributed_init_called": false, "finite_gradients": 567, "gpu_name": "NVIDIA RTX A6000", "loss": 1.6432570219039917, "models": 1, "optimizer_stepped": false, "parameter_device": "cuda:0", "trainer_train_called": false}
+```
+
+生产 Trainer 在这张 A6000 上初始化。参数在 `cuda:0`。一个真实的 2 行 batch 完成前向，损失有限，反向得到 567 个有限梯度。没有进入分布式初始化，没有执行优化器更新，没有启动六个 μFormer。
